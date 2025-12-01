@@ -46,12 +46,12 @@ export function BackgroundPaths({ title = "Academic Projects Done Right" }: { ti
       </div>
       <div className="relative z-10 container mx-auto px-4 md:px-6 text-center">
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 2 }} className="max-w-4xl mx-auto">
-          <h1 className="text-5xl md:text-7xl font-bold mb-8 bg-clip-text text-transparent bg-gradient-to-b from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400">
+          <h1 className="text-5xl md:text-7xl font-bold mb-8 bg-clip-text text-transparent bg-gradient-to-b" style={{ backgroundImage: 'linear-gradient(to bottom, var(--gradient-start), var(--gradient-end))' }}>
             {title}
           </h1>
           <div className="mb-12 text-xl md:text-2xl text-muted-foreground">
             Expert assistance for{" "}
-            <MorphingText texts={words} className="text-white" />
+            <MorphingText texts={words} />
           </div>
           <div className="flex justify-center w-full">
             <GlassButton>

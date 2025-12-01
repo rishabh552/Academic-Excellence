@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, HTMLAttributes, useCallback } from 'react';
-import { cn } from "../../lib/utils";
+import { cn } from "@/lib/utils";
 import { Check, ArrowRight, ExternalLink, X } from "lucide-react";
 
 // Define the type for a single gallery item
@@ -58,7 +58,7 @@ const CircularGallery = React.forwardRef<HTMLDivElement, CircularGalleryProps>(
             if (lastTimeRef.current === 0) {
                 lastTimeRef.current = currentTime;
             }
-            
+
             const deltaTime = Math.min((currentTime - lastTimeRef.current) / 1000, 0.1);
             lastTimeRef.current = currentTime;
 
@@ -133,7 +133,7 @@ const CircularGallery = React.forwardRef<HTMLDivElement, CircularGalleryProps>(
         const handleCardClick = (index: number, isFront: boolean) => {
             if (!isFront || isDraggingRef.current) return;
             if (Math.abs(velocityRef.current) > 1) return; // Don't flip if still moving fast
-            
+
             setFlippedIndex(prev => prev === index ? null : index);
         };
 
@@ -173,7 +173,7 @@ const CircularGallery = React.forwardRef<HTMLDivElement, CircularGalleryProps>(
                         const totalRotation = ((rotation % 360) + 360) % 360;
                         const relativeAngle = ((itemAngle - totalRotation) % 360 + 360) % 360;
                         const normalizedAngle = relativeAngle > 180 ? 360 - relativeAngle : relativeAngle;
-                        
+
                         const isFront = normalizedAngle < 45;
                         const isVisible = normalizedAngle < 100;
                         const scale = Math.max(0.75, 1 - normalizedAngle / 250);
@@ -210,11 +210,11 @@ const CircularGallery = React.forwardRef<HTMLDivElement, CircularGalleryProps>(
                                         className={cn(
                                             "absolute inset-0 w-full h-full rounded-2xl overflow-hidden",
                                             "bg-neutral-900 border-2",
-                                            isFront 
-                                                ? `${colorScheme.border} shadow-2xl` 
+                                            isFront
+                                                ? `${colorScheme.border} shadow-2xl`
                                                 : "border-white/5 shadow-lg"
                                         )}
-                                        style={{ 
+                                        style={{
                                             backfaceVisibility: 'hidden',
                                             WebkitBackfaceVisibility: 'hidden',
                                         }}
@@ -229,7 +229,7 @@ const CircularGallery = React.forwardRef<HTMLDivElement, CircularGalleryProps>(
                                                 loading="lazy"
                                             />
                                             <div className="absolute inset-0 bg-gradient-to-t from-neutral-900 via-transparent to-transparent" />
-                                            
+
                                             {/* Badge */}
                                             <span className={cn(
                                                 "absolute top-3 left-3 px-3 py-1 text-xs font-bold uppercase rounded-full text-white",
@@ -247,7 +247,7 @@ const CircularGallery = React.forwardRef<HTMLDivElement, CircularGalleryProps>(
                                             <p className="text-sm text-gray-400 line-clamp-3 flex-grow">
                                                 {item.description}
                                             </p>
-                                            
+
                                             {isFront && (
                                                 <div className={cn(
                                                     "flex items-center gap-1 text-xs font-medium mt-3",
@@ -267,7 +267,7 @@ const CircularGallery = React.forwardRef<HTMLDivElement, CircularGalleryProps>(
                                             "bg-neutral-900 border-2 shadow-2xl",
                                             colorScheme.border
                                         )}
-                                        style={{ 
+                                        style={{
                                             backfaceVisibility: 'hidden',
                                             WebkitBackfaceVisibility: 'hidden',
                                             transform: 'rotateY(180deg)',
@@ -278,7 +278,7 @@ const CircularGallery = React.forwardRef<HTMLDivElement, CircularGalleryProps>(
                                             "absolute top-0 left-0 right-0 h-1.5 rounded-t-2xl",
                                             `bg-gradient-to-r ${colorScheme.badge.replace('bg-', 'from-')} to-transparent`
                                         )} />
-                                        
+
                                         <div className="flex items-start justify-between mb-3 mt-1">
                                             <div className="flex-1 min-w-0">
                                                 <span className={cn(
@@ -291,7 +291,7 @@ const CircularGallery = React.forwardRef<HTMLDivElement, CircularGalleryProps>(
                                                     {item.common}
                                                 </h3>
                                             </div>
-                                            <button 
+                                            <button
                                                 className="p-1.5 rounded-lg hover:bg-white/10 transition-colors border border-white/10 ml-2 flex-shrink-0"
                                                 onClick={(e) => { e.stopPropagation(); setFlippedIndex(null); }}
                                             >
@@ -325,8 +325,8 @@ const CircularGallery = React.forwardRef<HTMLDivElement, CircularGalleryProps>(
                                                         <span className="text-xs text-gray-300 leading-relaxed">{feature}</span>
                                                     </li>
                                                 )) || (
-                                                    <li className="text-gray-500 text-xs italic">No features listed.</li>
-                                                )}
+                                                        <li className="text-gray-500 text-xs italic">No features listed.</li>
+                                                    )}
                                             </ul>
                                         </div>
 

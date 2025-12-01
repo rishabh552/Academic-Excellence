@@ -1,5 +1,5 @@
-import { CircularGallery, GalleryItem } from "../components/ui/circular-gallery";
-import { GradientHeadline } from "../components/ui/gradient-headline";
+import { CircularGallery, GalleryItem } from "@/components/ui/circular-gallery";
+import { GradientHeadline } from "@/components/ui/gradient-headline";
 import { motion } from "framer-motion";
 import { MousePointer2, RotateCcw, Sparkles } from "lucide-react";
 
@@ -171,7 +171,7 @@ export function ProjectShowcase() {
                         Featured Work
                     </div>
                 </motion.div>
-                
+
                 <GradientHeadline
                     text="Project Gallery"
                     className="text-4xl md:text-6xl mb-4"

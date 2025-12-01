@@ -1,4 +1,4 @@
-import { AboutSection } from "../components/about-section";
+import { AboutSection } from "@/components/about-section";
 
 export function Process() {
     return (

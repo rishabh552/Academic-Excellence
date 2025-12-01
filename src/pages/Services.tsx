@@ -1,4 +1,4 @@
-import { ServicesSection } from "../components/services-section";
+import { ServicesSection } from "@/components/services-section";
 
 export function Services() {
     return (

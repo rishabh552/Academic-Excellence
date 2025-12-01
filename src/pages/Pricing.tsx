@@ -1,4 +1,4 @@
-import { PricingSection } from "../components/pricing-section";
+import { PricingSection } from "@/components/pricing-section";
 
 export function Pricing() {
     return (

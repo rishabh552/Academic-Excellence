@@ -14,6 +14,95 @@
     --card: 240 3.7% 15.9%;
     /* Zinc 800 #27272a */
     --card-foreground: 0 0% 98%;
+    /* Zinc 50 */
+
+    --popover: 240 5.9% 10%;
+    /* Zinc 900 */
+    --popover-foreground: 0 0% 98%;
+
+    --primary: 263.4 70% 50.4%;
+    /* Vibrant Purple (darker) #8b5cf6 */
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 240 3.7% 15.9%;
+    /* Zinc 800 */
+    --secondary-foreground: 0 0% 98%;
+    /* Zinc 50 */
+
+    --muted: 240 3.7% 15.9%;
+    /* Zinc 800 */
+    --muted-foreground: 240 5% 64.9%;
+    /* Zinc 400 */
+
+    --accent: 240 3.7% 15.9%;
+    /* Zinc 800 */
+    --accent-foreground: 0 0% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    /* Red 900 (darker) */
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 240 3.7% 15.9%;
+    /* Zinc 800 */
+    --input: 240 3.7% 15.9%;
+    --ring: 263.4 70% 50.4%;
+    /* Primary dark */
+
+    --radius: 0.5rem;
+
+    /* Gradient colors for text - Dark mode (brighter) */
+    --gradient-start: #60a5fa;
+    /* Blue 400 */
+    --gradient-middle: #a78bfa;
+    /* Violet 400 */
+    --gradient-end: #f472b6;
+    /* Pink 400 */
+  }
+
+  .light {
+    /* Light Mode - Override Theme */
+    --background: 0 0% 100%;
+    /* White #FFFFFF */
+    --foreground: 240 10% 3.9%;
+    /* Zinc 950 #09090b */
+
+    --card: 0 0% 100%;
+    /* White */
+    --card-foreground: 240 10% 3.9%;
+    /* Zinc 950 */
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 3.9%;
+
+    --primary: 262.1 83.3% 57.8%;
+    /* Vibrant Purple #a855f7 */
+    --primary-foreground: 210 40% 98%;
+    /* Near White #f8fafc */
+
+    --secondary: 240 4.8% 95.9%;
+    /* Zinc 100 #f4f4f5 */
+    --secondary-foreground: 240 5.9% 10%;
+    /* Zinc 900 #18181b */
+
+    --muted: 240 4.8% 95.9%;
+    /* Zinc 100 */
+    --muted-foreground: 240 3.8% 46.1%;
+    /* Zinc 600 */
+
+    --accent: 240 4.8% 95.9%;
+    /* Zinc 100 */
+    --accent-foreground: 240 5.9% 10%;
+    /* Zinc 900 */
+
+    --destructive: 0 84.2% 60.2%;
+    /* Red 500 */
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 240 5.9% 90%;
+    /* Zinc 200 */
+    --input: 240 5.9% 90%;
+    --ring: 262.1 83.3% 57.8%;
+    /* Primary color */
 
     /* Gradient colors for text - Light mode */
     --gradient-start: #2563eb;
@@ -22,42 +111,6 @@
     /* Violet 600 */
     --gradient-end: #db2777;
     /* Pink 600 */
-
-    --popover: 240 5.9% 10%;
-    --popover-foreground: 0 0% 98%;
-
-    --primary: 263.4 70% 50.4%;
-    /* Vibrant Purple */
-    --primary-foreground: 210 40% 98%;
-
-    --secondary: 240 3.7% 15.9%;
-    --secondary-foreground: 0 0% 98%;
-
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 64.9%;
-
-    --accent: 240 3.7% 15.9%;
-    --accent-foreground: 0 0% 98%;
-    --card: 0 0% 100%;
-    --card-foreground: 240 10% 3.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 3.9%;
-    --primary: 262.1 83.3% 57.8%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 240 4.8% 95.9%;
-    --secondary-foreground: 240 5.9% 10%;
-    --muted: 240 4.8% 95.9%;
-    --muted-foreground: 240 3.8% 46.1%;
-  }
-
-  .dark {
-    /* Gradient colors for text - Dark mode (brighter) */
-    --gradient-start: #60a5fa;
-    /* Blue 400 */
-    --gradient-middle: #a78bfa;
-    /* Violet 400 */
-    --gradient-end: #f472b6;
-    /* Pink 400 */
   }
 
   body {
