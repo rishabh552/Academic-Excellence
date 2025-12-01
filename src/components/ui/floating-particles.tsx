@@ -13,7 +13,7 @@ interface Particle {
     color: string;
 }
 
-export function FloatingParticles() {
+export function FloatingParticles({ customColors }: { customColors?: string[] }) {
     const [particles, setParticles] = useState<Particle[]>([]);
     const mouseX = useMotionValue(0);
     const mouseY = useMotionValue(0);
@@ -26,7 +26,7 @@ export function FloatingParticles() {
     useEffect(() => {
         // Generate particles
         const generatedParticles: Particle[] = [];
-        const colors = [
+        const colors = customColors || [
             "rgba(102, 126, 234, 0.4)",  // Blue
             "rgba(118, 75, 162, 0.4)",   // Purple
             "rgba(34, 211, 238, 0.3)",   // Cyan
@@ -46,7 +46,7 @@ export function FloatingParticles() {
         }
 
         setParticles(generatedParticles);
-    }, []);
+    }, [customColors]);
 
     const handleMouseMove = (e: React.MouseEvent) => {
         mouseX.set(e.clientX);
