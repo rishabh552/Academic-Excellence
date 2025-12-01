@@ -57,6 +57,22 @@
     /* Violet 400 */
     --gradient-end: #f472b6;
     /* Pink 400 */
+
+    /* Enhanced Neon Accent Colors (from dark.design) */
+    --success-green: #42D180;
+    /* Neon green for completed steps */
+    --electric-cyan: #22D3EE;
+    /* Cyan accent */
+    --warning-amber: #F5A524;
+    /* Active step indicator */
+
+    /* Background Elevation Levels (dark-optimized) */
+    --bg-elevated-1: #1E1E1E;
+    /* Slightly elevated cards */
+    --bg-elevated-2: #2A2A2A;
+    /* Hover state */
+    --bg-elevated-3: #363636;
+    /* Active/highest elevation */
   }
 
   .light {
@@ -166,4 +182,76 @@ html {
 
 .rotate-y-180 {
   transform: rotateY(180deg);
+}
+
+/* Neon Glow Effects (dark.design inspired) */
+@keyframes pulse-glow {
+
+  0%,
+  100% {
+    box-shadow:
+      0 0 20px rgba(91, 141, 239, 0.3),
+      0 0 40px rgba(91, 141, 239, 0.15),
+      0 0 60px rgba(91, 141, 239, 0.08);
+  }
+
+  50% {
+    box-shadow:
+      0 0 30px rgba(91, 141, 239, 0.4),
+      0 0 60px rgba(91, 141, 239, 0.25),
+      0 0 90px rgba(91, 141, 239, 0.15);
+  }
+}
+
+.neon-glow-success {
+  box-shadow:
+    0 0 20px rgba(66, 209, 128, 0.15),
+    0 0 40px rgba(66, 209, 128, 0.08),
+    inset 0 0 20px rgba(66, 209, 128, 0.05);
+}
+
+.neon-glow-active {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.neon-glow-hover:hover {
+  box-shadow:
+    0 0 15px rgba(91, 141, 239, 0.5),
+    0 0 30px rgba(91, 141, 239, 0.3),
+    inset 0 0 10px rgba(91, 141, 239, 0.1);
+}
+
+/* Enhanced Multi-Stop Gradients (Phase 2) */
+.gradient-vibrant-blue-purple-pink {
+  background: linear-gradient(135deg,
+      #667eea 0%,
+      #764ba2 50%,
+      #f093fb 100%);
+}
+
+.gradient-cyan-blue-purple {
+  background: linear-gradient(135deg,
+      #22D3EE 0%,
+      #667eea 50%,
+      #764ba2 100%);
+}
+
+/* Animated gradient rotation */
+@keyframes gradient-rotate {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.gradient-animated {
+  background-size: 200% 200%;
+  animation: gradient-rotate 6s ease infinite;
 }

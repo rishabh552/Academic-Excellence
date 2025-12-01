@@ -1,9 +1,9 @@
-import { AboutSection } from "@/components/about-section";
+import { ProcessSection } from "@/components/process-section";
 
 export function Process() {
     return (
         <div className="pt-20 font-sans-secondary">
-            <AboutSection />
+            <ProcessSection />
         </div>
     );
 }
