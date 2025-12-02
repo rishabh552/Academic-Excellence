@@ -1,8 +1,16 @@
 import { ProcessSection } from "@/components/process-section";
+import { NicheParticles } from "@/components/ui/niche-particles";
 
 export function Process() {
     return (
-        <div className="pt-20 font-sans-secondary">
+        <div className="relative pt-20 font-sans-secondary min-h-screen">
+            <NicheParticles
+                className="absolute inset-0 -z-10"
+                quantity={150}
+                ease={80}
+                color="#22d3ee" // Cyan/Teal for Process
+                refresh
+            />
             <ProcessSection />
         </div>
     );
