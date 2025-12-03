@@ -45,22 +45,44 @@ export function BackgroundPaths({ title = "Academic Projects Done Right" }: { ti
         <FloatingPaths position={-1} />
       </div>
       <div className="relative z-10 container mx-auto px-4 md:px-6 text-center">
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 2 }} className="max-w-4xl mx-auto">
-          <h1 className="text-5xl md:text-7xl font-bold mb-8 bg-clip-text text-transparent bg-gradient-to-b" style={{ backgroundImage: 'linear-gradient(to bottom, var(--gradient-start), var(--gradient-end))' }}>
-            {title}
-          </h1>
-          <div className="mb-12 text-xl md:text-2xl text-muted-foreground">
-            Expert assistance for{" "}
-            <MorphingText texts={words} />
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1 }}
+          className="max-w-5xl mx-auto"
+        >
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-surface-elevated border border-white/10 mb-8 backdrop-blur-sm">
+            <span className="w-2 h-2 rounded-full bg-status-success animate-pulse"></span>
+            <span className="text-sm text-muted-foreground font-medium">Accepting New Projects for Spring 2025</span>
           </div>
-          <div className="flex justify-center w-full">
-            <GlassButton>
+
+          <h1 className="text-6xl md:text-8xl font-bold mb-8 tracking-tight">
+            <span className="bg-clip-text text-transparent bg-gradient-to-b from-white to-white/60">
+              {title}
+            </span>
+          </h1>
+
+          <div className="mb-12 text-2xl md:text-3xl text-muted-foreground font-light">
+            Expert assistance for{" "}
+            <span className="text-brand-primary font-medium">
+              <MorphingText texts={words} />
+            </span>
+          </div>
+
+          <div className="flex flex-col md:flex-row justify-center gap-6 w-full max-w-lg mx-auto">
+            <GlassButton className="w-full md:w-auto px-8 py-4 text-lg bg-brand-primary/10 hover:bg-brand-primary/20 border-brand-primary/20 text-brand-primary">
               <span className="opacity-90 group-hover:opacity-100 transition-opacity">Get Your Project Now</span>
               <span className="ml-3 opacity-70 group-hover:opacity-100 group-hover:translate-x-1.5 transition-all duration-300">→</span>
+            </GlassButton>
+
+            <GlassButton className="w-full md:w-auto px-8 py-4 text-lg">
+              View Portfolio
             </GlassButton>
           </div>
         </motion.div>
       </div>
+
+
     </div>
   );
 }

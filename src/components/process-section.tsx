@@ -130,7 +130,7 @@ export function ProcessSection() {
                             transition={{ delay: 0.2 }}
                             className="mb-4"
                         >
-                            <span className="inline-block px-4 py-2 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-sm font-medium mb-6">
+                            <span className="inline-block px-4 py-2 rounded-full bg-brand-accent/10 border border-brand-accent/20 text-brand-accent text-sm font-medium mb-6">
                                 Our Process
                             </span>
                         </motion.div>
@@ -236,7 +236,7 @@ export function ProcessSection() {
                         <motion.button
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
-                            className="px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl hover:shadow-blue-500/50 transition-all duration-300"
+                            className="px-8 py-4 bg-gradient-to-r from-brand-accent to-brand-primary text-white font-semibold rounded-xl shadow-lg hover:shadow-xl hover:shadow-brand-accent/50 transition-all duration-300"
                         >
                             Start Your Project Today
                         </motion.button>
@@ -245,9 +245,9 @@ export function ProcessSection() {
             </div>
 
             {/* Enhanced background decorative elements with animated gradients */}
-            <div className="absolute top-20 left-10 w-72 h-72 bg-gradient-to-br from-blue-500/10 via-purple-500/10 to-pink-500/10 rounded-full blur-3xl -z-10 gradient-animated" />
-            <div className="absolute bottom-20 right-10 w-96 h-96 bg-gradient-to-br from-cyan-500/10 via-blue-500/10 to-purple-500/10 rounded-full blur-3xl -z-10 gradient-animated" />
-            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-r from-[#22D3EE]/5 to-transparent rounded-full blur-3xl -z-20" />
+            <div className="absolute top-20 left-10 w-72 h-72 bg-gradient-to-br from-brand-accent/10 via-brand-primary/10 to-brand-secondary/10 rounded-full blur-3xl -z-10 gradient-animated" />
+            <div className="absolute bottom-20 right-10 w-96 h-96 bg-gradient-to-br from-brand-accent/10 via-brand-primary/10 to-brand-secondary/10 rounded-full blur-3xl -z-10 gradient-animated" />
+            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-r from-brand-accent/5 to-transparent rounded-full blur-3xl -z-20" />
         </section>
     );
 }

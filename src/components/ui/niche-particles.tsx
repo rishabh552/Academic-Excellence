@@ -38,11 +38,19 @@ export function NicheParticles({
             context.current = canvasRef.current.getContext("2d");
         }
         initCanvas();
-        animate();
+
+        let animationFrameId: number;
+        const animateLoop = () => {
+            animate();
+            animationFrameId = window.requestAnimationFrame(animateLoop);
+        };
+        animateLoop();
+
         window.addEventListener("resize", initCanvas);
 
         return () => {
             window.removeEventListener("resize", initCanvas);
+            window.cancelAnimationFrame(animationFrameId);
         };
     }, [color]);
 
@@ -224,7 +232,7 @@ export function NicheParticles({
                 // update the circle position
             }
         });
-        window.requestAnimationFrame(animate);
+        // window.requestAnimationFrame(animate);
     };
 
     // Helper function to convert hex to rgb

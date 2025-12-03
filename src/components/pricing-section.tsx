@@ -35,13 +35,13 @@ const FeatureItem: React.FC<{ feature: Feature; color: string }> = ({ feature, c
       <Icon
         className={cn(
           "h-4 w-4 flex-shrink-0",
-          feature.isIncluded ? color : "text-slate-600"
+          feature.isIncluded ? color : "text-muted-foreground/50"
         )}
       />
       <span
         className={cn(
           "text-sm",
-          feature.isIncluded ? "text-slate-300" : "text-slate-500"
+          feature.isIncluded ? "text-foreground/80" : "text-muted-foreground"
         )}
       >
         {feature.name}
@@ -182,7 +182,7 @@ export function PricingSection() {
                 }}
                 transition={{ type: "spring", stiffness: 500, damping: 35 }}
               />
-              
+
               <button
                 onClick={() => setBillingCycle("monthly")}
                 className={cn(
@@ -205,9 +205,9 @@ export function PricingSection() {
               >
                 Annually
               </button>
-              
+
               {/* Discount badge */}
-              <motion.span 
+              <motion.span
                 className="absolute -top-2 -right-2 text-[10px] font-bold text-white bg-gradient-to-r from-emerald-500 to-green-500 px-2 py-0.5 rounded-full shadow-lg"
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
@@ -235,8 +235,8 @@ export function PricingSection() {
                     className={cn(
                       "relative h-full flex flex-col rounded-2xl transition-all duration-300",
                       plan.isPopular
-                        ? "bg-gradient-to-b from-violet-500/10 to-purple-500/5 border-2 border-violet-500/50 shadow-xl shadow-violet-500/20"
-                        : "bg-white/5 border border-white/10 hover:border-white/20 hover:bg-white/[0.07]"
+                        ? "bg-gradient-to-b from-brand-primary/10 to-brand-secondary/5 border-2 border-brand-primary/50 shadow-xl shadow-brand-primary/20"
+                        : "bg-surface-elevated border border-white/10 hover:border-brand-primary/20 hover:bg-surface-elevated/80"
                     )}
                   >
                     {plan.isPopular && (
@@ -256,11 +256,11 @@ export function PricingSection() {
                         )}>
                           {plan.icon}
                         </div>
-                        <h3 className="text-xl font-bold text-white">
+                        <h3 className="text-xl font-bold text-foreground">
                           {plan.name}
                         </h3>
                       </div>
-                      <p className="text-sm text-slate-400">
+                      <p className="text-sm text-muted-foreground">
                         {plan.description}
                       </p>
                     </div>
@@ -270,7 +270,7 @@ export function PricingSection() {
                       {/* Price with animation */}
                       <div className="mb-6">
                         <div className="flex items-baseline gap-1">
-                          <span className="text-lg text-slate-400">$</span>
+                          <span className="text-lg text-muted-foreground">$</span>
                           <AnimatePresence mode="wait">
                             <motion.span
                               key={currentPrice}
@@ -282,21 +282,21 @@ export function PricingSection() {
                                 "text-4xl font-bold",
                                 plan.isPopular
                                   ? `bg-clip-text text-transparent bg-gradient-to-r ${plan.gradient}`
-                                  : "text-white"
+                                  : "text-foreground"
                               )}
                             >
                               {currentPrice}
                             </motion.span>
                           </AnimatePresence>
-                          <span className="text-sm text-slate-400">/project</span>
+                          <span className="text-sm text-muted-foreground">/project</span>
                         </div>
                         <AnimatePresence>
                           {billingCycle === "annually" && (
-                            <motion.p 
+                            <motion.p
                               initial={{ opacity: 0, height: 0 }}
                               animate={{ opacity: 1, height: "auto" }}
                               exit={{ opacity: 0, height: 0 }}
-                              className="text-xs text-slate-500 mt-1 line-through"
+                              className="text-xs text-muted-foreground/70 mt-1 line-through"
                             >
                               ${plan.priceMonthly}/project
                             </motion.p>
@@ -319,7 +319,7 @@ export function PricingSection() {
                           "w-full py-3 px-6 rounded-xl font-semibold text-sm transition-all duration-200",
                           plan.isPopular
                             ? `bg-gradient-to-r ${plan.gradient} hover:opacity-90 text-white shadow-lg hover:shadow-xl hover:-translate-y-0.5`
-                            : "bg-white/10 text-white hover:bg-white/20 border border-white/10"
+                            : "bg-white/5 text-foreground hover:bg-white/10 border border-white/10"
                         )}
                       >
                         {plan.buttonLabel}

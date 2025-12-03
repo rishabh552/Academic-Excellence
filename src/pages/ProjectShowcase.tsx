@@ -1,3 +1,4 @@
+import React from "react";
 import { CircularGallery, GalleryItem } from "@/components/ui/circular-gallery";
 import { GradientHeadline } from "@/components/ui/gradient-headline";
 import { motion } from "framer-motion";
@@ -157,16 +158,39 @@ export function ProjectShowcase() {
         { value: "100%", label: "Client Satisfaction" },
     ];
 
+    const [dimensions, setDimensions] = React.useState({
+        radius: 400,
+        width: 280,
+        height: 400
+    });
+
+    React.useEffect(() => {
+        const handleResize = () => {
+            const width = window.innerWidth;
+            if (width < 640) { // Mobile
+                setDimensions({ radius: 180, width: 220, height: 320 });
+            } else if (width < 1024) { // Tablet
+                setDimensions({ radius: 300, width: 250, height: 360 });
+            } else { // Desktop
+                setDimensions({ radius: 400, width: 280, height: 400 });
+            }
+        };
+
+        handleResize(); // Initial set
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
     return (
         <div className="pt-20 min-h-screen bg-background font-sans-secondary flex flex-col">
             {/* Header Section */}
-            <div className="text-center mb-4 mt-10 px-4">
+            <div className="text-center mb-12 mt-10 px-4">
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.6 }}
                 >
-                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-sm font-medium mb-6">
+                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-brand-secondary/10 border border-brand-secondary/20 text-brand-secondary text-sm font-medium mb-6">
                         <Sparkles className="w-4 h-4" />
                         Featured Work
                     </div>
@@ -194,7 +218,7 @@ export function ProjectShowcase() {
                 >
                     {stats.map((stat, index) => (
                         <div key={index} className="text-center">
-                            <div className="text-2xl md:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-emerald-500 to-teal-500">
+                            <div className="text-2xl md:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-brand-secondary to-brand-accent">
                                 {stat.value}
                             </div>
                             <div className="text-sm text-muted-foreground">{stat.label}</div>
@@ -225,9 +249,15 @@ export function ProjectShowcase() {
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.8, delay: 0.4 }}
-                className="flex-grow h-[600px] md:h-[700px] w-full overflow-hidden relative z-10"
+                className="flex-grow h-[550px] md:h-[700px] w-full overflow-hidden relative z-10 mb-8"
             >
-                <CircularGallery items={items} radius={400} autoRotateSpeed={0.4} />
+                <CircularGallery
+                    items={items}
+                    radius={dimensions.radius}
+                    itemWidth={dimensions.width}
+                    itemHeight={dimensions.height}
+                    autoRotateSpeed={0.4}
+                />
             </motion.div>
 
             {/* Bottom CTA */}
@@ -235,14 +265,14 @@ export function ProjectShowcase() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.6 }}
-                className="text-center py-12 px-4"
+                className="text-center pt-16 pb-20 px-4"
             >
                 <p className="text-muted-foreground mb-4">
                     Don't see what you're looking for? We build custom projects too.
                 </p>
                 <a
                     href="/contact"
-                    className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-semibold transition-all shadow-lg hover:shadow-emerald-500/25"
+                    className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-brand-secondary to-brand-accent hover:from-brand-secondary/80 hover:to-brand-accent/80 text-white font-semibold transition-all shadow-lg hover:shadow-brand-secondary/25"
                 >
                     Request Custom Project
                     <span>→</span>

@@ -23,6 +23,10 @@ interface CircularGalleryProps extends HTMLAttributes<HTMLDivElement> {
     radius?: number;
     /** Controls the speed of auto-rotation when not scrolling. */
     autoRotateSpeed?: number;
+    /** Width of individual items */
+    itemWidth?: number;
+    /** Height of individual items */
+    itemHeight?: number;
 }
 
 // Color schemes for different project types
@@ -42,16 +46,42 @@ const getColorScheme = (binomial: string) => {
 };
 
 const CircularGallery = React.forwardRef<HTMLDivElement, CircularGalleryProps>(
-    ({ items, className, radius = 500, autoRotateSpeed = 0.3, ...props }, ref) => {
+    ({ items, className, radius = 500, autoRotateSpeed = 0.3, itemWidth = 280, itemHeight = 400, ...props }, ref) => {
         const [rotation, setRotation] = useState(0);
         const [targetRotation, setTargetRotation] = useState(0);
         const [isPaused, setIsPaused] = useState(false);
         const [flippedIndex, setFlippedIndex] = useState<number | null>(null);
+        const [activeIndex, setActiveIndex] = useState(0);
+
         const lastTimeRef = useRef<number>(0);
         const animationFrameRef = useRef<number | null>(null);
         const isDraggingRef = useRef(false);
         const lastXRef = useRef(0);
         const velocityRef = useRef(0);
+        const dragStartRef = useRef<{ x: number, y: number } | null>(null);
+        const hasDraggedRef = useRef(false);
+        const lastInteractionTimeRef = useRef<number>(Date.now());
+
+        // Calculate active index based on rotation
+        useEffect(() => {
+            const anglePerItem = 360 / items.length;
+            let minAngle = 360;
+            let currentActive = 0;
+
+            items.forEach((_, i) => {
+                const itemAngle = i * anglePerItem;
+                const totalRotation = ((rotation % 360) + 360) % 360;
+                const relativeAngle = ((itemAngle - totalRotation) % 360 + 360) % 360;
+                const normalizedAngle = relativeAngle > 180 ? 360 - relativeAngle : relativeAngle;
+
+                if (normalizedAngle < minAngle) {
+                    minAngle = normalizedAngle;
+                    currentActive = i;
+                }
+            });
+
+            setActiveIndex(currentActive);
+        }, [rotation, items.length]);
 
         // Smooth animation loop with interpolation
         const animate = useCallback((currentTime: number) => {
@@ -69,8 +99,18 @@ const CircularGallery = React.forwardRef<HTMLDivElement, CircularGalleryProps>(
             }
 
             // Auto-rotate when not interacting
-            if (!isPaused && !isDraggingRef.current && flippedIndex === null && Math.abs(velocityRef.current) < 0.1) {
-                setTargetRotation(prev => prev + autoRotateSpeed * deltaTime * 60);
+            // Resume auto-rotation if:
+            // 1. Not dragging
+            // 2. No card is flipped
+            // 3. Velocity is low
+            // 4. Either not paused (mouse not hovering) OR inactive for 3+ seconds
+            const timeSinceLastInteraction = Date.now() - lastInteractionTimeRef.current;
+            const isInactive = timeSinceLastInteraction > 3000; // 3 seconds
+
+            if (!isDraggingRef.current && flippedIndex === null && Math.abs(velocityRef.current) < 0.1) {
+                if (!isPaused || isInactive) {
+                    setTargetRotation(prev => prev + autoRotateSpeed * deltaTime * 60);
+                }
             }
 
             // Smooth interpolation towards target
@@ -92,6 +132,34 @@ const CircularGallery = React.forwardRef<HTMLDivElement, CircularGalleryProps>(
             };
         }, [animate]);
 
+        // Keyboard navigation - works even when hovering
+        useEffect(() => {
+            const handleKeyDown = (e: KeyboardEvent) => {
+                if (e.key === 'ArrowLeft') {
+                    lastInteractionTimeRef.current = Date.now();
+                    setTargetRotation(prev => prev - (360 / items.length));
+                } else if (e.key === 'ArrowRight') {
+                    lastInteractionTimeRef.current = Date.now();
+                    setTargetRotation(prev => prev + (360 / items.length));
+                }
+            };
+
+            window.addEventListener('keydown', handleKeyDown);
+            return () => window.removeEventListener('keydown', handleKeyDown);
+        }, [items.length]);
+
+        const handlePrev = (e: React.MouseEvent) => {
+            e.stopPropagation();
+            lastInteractionTimeRef.current = Date.now();
+            setTargetRotation(prev => prev - (360 / items.length));
+        };
+
+        const handleNext = (e: React.MouseEvent) => {
+            e.stopPropagation();
+            lastInteractionTimeRef.current = Date.now();
+            setTargetRotation(prev => prev + (360 / items.length));
+        };
+
         // Mouse/touch drag handlers
         const handlePointerDown = (e: React.PointerEvent) => {
             // If a card is flipped and user starts dragging, unflip it first
@@ -100,6 +168,8 @@ const CircularGallery = React.forwardRef<HTMLDivElement, CircularGalleryProps>(
                 return;
             }
             isDraggingRef.current = true;
+            hasDraggedRef.current = false;
+            dragStartRef.current = { x: e.clientX, y: e.clientY };
             lastXRef.current = e.clientX;
             velocityRef.current = 0;
             (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
@@ -107,20 +177,35 @@ const CircularGallery = React.forwardRef<HTMLDivElement, CircularGalleryProps>(
 
         const handlePointerMove = (e: React.PointerEvent) => {
             if (!isDraggingRef.current) return;
+
+            lastInteractionTimeRef.current = Date.now();
             const deltaX = e.clientX - lastXRef.current;
             velocityRef.current = deltaX * 0.5;
             setTargetRotation(prev => prev + deltaX * 0.4);
             lastXRef.current = e.clientX;
+
+            // Check if dragged significantly
+            if (dragStartRef.current) {
+                const moveDistance = Math.sqrt(
+                    Math.pow(e.clientX - dragStartRef.current.x, 2) +
+                    Math.pow(e.clientY - dragStartRef.current.y, 2)
+                );
+                if (moveDistance > 5) {
+                    hasDraggedRef.current = true;
+                }
+            }
         };
 
         const handlePointerUp = (e: React.PointerEvent) => {
             isDraggingRef.current = false;
+            dragStartRef.current = null;
             (e.target as HTMLElement).releasePointerCapture?.(e.pointerId);
         };
 
         // Smooth wheel handler
         const handleWheel = (e: React.WheelEvent) => {
             e.preventDefault();
+            lastInteractionTimeRef.current = Date.now();
             // If a card is flipped and user scrolls, unflip it first
             if (flippedIndex !== null) {
                 setFlippedIndex(null);
@@ -131,8 +216,11 @@ const CircularGallery = React.forwardRef<HTMLDivElement, CircularGalleryProps>(
         };
 
         const handleCardClick = (index: number, isFront: boolean) => {
-            if (!isFront || isDraggingRef.current) return;
-            if (Math.abs(velocityRef.current) > 1) return; // Don't flip if still moving fast
+            // Only prevent click if we actually dragged significantly
+            if (hasDraggedRef.current) return;
+
+            // Allow flipping if it's roughly in front (relaxed threshold)
+            if (!isFront) return;
 
             setFlippedIndex(prev => prev === index ? null : index);
         };
@@ -159,11 +247,28 @@ const CircularGallery = React.forwardRef<HTMLDivElement, CircularGalleryProps>(
                 onMouseLeave={() => { setIsPaused(false); setFlippedIndex(null); }}
                 {...props}
             >
+                {/* Controls */}
+                <button
+                    onClick={handlePrev}
+                    className="absolute left-4 top-1/2 -translate-y-1/2 z-20 p-3 rounded-full bg-black/20 hover:bg-black/40 backdrop-blur-md border border-white/10 text-white transition-all hover:scale-110 hidden md:flex"
+                    aria-label="Previous Project"
+                >
+                    <ArrowRight className="w-6 h-6 rotate-180" />
+                </button>
+
+                <button
+                    onClick={handleNext}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 z-20 p-3 rounded-full bg-black/20 hover:bg-black/40 backdrop-blur-md border border-white/10 text-white transition-all hover:scale-110 hidden md:flex"
+                    aria-label="Next Project"
+                >
+                    <ArrowRight className="w-6 h-6" />
+                </button>
+
                 <div
                     className="relative"
                     style={{
-                        width: '300px',
-                        height: '420px',
+                        width: `${itemWidth + 20}px`,
+                        height: `${itemHeight + 20}px`,
                         transformStyle: 'preserve-3d',
                         transform: `rotateY(${rotation}deg)`,
                     }}
@@ -174,24 +279,33 @@ const CircularGallery = React.forwardRef<HTMLDivElement, CircularGalleryProps>(
                         const relativeAngle = ((itemAngle - totalRotation) % 360 + 360) % 360;
                         const normalizedAngle = relativeAngle > 180 ? 360 - relativeAngle : relativeAngle;
 
-                        const isFront = normalizedAngle < 45;
+                        // Relaxed front threshold for better usability
+                        const isFront = normalizedAngle < 85;
                         const isVisible = normalizedAngle < 100;
                         const scale = Math.max(0.75, 1 - normalizedAngle / 250);
                         const colorScheme = getColorScheme(item.binomial);
                         const isFlipped = flippedIndex === i;
 
+                        // Dynamic Z-index based on how close it is to the front
+                        // Closer to 0 angle = higher z-index
+                        const zIndex = Math.round(100 - normalizedAngle);
+
                         return (
                             <div
                                 key={`${item.common}-${i}`}
                                 className={cn(
-                                    "absolute left-1/2 top-1/2 w-[280px] h-[400px] -ml-[140px] -mt-[200px]",
+                                    "absolute left-1/2 top-1/2",
                                     isVisible ? "pointer-events-auto" : "pointer-events-none"
                                 )}
                                 style={{
+                                    width: `${itemWidth}px`,
+                                    height: `${itemHeight}px`,
+                                    marginLeft: `-${itemWidth / 2}px`,
+                                    marginTop: `-${itemHeight / 2}px`,
                                     transform: `rotateY(${itemAngle}deg) translateZ(${radius}px) scale(${scale})`,
                                     transformStyle: 'preserve-3d',
                                     opacity: isVisible ? 1 : 0,
-                                    zIndex: isFront ? 10 : 1,
+                                    zIndex: zIndex,
                                     transition: 'opacity 0.3s ease',
                                 }}
                                 onClick={() => handleCardClick(i, isFront)}
@@ -348,11 +462,31 @@ const CircularGallery = React.forwardRef<HTMLDivElement, CircularGalleryProps>(
                     })}
                 </div>
 
+                {/* Pagination Dots */}
+                <div className="absolute bottom-16 left-1/2 -translate-x-1/2 flex gap-2 z-20">
+                    {items.map((_, i) => (
+                        <button
+                            key={i}
+                            onClick={() => {
+                                lastInteractionTimeRef.current = Date.now();
+                                setTargetRotation(i * (360 / items.length));
+                            }}
+                            className={cn(
+                                "w-2 h-2 rounded-full transition-all duration-300",
+                                activeIndex === i ? "bg-white w-6" : "bg-white/20 hover:bg-white/40"
+                            )}
+                            aria-label={`Go to project ${i + 1}`}
+                        />
+                    ))}
+                </div>
+
                 {/* Navigation hints */}
-                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-4 text-xs text-muted-foreground bg-black/30 backdrop-blur-sm px-4 py-2 rounded-full">
+                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-4 text-xs text-muted-foreground bg-black/30 backdrop-blur-sm px-4 py-2 rounded-full pointer-events-none">
                     <span>Scroll or drag to rotate</span>
                     <span className="w-1 h-1 rounded-full bg-muted-foreground"></span>
                     <span>Click card to flip</span>
+                    <span className="w-1 h-1 rounded-full bg-muted-foreground hidden md:block"></span>
+                    <span className="hidden md:block">Use Arrow Keys</span>
                 </div>
             </div>
         );

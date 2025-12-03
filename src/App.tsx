@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Link, useLocation } from "react-router-dom";
+import { AnimatePresence } from "framer-motion";
 // import { DottedSurface } from "./components/ui/dotted-surface";
 import { ModernNavbar } from "./components/ui/modern-navbar";
 import { Home } from "./pages/Home";
@@ -38,7 +39,6 @@ function Footer() {
 
 function AppContent() {
   const location = useLocation();
-  const isHomePage = location.pathname === "/";
 
   return (
     <div className="relative min-h-screen">
@@ -49,17 +49,19 @@ function AppContent() {
       <ModernNavbar />
 
       {/* Routes */}
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/services" element={<Services />} />
-        <Route path="/process" element={<Process />} />
-        <Route path="/showcase" element={<ProjectShowcase />} />
-        <Route path="/pricing" element={<Pricing />} />
-        <Route path="/contact" element={<Contact />} />
-      </Routes>
+      <AnimatePresence mode="wait">
+        <Routes location={location} key={location.pathname}>
+          <Route path="/" element={<Home />} />
+          <Route path="/services" element={<Services />} />
+          <Route path="/process" element={<Process />} />
+          <Route path="/showcase" element={<ProjectShowcase />} />
+          <Route path="/pricing" element={<Pricing />} />
+          <Route path="/contact" element={<Contact />} />
+        </Routes>
+      </AnimatePresence>
 
-      {/* Footer - only on home page */}
-      {isHomePage && <Footer />}
+      {/* Footer - persistent on all pages */}
+      <Footer />
     </div>
   );
 }
