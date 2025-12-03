@@ -1,6 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Link, useLocation } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
-// import { DottedSurface } from "./components/ui/dotted-surface";
 import { ModernNavbar } from "./components/ui/modern-navbar";
 import { Home } from "./pages/Home";
 import { Services } from "./pages/Services";
