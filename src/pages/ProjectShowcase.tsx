@@ -1,10 +1,17 @@
 import React, { useState, useMemo } from "react";
+import { Link } from "react-router-dom";
 import { CircularGallery, GalleryItem } from "@/components/ui/circular-gallery";
 import { CategoryFilter } from "@/components/ui/category-filter";
 import { ProjectModal } from "@/components/ui/project-modal";
 import { GradientHeadline } from "@/components/ui/gradient-headline";
 import { motion, AnimatePresence } from "framer-motion";
 import { MousePointer2, RotateCcw, Sparkles } from "lucide-react";
+
+const pageVariants = {
+    initial: { opacity: 0 },
+    animate: { opacity: 1 },
+    exit: { opacity: 0 }
+};
 
 // Category to gradient mapping for ambient lighting - Dark theme optimized
 const categoryGradients: Record<string, string> = {
@@ -227,7 +234,14 @@ export function ProjectShowcase() {
     }, [activeProjectIndex, filteredItems, selectedCategory]);
 
     return (
-        <div className="relative pt-20 min-h-screen font-sans-secondary flex flex-col overflow-hidden">
+        <motion.div
+            variants={pageVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            transition={{ duration: 0.3 }}
+            className="relative pt-20 min-h-screen font-sans-secondary flex flex-col overflow-hidden"
+        >
             {/* Dynamic Ambient Background */}
             <motion.div
                 initial={{ opacity: 0 }}
@@ -315,14 +329,14 @@ export function ProjectShowcase() {
             />
 
             {/* Gallery Container */}
-            <AnimatePresence mode="wait">
+            <AnimatePresence>
                 <motion.div
                     key={selectedCategory}
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.95 }}
-                    transition={{ duration: 0.5 }}
-                    className="flex-grow h-[550px] md:h-[700px] w-full overflow-hidden relative z-10 mb-8"
+                    transition={{ duration: 0.3 }}
+                    className="flex-grow h-[550px] md:h-[700px] w-full overflow-hidden relative z-10 mb-8 pointer-events-auto"
                 >
                     <CircularGallery
                         items={filteredItems}
@@ -346,17 +360,17 @@ export function ProjectShowcase() {
                 <p className="text-muted-foreground mb-4">
                     Don't see what you're looking for? We build custom projects too.
                 </p>
-                <a
-                    href="/contact"
+                <Link
+                    to="/contact"
                     className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-brand-secondary to-brand-accent hover:from-brand-secondary/80 hover:to-brand-accent/80 text-white font-semibold transition-all shadow-lg hover:shadow-brand-secondary/25"
                 >
                     Request Custom Project
                     <span>→</span>
-                </a>
+                </Link>
             </motion.div>
 
             {/* Project Modal */}
             <ProjectModal project={expandedProject} onClose={() => setExpandedProject(null)} />
-        </div>
+        </motion.div>
     );
 }

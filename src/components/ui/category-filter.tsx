@@ -91,9 +91,11 @@ export function CategoryFilter({ categories, activeCategory, onCategoryChange, p
                             {/* Active indicator glow */}
                             {isActive && (
                                 <motion.div
-                                    layoutId="activeCategory"
+                                    initial={{ opacity: 0, scale: 0.8 }}
+                                    animate={{ opacity: 0.5, scale: 1 }}
+                                    exit={{ opacity: 0, scale: 0.8 }}
                                     className={cn(
-                                        "absolute inset-0 rounded-full opacity-50 blur-xl",
+                                        "absolute inset-0 rounded-full blur-xl",
                                         colors.bg
                                     )}
                                     transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}

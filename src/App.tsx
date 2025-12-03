@@ -49,7 +49,7 @@ function AppContent() {
       <ModernNavbar />
 
       {/* Routes */}
-      <AnimatePresence mode="wait">
+      <AnimatePresence mode="wait" initial={false}>
         <Routes location={location} key={location.pathname}>
           <Route path="/" element={<Home />} />
           <Route path="/services" element={<Services />} />

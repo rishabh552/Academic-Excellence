@@ -31,16 +31,15 @@ export function ProjectModal({ project, onClose }: ProjectModalProps) {
         return () => window.removeEventListener('keydown', handleEsc);
     }, [onClose]);
 
-    // Prevent body scroll when modal is open
+    // Prevent body scroll when modal is open - robust cleanup to prevent navigation issues
     React.useEffect(() => {
         if (project) {
+            const originalOverflow = document.body.style.overflow;
             document.body.style.overflow = 'hidden';
-        } else {
-            document.body.style.overflow = 'unset';
+            return () => {
+                document.body.style.overflow = originalOverflow || '';
+            };
         }
-        return () => {
-            document.body.style.overflow = 'unset';
-        };
     }, [project]);
 
     const gradientColor = project ? categoryColors[project.binomial] || 'from-violet-500 to-purple-500' : '';

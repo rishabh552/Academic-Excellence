@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, HTMLAttributes, useCallback } from 'react';
+import React, { useState, useEffect, useRef, HTMLAttributes } from 'react';
 import { cn } from "@/lib/utils";
 import { Check, ArrowRight, ExternalLink, X } from "lucide-react";
 
@@ -51,12 +51,14 @@ const getColorScheme = (binomial: string) => {
 
 const CircularGallery = React.forwardRef<HTMLDivElement, CircularGalleryProps>(
     ({ items, className, radius = 500, autoRotateSpeed = 0.3, itemWidth = 280, itemHeight = 400, onCardExpand, onActiveIndexChange, ...props }, ref) => {
+        // Use state only for values that need to trigger re-renders
         const [rotation, setRotation] = useState(0);
-        const [targetRotation, setTargetRotation] = useState(0);
         const [isPaused, setIsPaused] = useState(false);
         const [flippedIndex, setFlippedIndex] = useState<number | null>(null);
         const [activeIndex, setActiveIndex] = useState(0);
 
+        // Use refs for animation values to avoid re-render loops
+        const targetRotationRef = useRef(0);
         const lastTimeRef = useRef<number>(0);
         const animationFrameRef = useRef<number | null>(null);
         const isDraggingRef = useRef(false);
@@ -65,86 +67,96 @@ const CircularGallery = React.forwardRef<HTMLDivElement, CircularGalleryProps>(
         const dragStartRef = useRef<{ x: number, y: number } | null>(null);
         const hasDraggedRef = useRef(false);
         const lastInteractionTimeRef = useRef<number>(Date.now());
+        const isPausedRef = useRef(false);
+        const flippedIndexRef = useRef<number | null>(null);
+        const isUnmountedRef = useRef(false);
 
-        // Calculate active index based on rotation
+        // Keep refs in sync with state
         useEffect(() => {
-            const anglePerItem = 360 / items.length;
-            let minAngle = 360;
-            let currentActive = 0;
+            isPausedRef.current = isPaused;
+        }, [isPaused]);
 
-            items.forEach((_, i) => {
-                const itemAngle = i * anglePerItem;
-                const totalRotation = ((rotation % 360) + 360) % 360;
-                const relativeAngle = ((itemAngle - totalRotation) % 360 + 360) % 360;
-                const normalizedAngle = relativeAngle > 180 ? 360 - relativeAngle : relativeAngle;
+        useEffect(() => {
+            flippedIndexRef.current = flippedIndex;
+        }, [flippedIndex]);
 
-                if (normalizedAngle < minAngle) {
-                    minAngle = normalizedAngle;
-                    currentActive = i;
+
+
+        // Stable animation loop - no dependencies that change frequently
+        useEffect(() => {
+            isUnmountedRef.current = false;
+            let currentRotation = 0;
+
+            const animate = (currentTime: number) => {
+                if (isUnmountedRef.current) return;
+
+                if (lastTimeRef.current === 0) {
+                    lastTimeRef.current = currentTime;
                 }
-            });
 
-            setActiveIndex(currentActive);
-        }, [rotation, items.length]);
-
-        // Smooth animation loop with interpolation
-        const animate = useCallback((currentTime: number) => {
-            if (lastTimeRef.current === 0) {
+                const deltaTime = Math.min((currentTime - lastTimeRef.current) / 1000, 0.1);
                 lastTimeRef.current = currentTime;
-            }
 
-            const deltaTime = Math.min((currentTime - lastTimeRef.current) / 1000, 0.1);
-            lastTimeRef.current = currentTime;
-
-            // Apply velocity decay for momentum
-            if (!isDraggingRef.current && Math.abs(velocityRef.current) > 0.01) {
-                setTargetRotation(prev => prev + velocityRef.current * deltaTime * 60);
-                velocityRef.current *= 0.95; // Decay
-            }
-
-            // Auto-rotate when not interacting
-            // Resume auto-rotation if:
-            // 1. Not dragging
-            // 2. No card is flipped
-            // 3. Velocity is low
-            // 4. Either not paused (mouse not hovering) OR inactive for 3+ seconds
-            const timeSinceLastInteraction = Date.now() - lastInteractionTimeRef.current;
-            const isInactive = timeSinceLastInteraction > 3000; // 3 seconds
-
-            if (!isDraggingRef.current && flippedIndex === null && Math.abs(velocityRef.current) < 0.1) {
-                if (!isPaused || isInactive) {
-                    setTargetRotation(prev => prev + autoRotateSpeed * deltaTime * 60);
+                // Apply velocity decay for momentum
+                if (!isDraggingRef.current && Math.abs(velocityRef.current) > 0.01) {
+                    targetRotationRef.current += velocityRef.current * deltaTime * 60;
+                    velocityRef.current *= 0.95;
                 }
-            }
 
-            // Smooth interpolation towards target
-            setRotation(prev => {
-                const diff = targetRotation - prev;
+                // Auto-rotate when not interacting
+                const timeSinceLastInteraction = Date.now() - lastInteractionTimeRef.current;
+                const isInactive = timeSinceLastInteraction > 3000;
+
+                if (!isDraggingRef.current && flippedIndexRef.current === null && Math.abs(velocityRef.current) < 0.1) {
+                    if (!isPausedRef.current || isInactive) {
+                        targetRotationRef.current += autoRotateSpeed * deltaTime * 60;
+                    }
+                }
+
+                // Smooth interpolation towards target
+                const diff = targetRotationRef.current - currentRotation;
                 const smoothing = 0.12;
-                return prev + diff * smoothing;
-            });
+                currentRotation += diff * smoothing;
+
+                // Calculate active index based on current rotation
+                let currentActive = 0;
+                let minAngle = Infinity;
+                for (let i = 0; i < items.length; i++) {
+                    const angle = (360 / items.length) * i;
+                    const normalizedAngle = ((currentRotation - angle) % 360 + 360) % 360;
+                    if (normalizedAngle < minAngle) {
+                        minAngle = normalizedAngle;
+                        currentActive = i;
+                    }
+                }
+
+                // Only update state when values actually change
+                setRotation(currentRotation);
+                setActiveIndex(prev => prev === currentActive ? prev : currentActive);
+
+                animationFrameRef.current = requestAnimationFrame(animate);
+            };
 
             animationFrameRef.current = requestAnimationFrame(animate);
-        }, [isPaused, autoRotateSpeed, flippedIndex, targetRotation]);
 
-        useEffect(() => {
-            animationFrameRef.current = requestAnimationFrame(animate);
             return () => {
+                isUnmountedRef.current = true;
                 if (animationFrameRef.current) {
                     cancelAnimationFrame(animationFrameRef.current);
+                    animationFrameRef.current = null;
                 }
             };
-        }, [animate]);
+        }, [items.length, autoRotateSpeed]); // Added items.length dependency
 
-        // Keyboard navigation - works even when hovering
+        // Keyboard navigation
         useEffect(() => {
             const handleKeyDown = (e: KeyboardEvent) => {
                 if (e.key === 'ArrowLeft') {
                     lastInteractionTimeRef.current = Date.now();
-                    setTargetRotation(prev => prev - (360 / items.length));
+                    targetRotationRef.current -= (360 / items.length);
                 } else if (e.key === 'ArrowRight') {
                     lastInteractionTimeRef.current = Date.now();
-                    setTargetRotation(prev => prev + (360 / items.length));
+                    targetRotationRef.current += (360 / items.length);
                 }
             };
 
@@ -155,25 +167,22 @@ const CircularGallery = React.forwardRef<HTMLDivElement, CircularGalleryProps>(
         // Notify parent of active index changes
         useEffect(() => {
             onActiveIndexChange?.(activeIndex);
-        }, [activeIndex, onActiveIndexChange])
-
-        // Track mouse position for parallax effect
+        }, [activeIndex]); // eslint-disable-line react-hooks/exhaustive-deps
 
         const handlePrev = (e: React.MouseEvent) => {
             e.stopPropagation();
             lastInteractionTimeRef.current = Date.now();
-            setTargetRotation(prev => prev - (360 / items.length));
+            targetRotationRef.current -= (360 / items.length);
         };
 
         const handleNext = (e: React.MouseEvent) => {
             e.stopPropagation();
             lastInteractionTimeRef.current = Date.now();
-            setTargetRotation(prev => prev + (360 / items.length));
+            targetRotationRef.current += (360 / items.length);
         };
 
         // Mouse/touch drag handlers
         const handlePointerDown = (e: React.PointerEvent) => {
-            // If a card is flipped and user starts dragging, unflip it first
             if (flippedIndex !== null) {
                 setFlippedIndex(null);
                 return;
@@ -192,10 +201,9 @@ const CircularGallery = React.forwardRef<HTMLDivElement, CircularGalleryProps>(
             lastInteractionTimeRef.current = Date.now();
             const deltaX = e.clientX - lastXRef.current;
             velocityRef.current = deltaX * 0.5;
-            setTargetRotation(prev => prev + deltaX * 0.4);
+            targetRotationRef.current += deltaX * 0.4;
             lastXRef.current = e.clientX;
 
-            // Check if dragged significantly
             if (dragStartRef.current) {
                 const moveDistance = Math.sqrt(
                     Math.pow(e.clientX - dragStartRef.current.x, 2) +
@@ -213,26 +221,24 @@ const CircularGallery = React.forwardRef<HTMLDivElement, CircularGalleryProps>(
             (e.target as HTMLElement).releasePointerCapture?.(e.pointerId);
         };
 
-        // Smooth wheel handler
+        // Wheel handler - don't block default behavior entirely
         const handleWheel = (e: React.WheelEvent) => {
-            e.preventDefault();
+            // Only prevent default if we're actually using the scroll for rotation
+            if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+                e.stopPropagation();
+            }
             lastInteractionTimeRef.current = Date.now();
-            // If a card is flipped and user scrolls, unflip it first
             if (flippedIndex !== null) {
                 setFlippedIndex(null);
                 return;
             }
             const delta = e.deltaY * 0.3;
-            setTargetRotation(prev => prev + delta);
+            targetRotationRef.current += delta;
         };
 
         const handleCardClick = (index: number, isFront: boolean) => {
-            // Only prevent click if we actually dragged significantly
             if (hasDraggedRef.current) return;
-
-            // Allow flipping if it's roughly in front (relaxed threshold)
             if (!isFront) return;
-
             setFlippedIndex(prev => prev === index ? null : index);
         };
 
@@ -504,7 +510,7 @@ const CircularGallery = React.forwardRef<HTMLDivElement, CircularGalleryProps>(
                             key={i}
                             onClick={() => {
                                 lastInteractionTimeRef.current = Date.now();
-                                setTargetRotation(i * (360 / items.length));
+                                targetRotationRef.current = i * (360 / items.length);
                             }}
                             className={cn(
                                 "w-2 h-2 rounded-full transition-all duration-300",

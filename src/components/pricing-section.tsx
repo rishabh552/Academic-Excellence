@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useInView } from "framer-motion";
 import { useRef, useState } from "react";
@@ -412,9 +413,9 @@ export function PricingSection() {
           >
             <p className="text-slate-400 text-sm">
               Need something custom?{" "}
-              <a href="/contact" className="text-purple-400 font-medium hover:text-purple-300 transition-colors">
+              <Link to="/contact" className="text-purple-400 font-medium hover:text-purple-300 transition-colors">
                 Let's talk
-              </a>
+              </Link>
             </p>
           </motion.div>
         </motion.div>
