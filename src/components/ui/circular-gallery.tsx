@@ -27,6 +27,10 @@ interface CircularGalleryProps extends HTMLAttributes<HTMLDivElement> {
     itemWidth?: number;
     /** Height of individual items */
     itemHeight?: number;
+    /** Callback when a card is clicked for expansion */
+    onCardExpand?: (item: GalleryItem) => void;
+    /** Callback when active index changes */
+    onActiveIndexChange?: (index: number) => void;
 }
 
 // Color schemes for different project types
@@ -34,7 +38,7 @@ const colorSchemes: Record<string, { badge: string; accent: string; border: stri
     'Full Stack Web': { badge: 'bg-blue-500', accent: 'text-blue-400', border: 'border-blue-500/30' },
     'Machine Learning': { badge: 'bg-purple-500', accent: 'text-purple-400', border: 'border-purple-500/30' },
     'Deep Learning': { badge: 'bg-pink-500', accent: 'text-pink-400', border: 'border-pink-500/30' },
-    'IoT & Mobile': { badge: 'bg-orange-500', accent: 'text-orange-400', border: 'border-orange-500/30' },
+    'Mobile Application': { badge: 'bg-orange-500', accent: 'text-orange-400', border: 'border-orange-500/30' },
     'NLP': { badge: 'bg-cyan-500', accent: 'text-cyan-400', border: 'border-cyan-500/30' },
     'Frontend': { badge: 'bg-emerald-500', accent: 'text-emerald-400', border: 'border-emerald-500/30' },
     'Productivity': { badge: 'bg-amber-500', accent: 'text-amber-400', border: 'border-amber-500/30' },
@@ -46,7 +50,7 @@ const getColorScheme = (binomial: string) => {
 };
 
 const CircularGallery = React.forwardRef<HTMLDivElement, CircularGalleryProps>(
-    ({ items, className, radius = 500, autoRotateSpeed = 0.3, itemWidth = 280, itemHeight = 400, ...props }, ref) => {
+    ({ items, className, radius = 500, autoRotateSpeed = 0.3, itemWidth = 280, itemHeight = 400, onCardExpand, onActiveIndexChange, ...props }, ref) => {
         const [rotation, setRotation] = useState(0);
         const [targetRotation, setTargetRotation] = useState(0);
         const [isPaused, setIsPaused] = useState(false);
@@ -147,6 +151,13 @@ const CircularGallery = React.forwardRef<HTMLDivElement, CircularGalleryProps>(
             window.addEventListener('keydown', handleKeyDown);
             return () => window.removeEventListener('keydown', handleKeyDown);
         }, [items.length]);
+
+        // Notify parent of active index changes
+        useEffect(() => {
+            onActiveIndexChange?.(activeIndex);
+        }, [activeIndex, onActiveIndexChange])
+
+        // Track mouse position for parallax effect
 
         const handlePrev = (e: React.MouseEvent) => {
             e.stopPropagation();
@@ -362,15 +373,34 @@ const CircularGallery = React.forwardRef<HTMLDivElement, CircularGalleryProps>(
                                                 {item.description}
                                             </p>
 
-                                            {isFront && (
-                                                <div className={cn(
-                                                    "flex items-center gap-1 text-xs font-medium mt-3",
-                                                    colorScheme.accent
-                                                )}>
-                                                    <span>Click to flip</span>
-                                                    <ArrowRight className="w-3 h-3" />
-                                                </div>
-                                            )}
+                                            <div className="flex items-center justify-between mt-3">
+                                                {isFront && (
+                                                    <div className={cn(
+                                                        "flex items-center gap-1 text-xs font-medium",
+                                                        colorScheme.accent
+                                                    )}>
+                                                        <span>Click to flip</span>
+                                                        <ArrowRight className="w-3 h-3" />
+                                                    </div>
+                                                )}
+
+                                                {/* Quick Expand Button */}
+                                                {isFront && (
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            onCardExpand?.(item);
+                                                        }}
+                                                        className={cn(
+                                                            "p-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-all group",
+                                                            "hover:scale-110"
+                                                        )}
+                                                        title="Expand project"
+                                                    >
+                                                        <ExternalLink className="w-4 h-4 text-gray-400 group-hover:text-white transition-colors" />
+                                                    </button>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
 
@@ -446,11 +476,16 @@ const CircularGallery = React.forwardRef<HTMLDivElement, CircularGalleryProps>(
 
                                         {/* CTA Button */}
                                         <div className="mt-3 pt-3 border-t border-white/5">
-                                            <button className={cn(
-                                                "w-full py-2.5 rounded-xl text-white text-xs font-semibold transition-all flex items-center justify-center gap-2",
-                                                "bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500",
-                                                "shadow-lg shadow-emerald-900/20 hover:shadow-emerald-500/30"
-                                            )}>
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    onCardExpand?.(item);
+                                                }}
+                                                className={cn(
+                                                    "w-full py-2.5 rounded-xl text-white text-xs font-semibold transition-all flex items-center justify-center gap-2",
+                                                    "bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500",
+                                                    "shadow-lg shadow-emerald-900/20 hover:shadow-emerald-500/30"
+                                                )}>
                                                 <span>View Full Project</span>
                                                 <ExternalLink className="w-3.5 h-3.5" />
                                             </button>

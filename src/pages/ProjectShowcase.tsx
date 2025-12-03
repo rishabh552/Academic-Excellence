@@ -1,10 +1,29 @@
-import React from "react";
+import React, { useState, useMemo } from "react";
 import { CircularGallery, GalleryItem } from "@/components/ui/circular-gallery";
+import { CategoryFilter } from "@/components/ui/category-filter";
+import { ProjectModal } from "@/components/ui/project-modal";
 import { GradientHeadline } from "@/components/ui/gradient-headline";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { MousePointer2, RotateCcw, Sparkles } from "lucide-react";
 
+// Category to gradient mapping for ambient lighting - Dark theme optimized
+const categoryGradients: Record<string, string> = {
+    'All': 'radial-gradient(ellipse at center, rgb(139, 92, 246, 0.08) 0%, rgb(168, 85, 247, 0.05) 40%, transparent 70%)',
+    'Full Stack Web': 'radial-gradient(ellipse at center, rgb(59, 130, 246, 0.1) 0%, rgb(37, 99, 235, 0.06) 40%, transparent 70%)',
+    'Machine Learning': 'radial-gradient(ellipse at center, rgb(168, 85, 247, 0.1) 0%, rgb(147, 51, 234, 0.06) 40%, transparent 70%)',
+    'Deep Learning': 'radial-gradient(ellipse at center, rgb(236, 72, 153, 0.1) 0%, rgb(219, 39, 119, 0.06) 40%, transparent 70%)',
+    'Mobile Application': 'radial-gradient(ellipse at center, rgb(249, 115, 22, 0.1) 0%, rgb(234, 88, 12, 0.06) 40%, transparent 70%)',
+    'NLP': 'radial-gradient(ellipse at center, rgb(6, 182, 212, 0.1) 0%, rgb(8, 145, 178, 0.06) 40%, transparent 70%)',
+    'Frontend': 'radial-gradient(ellipse at center, rgb(16, 185, 129, 0.1) 0%, rgb(5, 150, 105, 0.06) 40%, transparent 70%)',
+    'Productivity': 'radial-gradient(ellipse at center, rgb(245, 158, 11, 0.1) 0%, rgb(217, 119, 6, 0.06) 40%, transparent 70%)',
+    'FinTech': 'radial-gradient(ellipse at center, rgb(99, 102, 241, 0.1) 0%, rgb(79, 70, 229, 0.06) 40%, transparent 70%)',
+};
+
 export function ProjectShowcase() {
+    const [selectedCategory, setSelectedCategory] = useState('All');
+    const [expandedProject, setExpandedProject] = useState<GalleryItem | null>(null);
+    const [activeProjectIndex, setActiveProjectIndex] = useState(0);
+
     const items: GalleryItem[] = [
         {
             common: "E-Commerce Platform",
@@ -43,19 +62,19 @@ export function ProjectShowcase() {
             }
         },
         {
-            common: "Smart Home Hub",
-            binomial: "IoT & Mobile",
-            description: "Mobile application controlling IoT devices via MQTT protocol. Features voice control and automated scheduling.",
+            common: "Fitness Tracker Pro",
+            binomial: "Mobile Application",
+            description: "Cross-platform fitness tracking app built with React Native. Works seamlessly offline with local storage sync and real-time cloud backup when online.",
             features: [
-                "Voice Control",
-                "Automated Scheduling",
-                "Device Grouping",
-                "Energy Monitoring",
-                "Remote Access"
+                "Offline-First Architecture",
+                "Cloud Sync & Backup",
+                "Workout Tracking",
+                "Progress Analytics",
+                "Social Sharing"
             ],
             photo: {
-                url: "https://images.unsplash.com/photo-1558002038-109177381792?w=800&q=80",
-                text: "Smart Home Automation",
+                url: "https://images.unsplash.com/photo-1551650975-87deedd944c3?w=800&q=80",
+                text: "Fitness Tracker App",
                 by: "ProjectCraft",
                 pos: "center"
             }
@@ -152,9 +171,26 @@ export function ProjectShowcase() {
         }
     ];
 
+    // Extract unique categories and calculate counts
+    const categories = useMemo(() => ['All', ...Array.from(new Set(items.map(item => item.binomial)))], [items]);
+
+    const projectCounts = useMemo(() => {
+        const counts: Record<string, number> = { 'All': items.length };
+        items.forEach(item => {
+            counts[item.binomial] = (counts[item.binomial] || 0) + 1;
+        });
+        return counts;
+    }, [items]);
+
+    // Filter items based on selected category
+    const filteredItems = useMemo(() => {
+        if (selectedCategory === 'All') return items;
+        return items.filter(item => item.binomial === selectedCategory);
+    }, [selectedCategory, items]);
+
     const stats = [
-        { value: "50+", label: "Projects Delivered" },
-        { value: "8", label: "Tech Categories" },
+        { value: filteredItems.length.toString(), label: selectedCategory === 'All' ? "Total Projects" : "Filtered Projects" },
+        { value: categories.length - 1, label: "Tech Categories" },
         { value: "100%", label: "Client Satisfaction" },
     ];
 
@@ -181,8 +217,34 @@ export function ProjectShowcase() {
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
+    // Get ambient gradient based on active project or selected filter
+    const activeGradient = useMemo(() => {
+        if (filteredItems.length > 0 && activeProjectIndex < filteredItems.length) {
+            const activeProject = filteredItems[activeProjectIndex];
+            return categoryGradients[activeProject.binomial] || categoryGradients['All'];
+        }
+        return categoryGradients[selectedCategory] || categoryGradients['All'];
+    }, [activeProjectIndex, filteredItems, selectedCategory]);
+
     return (
-        <div className="pt-20 min-h-screen bg-background font-sans-secondary flex flex-col">
+        <div className="relative pt-20 min-h-screen font-sans-secondary flex flex-col overflow-hidden">
+            {/* Dynamic Ambient Background */}
+            <motion.div
+                initial={{ opacity: 0 }}
+                animate={{
+                    opacity: 1,
+                    background: activeGradient
+                }}
+                transition={{
+                    opacity: { duration: 0.5 },
+                    background: { duration: 3, ease: "easeInOut" }
+                }}
+                className="fixed inset-0 -z-10"
+            />
+
+            {/* Static background layer */}
+            <div className="fixed inset-0 -z-20 bg-background" />
+
             {/* Header Section */}
             <div className="text-center mb-12 mt-10 px-4">
                 <motion.div
@@ -244,21 +306,35 @@ export function ProjectShowcase() {
                 </motion.div>
             </div>
 
+            {/* Category Filter */}
+            <CategoryFilter
+                categories={categories}
+                activeCategory={selectedCategory}
+                onCategoryChange={setSelectedCategory}
+                projectCounts={projectCounts}
+            />
+
             {/* Gallery Container */}
-            <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.8, delay: 0.4 }}
-                className="flex-grow h-[550px] md:h-[700px] w-full overflow-hidden relative z-10 mb-8"
-            >
-                <CircularGallery
-                    items={items}
-                    radius={dimensions.radius}
-                    itemWidth={dimensions.width}
-                    itemHeight={dimensions.height}
-                    autoRotateSpeed={0.4}
-                />
-            </motion.div>
+            <AnimatePresence mode="wait">
+                <motion.div
+                    key={selectedCategory}
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    transition={{ duration: 0.5 }}
+                    className="flex-grow h-[550px] md:h-[700px] w-full overflow-hidden relative z-10 mb-8"
+                >
+                    <CircularGallery
+                        items={filteredItems}
+                        radius={dimensions.radius}
+                        itemWidth={dimensions.width}
+                        itemHeight={dimensions.height}
+                        autoRotateSpeed={0.4}
+                        onCardExpand={setExpandedProject}
+                        onActiveIndexChange={setActiveProjectIndex}
+                    />
+                </motion.div>
+            </AnimatePresence>
 
             {/* Bottom CTA */}
             <motion.div
@@ -278,6 +354,9 @@ export function ProjectShowcase() {
                     <span>→</span>
                 </a>
             </motion.div>
+
+            {/* Project Modal */}
+            <ProjectModal project={expandedProject} onClose={() => setExpandedProject(null)} />
         </div>
     );
 }
