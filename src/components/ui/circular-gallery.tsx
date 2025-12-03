@@ -454,7 +454,10 @@ const CircularGallery = React.forwardRef<HTMLDivElement, CircularGalleryProps>(
                                         </p>
 
                                         {/* Features Section */}
-                                        <div className="flex-grow overflow-y-auto min-h-0 pr-1">
+                                        <div
+                                            className="flex-grow overflow-y-auto min-h-0 pr-1 touch-pan-y"
+                                            onPointerDown={(e) => e.stopPropagation()}
+                                        >
                                             <h4 className={cn(
                                                 "text-[10px] font-bold uppercase tracking-widest mb-2 flex items-center gap-2",
                                                 colorScheme.accent
