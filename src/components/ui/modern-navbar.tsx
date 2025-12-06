@@ -1,15 +1,70 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, Sun, Moon, ChevronRight } from "lucide-react";
+import { Menu, X, Sun, Moon, ChevronRight, Code2, Brain, MessageSquare, Smartphone } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+// Service items for the dropdown
+const serviceItems = [
+    {
+        name: "Full-Stack Web Apps",
+        description: "MERN, Next.js, Django",
+        icon: Code2,
+        color: "from-blue-500 to-cyan-500"
+    },
+    {
+        name: "Machine Learning",
+        description: "CNN, RNN, Transformers",
+        icon: Brain,
+        color: "from-purple-500 to-pink-500"
+    },
+    {
+        name: "NLP Projects",
+        description: "Chatbots, Sentiment Analysis",
+        icon: MessageSquare,
+        color: "from-orange-500 to-red-500"
+    },
+    {
+        name: "Mobile Apps",
+        description: "React Native, Flutter",
+        icon: Smartphone,
+        color: "from-green-500 to-emerald-500"
+    }
+];
+
+// Dropdown animation variants
+const dropdownVariants = {
+    hidden: {
+        opacity: 0,
+        y: -10,
+        scale: 0.95,
+        transition: { duration: 0.15, ease: "easeIn" }
+    },
+    visible: {
+        opacity: 1,
+        y: 0,
+        scale: 1,
+        transition: { duration: 0.2, ease: "easeOut" }
+    }
+};
+
+const itemVariants = {
+    hidden: { opacity: 0, x: -10 },
+    visible: (i: number) => ({
+        opacity: 1,
+        x: 0,
+        transition: { delay: i * 0.05, duration: 0.2 }
+    })
+};
 
 export function ModernNavbar() {
     const [isScrolled, setIsScrolled] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [isDark, setIsDark] = useState(false);
+    const [hoveredItem, setHoveredItem] = useState<string | null>(null);
+    const hoverTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const location = useLocation();
     const isHome = location.pathname === "/";
 
@@ -34,6 +89,15 @@ export function ModernNavbar() {
         }
     }, []);
 
+    // Cleanup timeout on unmount
+    useEffect(() => {
+        return () => {
+            if (hoverTimeoutRef.current) {
+                clearTimeout(hoverTimeoutRef.current);
+            }
+        };
+    }, []);
+
     const toggleTheme = () => {
         const newDark = !isDark;
         setIsDark(newDark);
@@ -46,13 +110,27 @@ export function ModernNavbar() {
         }
     };
 
+    // Handle hover with delay for better UX
+    const handleMouseEnter = (itemName: string) => {
+        if (hoverTimeoutRef.current) {
+            clearTimeout(hoverTimeoutRef.current);
+        }
+        setHoveredItem(itemName);
+    };
+
+    const handleMouseLeave = () => {
+        hoverTimeoutRef.current = setTimeout(() => {
+            setHoveredItem(null);
+        }, 150); // Small delay to prevent flicker
+    };
+
     const navItems = [
-        { name: "Home", path: "/" },
-        { name: "Services", path: "/services" },
-        { name: "Process", path: "/process" },
-        { name: "Showcase", path: "/showcase" },
-        { name: "Pricing", path: "/pricing" },
-        { name: "Contact", path: "/contact" },
+        { name: "Home", path: "/", hasDropdown: false },
+        { name: "Services", path: "/services", hasDropdown: true },
+        { name: "Process", path: "/process", hasDropdown: false },
+        { name: "Showcase", path: "/showcase", hasDropdown: false },
+        { name: "Pricing", path: "/pricing", hasDropdown: false },
+        { name: "Contact", path: "/contact", hasDropdown: false },
     ];
 
     return (
@@ -97,28 +175,107 @@ export function ModernNavbar() {
                             )}>
                                 {navItems.map((item) => {
                                     const isActive = location.pathname === item.path;
+                                    const isHovered = hoveredItem === item.name;
+
                                     return (
-                                        <Link
+                                        <div
                                             key={item.name}
-                                            to={item.path}
-                                            className={cn(
-                                                "relative px-4 py-2 text-sm font-medium rounded-full transition-all duration-300",
-                                                isActive
-                                                    ? "text-white"
-                                                    : isScrolled || !isHome
-                                                        ? "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200/50 dark:hover:bg-white/10"
-                                                        : "text-gray-700 dark:text-gray-200 hover:bg-white/20 dark:hover:bg-black/20"
-                                            )}
+                                            className="relative"
+                                            onMouseEnter={() => item.hasDropdown && handleMouseEnter(item.name)}
+                                            onMouseLeave={handleMouseLeave}
                                         >
-                                            {isActive && (
-                                                <motion.div
-                                                    layoutId="navbar-active"
-                                                    className="absolute inset-0 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-500 dark:to-purple-500 shadow-md"
-                                                    transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                                                />
-                                            )}
-                                            <span className="relative z-10">{item.name}</span>
-                                        </Link>
+                                            <Link
+                                                to={item.path}
+                                                className={cn(
+                                                    "relative px-4 py-2 text-sm font-medium rounded-full transition-all duration-300 flex items-center gap-1",
+                                                    isActive
+                                                        ? "text-white"
+                                                        : isScrolled || !isHome
+                                                            ? "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200/50 dark:hover:bg-white/10"
+                                                            : "text-gray-700 dark:text-gray-200 hover:bg-white/20 dark:hover:bg-black/20"
+                                                )}
+                                            >
+                                                {isActive && (
+                                                    <motion.div
+                                                        layoutId="navbar-active"
+                                                        className="absolute inset-0 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-500 dark:to-purple-500 shadow-md"
+                                                        transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                                                    />
+                                                )}
+                                                <span className="relative z-10">{item.name}</span>
+                                                {item.hasDropdown && (
+                                                    <motion.span
+                                                        animate={{ rotate: isHovered ? 90 : 0 }}
+                                                        transition={{ duration: 0.2 }}
+                                                        className="relative z-10"
+                                                    >
+                                                        <ChevronRight className="w-3 h-3" />
+                                                    </motion.span>
+                                                )}
+                                            </Link>
+
+                                            {/* Dropdown Panel for Services */}
+                                            <AnimatePresence>
+                                                {item.hasDropdown && isHovered && (
+                                                    <motion.div
+                                                        variants={dropdownVariants}
+                                                        initial="hidden"
+                                                        animate="visible"
+                                                        exit="hidden"
+                                                        className="absolute top-full left-0 mt-2 w-72 p-2 rounded-2xl border border-white/10 bg-white/95 dark:bg-neutral-900/95 backdrop-blur-xl shadow-2xl shadow-black/20"
+                                                        onMouseEnter={() => handleMouseEnter(item.name)}
+                                                        onMouseLeave={handleMouseLeave}
+                                                    >
+                                                        {/* Dropdown arrow */}
+                                                        <div className="absolute -top-2 left-6 w-4 h-4 rotate-45 bg-white dark:bg-neutral-900 border-l border-t border-white/10" />
+
+                                                        <div className="relative z-10 space-y-1">
+                                                            {serviceItems.map((service, idx) => (
+                                                                <motion.div
+                                                                    key={service.name}
+                                                                    custom={idx}
+                                                                    variants={itemVariants}
+                                                                    initial="hidden"
+                                                                    animate="visible"
+                                                                >
+                                                                    <Link
+                                                                        to="/services"
+                                                                        className="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-100 dark:hover:bg-white/10 transition-all group"
+                                                                    >
+                                                                        <div className={cn(
+                                                                            "w-10 h-10 rounded-lg bg-gradient-to-br flex items-center justify-center text-white shadow-lg group-hover:scale-110 transition-transform",
+                                                                            service.color
+                                                                        )}>
+                                                                            <service.icon className="w-5 h-5" />
+                                                                        </div>
+                                                                        <div className="flex-1">
+                                                                            <div className="text-sm font-semibold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                                                                                {service.name}
+                                                                            </div>
+                                                                            <div className="text-xs text-gray-500 dark:text-gray-400">
+                                                                                {service.description}
+                                                                            </div>
+                                                                        </div>
+                                                                        <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-blue-500 group-hover:translate-x-1 transition-all" />
+                                                                    </Link>
+                                                                </motion.div>
+                                                            ))}
+                                                        </div>
+
+                                                        {/* View All Services link */}
+                                                        <div className="mt-2 pt-2 border-t border-gray-100 dark:border-white/10">
+                                                            <Link
+                                                                to="/services"
+                                                                className="flex items-center justify-center gap-2 p-2 text-sm font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-500/10 rounded-lg transition-colors"
+                                                            >
+                                                                <span>View All Services</span>
+                                                                <ChevronRight className="w-4 h-4" />
+                                                            </Link>
+                                                        </div>
+                                                    </motion.div>
+                                                )}
+                                            </AnimatePresence>
+                                        </div>
                                     );
                                 })}
                             </div>
@@ -127,7 +284,7 @@ export function ModernNavbar() {
                                 <button
                                     onClick={toggleTheme}
                                     className={cn(
-                                        "p-2.5 rounded-full transition-all duration-300",
+                                        "p-2.5 rounded-full transition-all duration-300 hover:scale-110",
                                         isScrolled
                                             ? "hover:bg-gray-100 dark:hover:bg-white/10 text-gray-600 dark:text-gray-300"
                                             : "hover:bg-white/20 dark:hover:bg-black/20 text-gray-700 dark:text-gray-200"
