@@ -15,30 +15,35 @@ export function ServicesSection() {
 
   const services = [
     {
+      id: "web-development",
       icon: <Code2 className="w-12 h-12 text-brand-accent" />,
       title: "Full-Stack Web Apps",
       description: "Complete web applications built with modern stacks like MERN, Next.js, or Django. Responsive, scalable, and production-ready.",
       features: ["React/Next.js Frontends", "Node/Django Backends", "Database Integration", "Auth & Payments"],
     },
     {
+      id: "machine-learning",
       icon: <Brain className="w-12 h-12 text-brand-primary" />,
       title: "Machine Learning",
       description: "Intelligent systems that learn from data. From regression models to complex classification systems.",
       features: ["Data Analysis", "Predictive Modeling", "Scikit-learn/Pandas", "Model Deployment"],
     },
     {
+      id: "deep-learning",
       icon: <Network className="w-12 h-12 text-brand-secondary" />,
       title: "Deep Learning",
       description: "Advanced neural networks for complex problems like image recognition and pattern detection.",
       features: ["CNNs & RNNs", "Computer Vision", "TensorFlow/PyTorch", "Model Optimization"],
     },
     {
+      id: "nlp",
       icon: <MessageSquare className="w-12 h-12 text-status-warning" />,
       title: "NLP Projects",
       description: "Natural Language Processing solutions for text analysis, chatbots, and language understanding.",
       features: ["Sentiment Analysis", "Chatbots & LLMs", "Text Classification", "Language Translation"],
     },
     {
+      id: "mobile-apps",
       icon: <Smartphone className="w-12 h-12 text-status-success" />,
       title: "Mobile Applications",
       description: "Native and cross-platform mobile apps for iOS and Android using React Native or Flutter.",
@@ -110,11 +115,11 @@ export function ServicesSection() {
                       ))}
                     </ul>
 
-                    {/* Learn More Link */}
+                    {/* Get Started Link */}
                     <div className="mt-auto pt-4">
-                      <Link to="/services">
+                      <Link to={`/contact?service=${service.id}`}>
                         <MagneticButton className="w-full">
-                          View Details
+                          Get Started
                           <svg className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                           </svg>

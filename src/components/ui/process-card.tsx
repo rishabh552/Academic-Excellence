@@ -62,16 +62,17 @@ export function ProcessCard({
 
     return (
         <motion.div
-            initial={{ opacity: 0, x: isLeft ? -50 : 50, y: 20 }}
-            whileInView={{ opacity: 1, x: 0, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
+            initial={{ opacity: 0, x: isLeft ? -100 : 100, y: 30, scale: 0.9 }}
+            whileInView={{ opacity: 1, x: 0, y: 0, scale: 1 }}
+            viewport={{ once: true, margin: "-50px" }}
             transition={{
                 type: "spring",
-                stiffness: 100,
-                damping: 15,
+                stiffness: 80,
+                damping: 12,
                 delay,
+                duration: 0.8,
             }}
-            whileHover={{ scale: 1.02, y: -5 }}
+            whileHover={{ scale: 1.03, y: -8 }}
             className="group relative"
         >
             {/* Animated gradient border wrapper with status-based neon glow */}

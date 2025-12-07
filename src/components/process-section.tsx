@@ -2,6 +2,7 @@
 
 import { motion, useInView } from "framer-motion";
 import { useRef } from "react";
+import { Link } from "react-router-dom";
 import { GradientHeadline } from "./ui/gradient-headline";
 import { ProcessCard } from "./ui/process-card";
 import { TimelineNode, TimelineLine } from "./ui/animated-timeline";
@@ -233,13 +234,15 @@ export function ProcessSection() {
                         <p className="text-lg text-muted-foreground mb-6">
                             Ready to get started on your project?
                         </p>
-                        <motion.button
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                            className="px-8 py-4 bg-gradient-to-r from-brand-accent to-brand-primary text-white font-semibold rounded-xl shadow-lg hover:shadow-xl hover:shadow-brand-accent/50 transition-all duration-300"
-                        >
-                            Start Your Project Today
-                        </motion.button>
+                        <Link to="/contact">
+                            <motion.button
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                className="px-8 py-4 bg-gradient-to-r from-brand-accent to-brand-primary text-white font-semibold rounded-xl shadow-lg hover:shadow-xl hover:shadow-brand-accent/50 transition-all duration-300"
+                            >
+                                Start Your Project Today
+                            </motion.button>
+                        </Link>
                     </motion.div>
                 </motion.div>
             </div>
