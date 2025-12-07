@@ -328,55 +328,95 @@ export function ModernNavbar() {
                 </div>
             </motion.nav>
 
-            {/* Mobile Menu Overlay */}
+            {/* Mobile Menu Overlay - Enhanced with slide animation and swipe-to-close */}
             <AnimatePresence>
                 {isMobileMenuOpen && (
-                    <motion.div
-                        initial={{ opacity: 0, y: -20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -20 }}
-                        transition={{ duration: 0.3 }}
-                        className="fixed inset-0 z-40 bg-white dark:bg-neutral-950 pt-24 px-6 md:hidden overflow-y-auto"
-                    >
-                        <div className="flex flex-col space-y-6">
-                            {navItems.map((item, idx) => (
+                    <>
+                        {/* Backdrop */}
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.2 }}
+                            className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm md:hidden"
+                            onClick={() => setIsMobileMenuOpen(false)}
+                        />
+
+                        {/* Menu Panel - Slides from right */}
+                        <motion.div
+                            initial={{ x: "100%" }}
+                            animate={{ x: 0 }}
+                            exit={{ x: "100%" }}
+                            transition={{ type: "spring", damping: 25, stiffness: 300 }}
+                            drag="x"
+                            dragConstraints={{ left: 0, right: 0 }}
+                            dragElastic={{ left: 0, right: 0.5 }}
+                            onDragEnd={(_, info) => {
+                                if (info.offset.x > 100 || info.velocity.x > 500) {
+                                    setIsMobileMenuOpen(false);
+                                }
+                            }}
+                            className="fixed top-0 right-0 bottom-0 z-40 w-[85vw] max-w-sm bg-white dark:bg-neutral-950 pt-24 px-6 md:hidden overflow-y-auto shadow-2xl"
+                        >
+                            {/* Swipe indicator */}
+                            <div className="absolute left-3 top-1/2 -translate-y-1/2 w-1 h-16 rounded-full bg-gray-300 dark:bg-gray-700 opacity-50" />
+
+                            <div className="flex flex-col space-y-6">
+                                {navItems.map((item, idx) => (
+                                    <motion.div
+                                        key={item.name}
+                                        initial={{ opacity: 0, x: 30 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        transition={{
+                                            delay: 0.1 + idx * 0.06,
+                                            type: "spring",
+                                            damping: 20,
+                                            stiffness: 200
+                                        }}
+                                    >
+                                        <Link
+                                            to={item.path}
+                                            onClick={() => setIsMobileMenuOpen(false)}
+                                            className={cn(
+                                                "block text-2xl font-bold tracking-tight transition-all duration-200",
+                                                location.pathname === item.path
+                                                    ? "text-blue-600 dark:text-blue-400 translate-x-2"
+                                                    : "text-gray-900 dark:text-white hover:text-gray-600 dark:hover:text-gray-300 hover:translate-x-2"
+                                            )}
+                                        >
+                                            {item.name}
+                                            {location.pathname === item.path && (
+                                                <motion.span
+                                                    layoutId="mobile-active-indicator"
+                                                    className="inline-block ml-3 w-2 h-2 rounded-full bg-blue-500"
+                                                />
+                                            )}
+                                        </Link>
+                                    </motion.div>
+                                ))}
+
                                 <motion.div
-                                    key={item.name}
-                                    initial={{ opacity: 0, x: -20 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    transition={{ delay: 0.1 + idx * 0.05 }}
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: 0.45, type: "spring", damping: 20 }}
+                                    className="pt-8 border-t border-gray-100 dark:border-neutral-800"
                                 >
                                     <Link
-                                        to={item.path}
+                                        to="/contact"
                                         onClick={() => setIsMobileMenuOpen(false)}
-                                        className={cn(
-                                            "block text-3xl font-bold tracking-tight transition-colors",
-                                            location.pathname === item.path
-                                                ? "text-blue-600 dark:text-blue-400"
-                                                : "text-gray-900 dark:text-white hover:text-gray-600 dark:hover:text-gray-300"
-                                        )}
+                                        className="block w-full py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white text-center rounded-xl font-bold text-lg shadow-lg active:scale-95 transition-transform"
                                     >
-                                        {item.name}
+                                        Start Your Project
                                     </Link>
                                 </motion.div>
-                            ))}
 
-                            <motion.div
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: 0.4 }}
-                                className="pt-8 border-t border-gray-100 dark:border-neutral-800"
-                            >
-                                <Link
-                                    to="/contact"
-                                    onClick={() => setIsMobileMenuOpen(false)}
-                                    className="block w-full py-4 bg-blue-600 text-white text-center rounded-xl font-bold text-lg shadow-lg active:scale-95 transition-transform"
-                                >
-                                    Start Your Project
-                                </Link>
-                            </motion.div>
-                        </div>
-                    </motion.div>
+                                {/* Hint text */}
+                                <p className="text-center text-xs text-gray-400 dark:text-gray-600 pt-4">
+                                    Swipe right to close
+                                </p>
+                            </div>
+                        </motion.div>
+                    </>
                 )}
             </AnimatePresence>
         </>

@@ -259,8 +259,8 @@ export function ProjectShowcase() {
             {/* Static background layer */}
             <div className="fixed inset-0 -z-20 bg-background" />
 
-            {/* Header Section */}
-            <div className="text-center mb-12 mt-10 px-4">
+            {/* Header Section - Swipeable zone */}
+            <div data-swipeable="true" className="text-center mb-12 mt-10 px-4">
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -320,13 +320,15 @@ export function ProjectShowcase() {
                 </motion.div>
             </div>
 
-            {/* Category Filter */}
-            <CategoryFilter
-                categories={categories}
-                activeCategory={selectedCategory}
-                onCategoryChange={setSelectedCategory}
-                projectCounts={projectCounts}
-            />
+            {/* Category Filter - Swipeable zone */}
+            <div data-swipeable="true">
+                <CategoryFilter
+                    categories={categories}
+                    activeCategory={selectedCategory}
+                    onCategoryChange={setSelectedCategory}
+                    projectCounts={projectCounts}
+                />
+            </div>
 
             {/* Gallery Container */}
             <AnimatePresence>
@@ -337,6 +339,7 @@ export function ProjectShowcase() {
                     exit={{ opacity: 0, scale: 0.95 }}
                     transition={{ duration: 0.3 }}
                     className="flex-grow h-[550px] md:h-[700px] w-full overflow-hidden relative z-10 mb-8 pointer-events-auto"
+                    data-no-swipe="true"
                 >
                     <CircularGallery
                         items={filteredItems}

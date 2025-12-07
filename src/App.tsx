@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Link, useLocation } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
 import { ModernNavbar } from "./components/ui/modern-navbar";
+import { SwipeNavigation } from "./components/ui/swipe-navigation";
 import { Home } from "./pages/Home";
 import { Services } from "./pages/Services";
 import { Process } from "./pages/Process";
@@ -41,23 +42,22 @@ function AppContent() {
 
   return (
     <div className="relative min-h-screen">
-      {/* Animated shader background - fixed behind everything */}
-      {/* <DottedSurface /> */}
-
       {/* Sticky Navigation */}
       <ModernNavbar />
 
-      {/* Routes */}
-      <AnimatePresence mode="wait">
-        <Routes location={location} key={location.pathname}>
-          <Route path="/" element={<Home />} />
-          <Route path="/services" element={<Services />} />
-          <Route path="/process" element={<Process />} />
-          <Route path="/showcase" element={<ProjectShowcase />} />
-          <Route path="/pricing" element={<Pricing />} />
-          <Route path="/contact" element={<Contact />} />
-        </Routes>
-      </AnimatePresence>
+      {/* Routes with Swipe Navigation for mobile */}
+      <SwipeNavigation>
+        <AnimatePresence mode="wait">
+          <Routes location={location} key={location.pathname}>
+            <Route path="/" element={<Home />} />
+            <Route path="/services" element={<Services />} />
+            <Route path="/process" element={<Process />} />
+            <Route path="/showcase" element={<ProjectShowcase />} />
+            <Route path="/pricing" element={<Pricing />} />
+            <Route path="/contact" element={<Contact />} />
+          </Routes>
+        </AnimatePresence>
+      </SwipeNavigation>
 
       {/* Footer - persistent on all pages */}
       <Footer />
