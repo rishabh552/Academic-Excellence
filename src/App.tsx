@@ -8,6 +8,7 @@ import { Process } from "./pages/Process";
 import { ProjectShowcase } from "./pages/ProjectShowcase";
 import { Pricing } from "./pages/Pricing";
 import { Contact } from "./pages/Contact";
+import { NotFound } from "./pages/NotFound";
 
 function Footer() {
   return (
@@ -55,6 +56,7 @@ function AppContent() {
             <Route path="/showcase" element={<ProjectShowcase />} />
             <Route path="/pricing" element={<Pricing />} />
             <Route path="/contact" element={<Contact />} />
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </AnimatePresence>
       </SwipeNavigation>
