@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 import { GlassButton } from "@/components/ui/glass-button";
 import { MorphingText } from "@/components/ui/morphing-text";
 
@@ -70,14 +71,18 @@ export function BackgroundPaths({ title = "Academic Projects Done Right" }: { ti
           </div>
 
           <div className="flex flex-col md:flex-row justify-center gap-6 w-full max-w-lg mx-auto">
-            <GlassButton className="w-full md:w-auto px-8 py-4 text-lg bg-brand-primary/10 hover:bg-brand-primary/20 border-brand-primary/20 text-brand-primary">
-              <span className="opacity-90 group-hover:opacity-100 transition-opacity">Get Your Project Now</span>
-              <span className="ml-3 opacity-70 group-hover:opacity-100 group-hover:translate-x-1.5 transition-all duration-300">→</span>
-            </GlassButton>
+            <Link to="/contact" className="w-full md:w-auto">
+              <GlassButton className="w-full px-8 py-4 text-lg bg-brand-primary/10 hover:bg-brand-primary/20 border-brand-primary/20 text-brand-primary">
+                <span className="opacity-90 group-hover:opacity-100 transition-opacity">Get Your Project Now</span>
+                <span className="ml-3 opacity-70 group-hover:opacity-100 group-hover:translate-x-1.5 transition-all duration-300">→</span>
+              </GlassButton>
+            </Link>
 
-            <GlassButton className="w-full md:w-auto px-8 py-4 text-lg">
-              View Portfolio
-            </GlassButton>
+            <Link to="/showcase" className="w-full md:w-auto">
+              <GlassButton className="w-full px-8 py-4 text-lg">
+                View Portfolio
+              </GlassButton>
+            </Link>
           </div>
         </motion.div>
       </div>

@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { useInView } from "framer-motion";
 import { useRef } from "react";
+import { Link } from "react-router-dom";
 import SpotlightCard from "./ui/spotlight-card";
 import { MagneticButton } from "./ui/magnetic-button";
 import { GradientHeadline } from "./ui/gradient-headline";
@@ -111,12 +112,14 @@ export function ServicesSection() {
 
                     {/* Learn More Link */}
                     <div className="mt-auto pt-4">
-                      <MagneticButton className="w-full">
-                        View Details
-                        <svg className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                        </svg>
-                      </MagneticButton>
+                      <Link to="/services">
+                        <MagneticButton className="w-full">
+                          View Details
+                          <svg className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                          </svg>
+                        </MagneticButton>
+                      </Link>
                     </div>
                   </div>
                 </SpotlightCard>

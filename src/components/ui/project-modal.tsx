@@ -1,5 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Link } from 'react-router-dom';
 import { X, ExternalLink, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { GalleryItem } from './circular-gallery';
@@ -169,14 +170,19 @@ export function ProjectModal({ project, onClose }: ProjectModalProps) {
                                     transition={{ delay: 0.3 }}
                                     className="flex justify-center"
                                 >
-                                    <button className={cn(
-                                        "px-8 py-4 rounded-full text-white font-bold text-lg transition-all flex items-center gap-3",
-                                        "shadow-2xl hover:shadow-3xl transform hover:scale-105",
-                                        `bg-gradient-to-r ${gradientColor}`
-                                    )}>
-                                        <span>View Live Project</span>
-                                        <ExternalLink className="w-5 h-5" />
-                                    </button>
+                                    <Link
+                                        to={`/contact?project=${encodeURIComponent(project.common)}`}
+                                        onClick={onClose}
+                                    >
+                                        <button className={cn(
+                                            "px-8 py-4 rounded-full text-white font-bold text-lg transition-all flex items-center gap-3",
+                                            "shadow-2xl hover:shadow-3xl transform hover:scale-105",
+                                            `bg-gradient-to-r ${gradientColor}`
+                                        )}>
+                                            <span>Get Started on This</span>
+                                            <ExternalLink className="w-5 h-5" />
+                                        </button>
+                                    </Link>
                                 </motion.div>
                             </div>
                         </div>

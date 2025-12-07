@@ -315,16 +315,18 @@ export function PricingSection() {
 
                     {/* Footer */}
                     <div className="p-6 pt-0">
-                      <button
-                        className={cn(
-                          "w-full py-3 px-6 rounded-xl font-semibold text-sm transition-all duration-200",
-                          plan.isPopular
-                            ? `bg-gradient-to-r ${plan.gradient} hover:opacity-90 text-white shadow-lg hover:shadow-xl hover:-translate-y-0.5`
-                            : "bg-white/5 text-foreground hover:bg-white/10 border border-white/10"
-                        )}
-                      >
-                        {plan.buttonLabel}
-                      </button>
+                      <Link to={`/contact?plan=${plan.id}`}>
+                        <button
+                          className={cn(
+                            "w-full py-3 px-6 rounded-xl font-semibold text-sm transition-all duration-200",
+                            plan.isPopular
+                              ? `bg-gradient-to-r ${plan.gradient} hover:opacity-90 text-white shadow-lg hover:shadow-xl hover:-translate-y-0.5`
+                              : "bg-white/5 text-foreground hover:bg-white/10 border border-white/10"
+                          )}
+                        >
+                          {plan.buttonLabel}
+                        </button>
+                      </Link>
                     </div>
                   </div>
                 </motion.div>
