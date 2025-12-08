@@ -163,12 +163,12 @@ export function ProjectModal({ project, onClose }: ProjectModalProps) {
                                     </div>
                                 </motion.div>
 
-                                {/* CTA Button */}
+                                {/* CTA Buttons */}
                                 <motion.div
                                     initial={{ opacity: 0, y: 20 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: 0.3 }}
-                                    className="flex justify-center"
+                                    className="flex flex-col sm:flex-row justify-center gap-4"
                                 >
                                     <Link
                                         to={`/contact?project=${encodeURIComponent(project.common)}`}
@@ -182,6 +182,16 @@ export function ProjectModal({ project, onClose }: ProjectModalProps) {
                                             <span>Get Started on This</span>
                                             <ExternalLink className="w-5 h-5" />
                                         </button>
+                                    </Link>
+                                    <Link
+                                        to={`/case-studies?category=${encodeURIComponent(project.binomial)}`}
+                                        onClick={onClose}
+                                        className="px-8 py-4 rounded-full border border-white/20 text-white font-bold text-lg transition-all hover:bg-white/10 flex items-center gap-3 justify-center"
+                                    >
+                                        <span>Read Full Case Study</span>
+                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                        </svg>
                                     </Link>
                                 </motion.div>
                             </div>

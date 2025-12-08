@@ -116,7 +116,7 @@ export function ServicesSection() {
                     </ul>
 
                     {/* Get Started Link */}
-                    <div className="mt-auto pt-4">
+                    <div className="mt-auto pt-4 space-y-3">
                       <Link to={`/contact?service=${service.id}`}>
                         <MagneticButton className="w-full">
                           Get Started
@@ -124,6 +124,15 @@ export function ServicesSection() {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                           </svg>
                         </MagneticButton>
+                      </Link>
+                      <Link
+                        to="/showcase"
+                        className="flex items-center justify-center gap-2 w-full py-2 text-sm text-muted-foreground hover:text-brand-secondary transition-colors"
+                      >
+                        See Examples
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
                       </Link>
                     </div>
                   </div>

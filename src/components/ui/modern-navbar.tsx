@@ -129,6 +129,7 @@ export function ModernNavbar() {
         { name: "Services", path: "/services", hasDropdown: true },
         { name: "Process", path: "/process", hasDropdown: false },
         { name: "Showcase", path: "/showcase", hasDropdown: false },
+        { name: "Case Studies", path: "/case-studies", hasDropdown: false },
         { name: "Pricing", path: "/pricing", hasDropdown: false },
         { name: "Contact", path: "/contact", hasDropdown: false },
     ];
@@ -170,8 +171,8 @@ export function ModernNavbar() {
                             <div className={cn(
                                 "flex items-center gap-1 px-2 py-1.5 rounded-full border transition-all duration-300",
                                 isScrolled
-                                    ? "bg-gray-100/50 dark:bg-white/5 border-gray-200 dark:border-white/10"
-                                    : "bg-white/10 dark:bg-black/10 border-white/20 dark:border-white/10 backdrop-blur-sm"
+                                    ? "bg-gray-100/50 dark:bg-white/5 border-gray-300 dark:border-white/30"
+                                    : "bg-white/10 dark:bg-black/10 border-white/40 dark:border-white/30 backdrop-blur-sm"
                             )}>
                                 {navItems.map((item) => {
                                     const isActive = location.pathname === item.path;
@@ -198,7 +199,7 @@ export function ModernNavbar() {
                                                 {isActive && (
                                                     <motion.div
                                                         layoutId="navbar-active"
-                                                        className="absolute inset-0 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-500 dark:to-purple-500 shadow-md"
+                                                        className="absolute inset-0 rounded-full bg-gradient-to-r from-teal-400 to-cyan-300 dark:from-teal-500 dark:to-cyan-400 shadow-md"
                                                         transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                                                     />
                                                 )}
@@ -294,13 +295,13 @@ export function ModernNavbar() {
                                     {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
                                 </button>
 
-                                <Link to="/contact">
+                                <Link to="/start-project">
                                     <motion.button
                                         whileHover={{ scale: 1.05 }}
                                         whileTap={{ scale: 0.95 }}
-                                        className="px-5 py-2.5 rounded-full bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-medium text-sm shadow-lg hover:shadow-xl transition-all flex items-center gap-2"
+                                        className="px-5 py-2.5 rounded-full bg-gradient-to-r from-teal-400 to-cyan-300 dark:from-teal-500 dark:to-cyan-400 text-gray-900 font-medium text-sm shadow-lg hover:shadow-teal-400/30 transition-all flex items-center gap-2"
                                     >
-                                        <span>Get Started</span>
+                                        <span>Start Project</span>
                                         <ChevronRight className="w-4 h-4" />
                                     </motion.button>
                                 </Link>
@@ -402,9 +403,9 @@ export function ModernNavbar() {
                                     className="pt-8 border-t border-gray-100 dark:border-neutral-800"
                                 >
                                     <Link
-                                        to="/contact"
+                                        to="/start-project"
                                         onClick={() => setIsMobileMenuOpen(false)}
-                                        className="block w-full py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white text-center rounded-xl font-bold text-lg shadow-lg active:scale-95 transition-transform"
+                                        className="block w-full py-4 bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-center rounded-xl font-bold text-lg shadow-lg active:scale-95 transition-transform"
                                     >
                                         Start Your Project
                                     </Link>

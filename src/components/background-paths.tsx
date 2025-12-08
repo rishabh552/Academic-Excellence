@@ -71,15 +71,15 @@ export function BackgroundPaths({ title = "Academic Projects Done Right" }: { ti
           </div>
 
           <div className="flex flex-col md:flex-row justify-center gap-6 w-full max-w-lg mx-auto">
-            <Link to="/contact" className="w-full md:w-auto">
-              <GlassButton className="w-full px-8 py-4 text-lg bg-brand-primary/10 hover:bg-brand-primary/20 border-brand-primary/20 text-brand-primary">
-                <span className="opacity-90 group-hover:opacity-100 transition-opacity">Get Your Project Now</span>
+            <Link to="/start-project" className="w-full md:w-auto">
+              <GlassButton className="w-full px-8 py-4 text-lg bg-white/10 hover:bg-white/20 border-white/30 text-white">
+                <span className="opacity-90 group-hover:opacity-100 transition-opacity">Start Project</span>
                 <span className="ml-3 opacity-70 group-hover:opacity-100 group-hover:translate-x-1.5 transition-all duration-300">→</span>
               </GlassButton>
             </Link>
 
             <Link to="/showcase" className="w-full md:w-auto">
-              <GlassButton className="w-full px-8 py-4 text-lg">
+              <GlassButton className="w-full px-8 py-4 text-lg bg-white/5 hover:bg-white/15 border-white/20 text-white/80 hover:text-white">
                 View Portfolio
               </GlassButton>
             </Link>
