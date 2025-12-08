@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ArrowLeftIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "../components/ui/button";
-import { Globe } from "../components/ui/cosmic-404"; // Removed .tsx extension
+import { Globe } from "../components/ui/cosmic-404";
 
 // 🎞️ Animation Variants
 const fadeUp = {
@@ -41,9 +41,8 @@ export interface NotFoundProps {
 
 export function NotFound({
     title = "Ups! Lost in space",
-    description = "We couldn’t find the page you’re looking for. It might have been moved or deleted.",
+    description = "We couldn't find the page you're looking for. It might have been moved or deleted.",
     backText = "Go Back",
-    onBack,
 }: NotFoundProps) {
     return (
         <div className="flex flex-col justify-center items-center px-4 h-[88vh] bg-background">
