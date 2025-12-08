@@ -183,6 +183,7 @@ const CircularGallery = React.forwardRef<HTMLDivElement, CircularGalleryProps>(
 
         // Mouse/touch drag handlers
         const handlePointerDown = (e: React.PointerEvent) => {
+            e.stopPropagation();
             if (flippedIndex !== null) {
                 setFlippedIndex(null);
                 return;

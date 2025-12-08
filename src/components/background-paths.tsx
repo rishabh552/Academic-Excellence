@@ -80,7 +80,7 @@ export function BackgroundPaths({ title = "Academic Projects Done Right" }: { ti
 
             <Link to="/showcase" className="w-full md:w-auto">
               <GlassButton className="w-full px-8 py-4 text-lg bg-white/5 hover:bg-white/15 border-white/20 text-white/80 hover:text-white">
-                View Portfolio
+                View Showcase
               </GlassButton>
             </Link>
           </div>
