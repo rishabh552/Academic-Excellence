@@ -70,6 +70,8 @@ const CircularGallery = React.forwardRef<HTMLDivElement, CircularGalleryProps>(
         const isPausedRef = useRef(false);
         const flippedIndexRef = useRef<number | null>(null);
         const isUnmountedRef = useRef(false);
+        const containerRef = useRef<HTMLDivElement>(null);
+        const isVisibleRef = useRef(true);
 
         // Keep refs in sync with state
         useEffect(() => {
@@ -80,7 +82,21 @@ const CircularGallery = React.forwardRef<HTMLDivElement, CircularGalleryProps>(
             flippedIndexRef.current = flippedIndex;
         }, [flippedIndex]);
 
+        // Intersection Observer to pause animation when off-screen
+        useEffect(() => {
+            const container = containerRef.current;
+            if (!container) return;
 
+            const observer = new IntersectionObserver(
+                (entries) => {
+                    isVisibleRef.current = entries[0].isIntersecting;
+                },
+                { threshold: 0, rootMargin: "50px" }
+            );
+
+            observer.observe(container);
+            return () => observer.disconnect();
+        }, []);
 
         // Stable animation loop - no dependencies that change frequently
         useEffect(() => {
@@ -89,6 +105,12 @@ const CircularGallery = React.forwardRef<HTMLDivElement, CircularGalleryProps>(
 
             const animate = (currentTime: number) => {
                 if (isUnmountedRef.current) return;
+
+                // Skip animation when not visible or tab hidden (performance optimization)
+                if (!isVisibleRef.current || document.hidden) {
+                    animationFrameRef.current = requestAnimationFrame(animate);
+                    return;
+                }
 
                 if (lastTimeRef.current === 0) {
                     lastTimeRef.current = currentTime;
@@ -252,9 +274,19 @@ const CircularGallery = React.forwardRef<HTMLDivElement, CircularGalleryProps>(
 
         const anglePerItem = 360 / items.length;
 
+        // Combine refs - use containerRef for visibility, forward ref for external use
+        const setRefs = (element: HTMLDivElement | null) => {
+            (containerRef as React.MutableRefObject<HTMLDivElement | null>).current = element;
+            if (typeof ref === 'function') {
+                ref(element);
+            } else if (ref) {
+                ref.current = element;
+            }
+        };
+
         return (
             <div
-                ref={ref}
+                ref={setRefs}
                 role="region"
                 aria-label="Circular 3D Gallery"
                 className={cn(

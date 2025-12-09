@@ -75,59 +75,6 @@
     /* Active/highest elevation */
   }
 
-  .light {
-    /* Light Mode - Override Theme */
-    --background: 0 0% 100%;
-    /* White #FFFFFF */
-    --foreground: 240 10% 3.9%;
-    /* Zinc 950 #09090b */
-
-    --card: 0 0% 100%;
-    /* White */
-    --card-foreground: 240 10% 3.9%;
-    /* Zinc 950 */
-
-    --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 3.9%;
-
-    --primary: 262.1 83.3% 57.8%;
-    /* Vibrant Purple #a855f7 */
-    --primary-foreground: 210 40% 98%;
-    /* Near White #f8fafc */
-
-    --secondary: 240 4.8% 95.9%;
-    /* Zinc 100 #f4f4f5 */
-    --secondary-foreground: 240 5.9% 10%;
-    /* Zinc 900 #18181b */
-
-    --muted: 240 4.8% 95.9%;
-    /* Zinc 100 */
-    --muted-foreground: 240 3.8% 46.1%;
-    /* Zinc 600 */
-
-    --accent: 240 4.8% 95.9%;
-    /* Zinc 100 */
-    --accent-foreground: 240 5.9% 10%;
-    /* Zinc 900 */
-
-    --destructive: 0 84.2% 60.2%;
-    /* Red 500 */
-    --destructive-foreground: 0 0% 98%;
-
-    --border: 240 5.9% 90%;
-    /* Zinc 200 */
-    --input: 240 5.9% 90%;
-    --ring: 262.1 83.3% 57.8%;
-    /* Primary color */
-
-    /* Gradient colors for text - Light mode */
-    --gradient-start: #2563eb;
-    /* Blue 600 */
-    --gradient-middle: #7c3aed;
-    /* Violet 600 */
-    --gradient-end: #db2777;
-    /* Pink 600 */
-  }
 
   body {
     @apply bg-background text-foreground;

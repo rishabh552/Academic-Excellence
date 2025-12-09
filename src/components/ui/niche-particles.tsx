@@ -33,6 +33,25 @@ export function NicheParticles({
     const canvasSize = useRef<{ w: number; h: number }>({ w: 0, h: 0 });
     const dpr = typeof window !== "undefined" ? window.devicePixelRatio : 1;
 
+    // Track visibility for performance optimization
+    const isVisibleRef = useRef(true);
+
+    // Intersection Observer to pause animation when off-screen
+    useEffect(() => {
+        const container = canvasContainerRef.current;
+        if (!container) return;
+
+        const observer = new IntersectionObserver(
+            (entries) => {
+                isVisibleRef.current = entries[0].isIntersecting;
+            },
+            { threshold: 0, rootMargin: "100px" } // Start slightly before visible
+        );
+
+        observer.observe(container);
+        return () => observer.disconnect();
+    }, []);
+
     useEffect(() => {
         if (canvasRef.current) {
             context.current = canvasRef.current.getContext("2d");
@@ -41,7 +60,10 @@ export function NicheParticles({
 
         let animationFrameId: number;
         const animateLoop = () => {
-            animate();
+            // Skip animation frame when not visible (performance optimization)
+            if (isVisibleRef.current) {
+                animate();
+            }
             animationFrameId = window.requestAnimationFrame(animateLoop);
         };
         animateLoop();

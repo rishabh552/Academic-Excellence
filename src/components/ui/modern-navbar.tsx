@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, Sun, Moon, ChevronRight, Code2, Brain, MessageSquare, Smartphone } from "lucide-react";
+import { Menu, X, ChevronRight, Code2, Brain, MessageSquare, Smartphone } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 // Service items for the dropdown
@@ -62,7 +62,6 @@ const itemVariants = {
 export function ModernNavbar() {
     const [isScrolled, setIsScrolled] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-    const [isDark, setIsDark] = useState(false);
     const [hoveredItem, setHoveredItem] = useState<string | null>(null);
     const hoverTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const location = useLocation();
@@ -76,19 +75,6 @@ export function ModernNavbar() {
         return () => window.removeEventListener("scroll", handleScroll);
     }, []);
 
-    useEffect(() => {
-        // Check initial theme
-        const savedTheme = localStorage.getItem("theme");
-        if (savedTheme === "light") {
-            setIsDark(false);
-            document.documentElement.classList.add("light");
-        } else {
-            // Default to dark (no class needed as it's now :root)
-            setIsDark(true);
-            document.documentElement.classList.remove("light");
-        }
-    }, []);
-
     // Cleanup timeout on unmount
     useEffect(() => {
         return () => {
@@ -97,18 +83,6 @@ export function ModernNavbar() {
             }
         };
     }, []);
-
-    const toggleTheme = () => {
-        const newDark = !isDark;
-        setIsDark(newDark);
-        if (newDark) {
-            document.documentElement.classList.remove("light");
-            localStorage.setItem("theme", "dark");
-        } else {
-            document.documentElement.classList.add("light");
-            localStorage.setItem("theme", "light");
-        }
-    };
 
     // Handle hover with delay for better UX
     const handleMouseEnter = (itemName: string) => {
@@ -281,18 +255,6 @@ export function ModernNavbar() {
                             </div>
 
                             <div className="ml-4 flex items-center gap-3">
-                                <button
-                                    onClick={toggleTheme}
-                                    className={cn(
-                                        "p-2.5 rounded-full transition-all duration-300 hover:scale-110",
-                                        isScrolled
-                                            ? "hover:bg-gray-100 dark:hover:bg-white/10 text-gray-600 dark:text-gray-300"
-                                            : "hover:bg-white/20 dark:hover:bg-black/20 text-gray-700 dark:text-gray-200"
-                                    )}
-                                    aria-label="Toggle theme"
-                                >
-                                    {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-                                </button>
 
                                 <Link to="/start-project">
                                     <motion.button
@@ -308,13 +270,7 @@ export function ModernNavbar() {
                         </div>
 
                         {/* Mobile Menu Toggle */}
-                        <div className="md:hidden flex items-center gap-4">
-                            <button
-                                onClick={toggleTheme}
-                                className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-white/10 transition-colors text-gray-600 dark:text-gray-300"
-                            >
-                                {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-                            </button>
+                        <div className="md:hidden flex items-center gap-2">
 
                             <button
                                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
