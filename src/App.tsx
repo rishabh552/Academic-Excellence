@@ -6,7 +6,7 @@ import { Home } from "./pages/Home";
 import { Services } from "./pages/Services";
 import { Process } from "./pages/Process";
 import { ProjectShowcase } from "./pages/ProjectShowcase";
-import { CaseStudies } from "./pages/CaseStudies";
+
 import { Pricing } from "./pages/Pricing";
 import { Contact } from "./pages/Contact";
 import { StartProject } from "./pages/StartProject";
@@ -19,10 +19,10 @@ function Footer() {
         <div className="flex flex-col items-center text-center space-y-4">
           {/* Navigation Links */}
           <nav className="flex flex-wrap justify-center gap-x-6 gap-y-2">
-            {["Home", "Services", "Process", "Showcase", "Case Studies", "Pricing", "Start Project", "Contact"].map((link) => (
+            {["Home", "Services", "Process", "Showcase", "Pricing", "Start Project", "Contact"].map((link) => (
               <Link
                 key={link}
-                to={link === "Home" ? "/" : link === "Start Project" ? "/start-project" : link === "Case Studies" ? "/case-studies" : `/${link.toLowerCase()}`}
+                to={link === "Home" ? "/" : link === "Start Project" ? "/start-project" : `/${link.toLowerCase()}`}
                 className="text-slate-400 dark:text-slate-600 hover:text-slate-700 dark:hover:text-slate-400 transition-colors duration-200 text-sm"
               >
                 {link}
@@ -56,7 +56,7 @@ function AppContent() {
             <Route path="/services" element={<Services />} />
             <Route path="/process" element={<Process />} />
             <Route path="/showcase" element={<ProjectShowcase />} />
-            <Route path="/case-studies" element={<CaseStudies />} />
+
             <Route path="/pricing" element={<Pricing />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/start-project" element={<StartProject />} />

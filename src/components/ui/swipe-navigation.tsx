@@ -10,7 +10,6 @@ const pageOrder = [
     "/services",
     "/process",
     "/showcase",
-    "/case-studies",
     "/pricing",
     "/contact"
 ];

@@ -237,8 +237,15 @@ const CircularGallery = React.forwardRef<HTMLDivElement, CircularGalleryProps>(
             targetRotationRef.current += delta;
         };
 
-        const handleCardClick = (index: number, isFront: boolean) => {
+        const handleCardClick = (index: number, isFront: boolean, isFlipped: boolean) => {
             if (hasDraggedRef.current) return;
+            // Allow flipping any visible front-facing card (not already flipped)
+            // Also allow clicking back face to unflip
+            if (isFlipped) {
+                // Clicking a flipped card unflips it
+                setFlippedIndex(null);
+                return;
+            }
             if (!isFront) return;
             setFlippedIndex(prev => prev === index ? null : index);
         };
@@ -297,9 +304,9 @@ const CircularGallery = React.forwardRef<HTMLDivElement, CircularGalleryProps>(
                         const relativeAngle = ((itemAngle - totalRotation) % 360 + 360) % 360;
                         const normalizedAngle = relativeAngle > 180 ? 360 - relativeAngle : relativeAngle;
 
-                        // Relaxed front threshold for better usability
-                        const isFront = normalizedAngle < 85;
-                        const isVisible = normalizedAngle < 100;
+                        // Wider front threshold for better usability on all cards
+                        const isFront = normalizedAngle < 100;
+                        const isVisible = normalizedAngle < 120;
                         const scale = Math.max(0.75, 1 - normalizedAngle / 250);
                         const colorScheme = getColorScheme(item.binomial);
                         const isFlipped = flippedIndex === i;
@@ -326,7 +333,10 @@ const CircularGallery = React.forwardRef<HTMLDivElement, CircularGalleryProps>(
                                     zIndex: zIndex,
                                     transition: 'opacity 0.3s ease',
                                 }}
-                                onClick={() => handleCardClick(i, isFront)}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleCardClick(i, isFront, isFlipped);
+                                }}
                             >
                                 {/* Flip Container */}
                                 <div
@@ -381,32 +391,29 @@ const CircularGallery = React.forwardRef<HTMLDivElement, CircularGalleryProps>(
                                             </p>
 
                                             <div className="flex items-center justify-between mt-3">
-                                                {isFront && (
-                                                    <div className={cn(
-                                                        "flex items-center gap-1 text-xs font-medium",
-                                                        colorScheme.accent
-                                                    )}>
-                                                        <span>Click to flip</span>
-                                                        <ArrowRight className="w-3 h-3" />
-                                                    </div>
-                                                )}
+                                                <div className={cn(
+                                                    "flex items-center gap-1 text-xs font-medium",
+                                                    colorScheme.accent
+                                                )}>
+                                                    <span>Click to flip</span>
+                                                    <ArrowRight className="w-3 h-3" />
+                                                </div>
 
                                                 {/* Quick Expand Button */}
-                                                {isFront && (
-                                                    <button
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            onCardExpand?.(item);
-                                                        }}
-                                                        className={cn(
-                                                            "p-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-all group",
-                                                            "hover:scale-110"
-                                                        )}
-                                                        title="Expand project"
-                                                    >
-                                                        <ExternalLink className="w-4 h-4 text-gray-400 group-hover:text-white transition-colors" />
-                                                    </button>
-                                                )}
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        e.preventDefault();
+                                                        onCardExpand?.(item);
+                                                    }}
+                                                    className={cn(
+                                                        "p-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-all group",
+                                                        "hover:scale-110"
+                                                    )}
+                                                    title="Expand project"
+                                                >
+                                                    <ExternalLink className="w-4 h-4 text-gray-400 group-hover:text-white transition-colors" />
+                                                </button>
                                             </div>
                                         </div>
                                     </div>
@@ -489,6 +496,8 @@ const CircularGallery = React.forwardRef<HTMLDivElement, CircularGalleryProps>(
                                             <button
                                                 onClick={(e) => {
                                                     e.stopPropagation();
+                                                    e.preventDefault();
+                                                    setFlippedIndex(null); // Close flip state first
                                                     onCardExpand?.(item);
                                                 }}
                                                 className={cn(

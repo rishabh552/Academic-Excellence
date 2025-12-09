@@ -129,7 +129,6 @@ export function ModernNavbar() {
         { name: "Services", path: "/services", hasDropdown: true },
         { name: "Process", path: "/process", hasDropdown: false },
         { name: "Showcase", path: "/showcase", hasDropdown: false },
-        { name: "Case Studies", path: "/case-studies", hasDropdown: false },
         { name: "Pricing", path: "/pricing", hasDropdown: false },
         { name: "Contact", path: "/contact", hasDropdown: false },
     ];

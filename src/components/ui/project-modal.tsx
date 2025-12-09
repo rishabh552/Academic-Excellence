@@ -184,11 +184,11 @@ export function ProjectModal({ project, onClose }: ProjectModalProps) {
                                         </button>
                                     </Link>
                                     <Link
-                                        to={`/case-studies?category=${encodeURIComponent(project.binomial)}`}
+                                        to={`/showcase?category=${encodeURIComponent(project.binomial)}`}
                                         onClick={onClose}
                                         className="px-8 py-4 rounded-full border border-white/20 text-white font-bold text-lg transition-all hover:bg-white/10 flex items-center gap-3 justify-center"
                                     >
-                                        <span>Read Full Case Study</span>
+                                        <span>View Similar Projects</span>
                                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                                         </svg>
