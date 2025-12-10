@@ -631,10 +631,19 @@ export function ProjectShowcase() {
                         key={caseStudy.id}
                         id={`case-study-${caseStudy.id}`}
                         ref={caseStudyIndex === selectedCaseStudies.length - 1 ? lastCaseStudyRef : null}
-                        initial={{ opacity: 0, y: 50 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -50 }}
-                        transition={{ duration: 0.5, ease: "easeOut" }}
+                        initial={{
+                            opacity: 0,
+                            y: caseStudyIndex === 0 ? 80 : -60,
+                            scale: caseStudyIndex === 0 ? 0.9 : 0.95
+                        }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: -30, scale: 0.95 }}
+                        transition={{
+                            duration: caseStudyIndex === 0 ? 0.8 : 0.6,
+                            ease: [0.22, 1, 0.36, 1],
+                            opacity: { duration: caseStudyIndex === 0 ? 0.6 : 0.5 },
+                            scale: { type: "spring", damping: 20, stiffness: 100 }
+                        }}
                         className="overflow-hidden"
                     >
                         <div className="container mx-auto px-4 pb-4">
