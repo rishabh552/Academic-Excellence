@@ -582,6 +582,7 @@ function Step4Contact({
                         type="text"
                         value={formData.name}
                         onChange={(e) => onChange('name', e.target.value)}
+                        autoComplete="name"
                         placeholder="John Doe"
                         className="w-full px-4 py-4 sm:py-3 rounded-xl bg-white/5 border border-white/10 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-brand-secondary/50"
                     />
@@ -593,6 +594,7 @@ function Step4Contact({
                         type="email"
                         value={formData.email}
                         onChange={(e) => onChange('email', e.target.value)}
+                        autoComplete="email"
                         placeholder="john@example.com"
                         className="w-full px-4 py-4 sm:py-3 rounded-xl bg-white/5 border border-white/10 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-brand-secondary/50"
                     />
@@ -604,6 +606,7 @@ function Step4Contact({
                         type="tel"
                         value={formData.phone}
                         onChange={(e) => onChange('phone', e.target.value)}
+                        autoComplete="tel"
                         placeholder="+1 (555) 000-0000"
                         className="w-full px-4 py-4 sm:py-3 rounded-xl bg-white/5 border border-white/10 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-brand-secondary/50"
                     />

@@ -567,7 +567,7 @@ const CircularGallery = React.forwardRef<HTMLDivElement, CircularGalleryProps>(
                 </div>
 
                 {/* Navigation hints */}
-                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-4 text-xs text-muted-foreground bg-black/30 backdrop-blur-sm px-4 py-2 rounded-full pointer-events-none">
+                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 sm:gap-4 text-[10px] sm:text-xs text-muted-foreground bg-black/30 backdrop-blur-sm px-3 sm:px-4 py-2 rounded-full pointer-events-none">
                     <span>Scroll or drag to rotate</span>
                     <span className="w-1 h-1 rounded-full bg-muted-foreground"></span>
                     <span>Click card to flip</span>

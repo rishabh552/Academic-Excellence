@@ -45,7 +45,7 @@ export function ContactSection() {
   };
 
   return (
-    <section id="contact" className="relative py-24 bg-transparent">
+    <section id="contact" className="relative pt-24 pb-48 bg-transparent">
       <div className="container mx-auto px-4 md:px-6">
         <div className="grid lg:grid-cols-2 gap-12 items-start max-w-6xl mx-auto">
 
@@ -109,6 +109,7 @@ export function ContactSection() {
                       type="text"
                       id="name"
                       name="name"
+                      autoComplete="name"
                       value={formState.name}
                       onChange={handleChange}
                       className="w-full px-4 py-4 sm:py-3 rounded-xl bg-white/5 border border-white/10 focus:border-brand-primary focus:ring-1 focus:ring-brand-primary outline-none transition-all text-white placeholder:text-white/20"
@@ -121,6 +122,7 @@ export function ContactSection() {
                       type="email"
                       id="email"
                       name="email"
+                      autoComplete="email"
                       value={formState.email}
                       onChange={handleChange}
                       className="w-full px-4 py-4 sm:py-3 rounded-xl bg-white/5 border border-white/10 focus:border-brand-primary focus:ring-1 focus:ring-brand-primary outline-none transition-all text-white placeholder:text-white/20"
