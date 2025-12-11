@@ -57,7 +57,7 @@ export function BackgroundPaths({ title = "Academic Projects Done Right" }: { ti
             <span className="text-sm text-muted-foreground font-medium">Accepting New Projects for Spring 2025</span>
           </div>
 
-          <h1 className="text-6xl md:text-8xl font-bold mb-8 tracking-tight">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-8xl font-bold mb-8 tracking-tight">
             <span className="bg-clip-text text-transparent bg-gradient-to-b from-white to-white/60">
               {title}
             </span>

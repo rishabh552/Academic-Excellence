@@ -63,7 +63,7 @@ export function CategoryFilter({ categories, activeCategory, onCategoryChange, p
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="w-full overflow-x-auto pb-4 mb-8"
+            className="w-full overflow-x-auto pb-4 mb-8 snap-x snap-mandatory scroll-smooth"
         >
             <div className="flex gap-3 justify-center min-w-max px-4">
                 {categories.map((category, index) => {
@@ -81,7 +81,7 @@ export function CategoryFilter({ categories, activeCategory, onCategoryChange, p
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
                             className={cn(
-                                "relative px-6 py-2.5 rounded-full font-semibold text-sm transition-all duration-300",
+                                "relative px-6 py-2.5 rounded-full font-semibold text-sm transition-all duration-300 snap-center",
                                 "border-2 backdrop-blur-sm",
                                 isActive
                                     ? `${colors.bg} ${colors.text} border-transparent shadow-lg ${colors.glow}`

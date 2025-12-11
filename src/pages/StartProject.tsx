@@ -583,7 +583,7 @@ function Step4Contact({
                         value={formData.name}
                         onChange={(e) => onChange('name', e.target.value)}
                         placeholder="John Doe"
-                        className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-brand-secondary/50"
+                        className="w-full px-4 py-4 sm:py-3 rounded-xl bg-white/5 border border-white/10 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-brand-secondary/50"
                     />
                 </div>
 
@@ -594,7 +594,7 @@ function Step4Contact({
                         value={formData.email}
                         onChange={(e) => onChange('email', e.target.value)}
                         placeholder="john@example.com"
-                        className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-brand-secondary/50"
+                        className="w-full px-4 py-4 sm:py-3 rounded-xl bg-white/5 border border-white/10 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-brand-secondary/50"
                     />
                 </div>
 
@@ -605,7 +605,7 @@ function Step4Contact({
                         value={formData.phone}
                         onChange={(e) => onChange('phone', e.target.value)}
                         placeholder="+1 (555) 000-0000"
-                        className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-brand-secondary/50"
+                        className="w-full px-4 py-4 sm:py-3 rounded-xl bg-white/5 border border-white/10 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-brand-secondary/50"
                     />
                 </div>
 
@@ -616,7 +616,7 @@ function Step4Contact({
                         onChange={(e) => onChange('message', e.target.value)}
                         placeholder="Tell us about your project requirements, timeline, and any specific features you need..."
                         rows={4}
-                        className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-brand-secondary/50 resize-none"
+                        className="w-full px-4 py-4 sm:py-3 rounded-xl bg-white/5 border border-white/10 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-brand-secondary/50 resize-none"
                     />
                 </div>
 

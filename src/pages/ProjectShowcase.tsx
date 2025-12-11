@@ -415,8 +415,8 @@ export function ProjectShowcase() {
     React.useEffect(() => {
         const handleResize = () => {
             const width = window.innerWidth;
-            if (width < 640) { // Mobile
-                setDimensions({ radius: 180, width: 220, height: 320 });
+            if (width < 640) { // Mobile - increased radius, smaller cards to prevent overlap
+                setDimensions({ radius: 280, width: 180, height: 300 });
             } else if (width < 1024) { // Tablet
                 setDimensions({ radius: 300, width: 250, height: 360 });
             } else { // Desktop
@@ -691,7 +691,7 @@ export function ProjectShowcase() {
                                             </span>
                                             The Challenge
                                         </h4>
-                                        <p className="text-muted-foreground pl-13 leading-relaxed">
+                                        <p className="text-muted-foreground pl-0 sm:pl-13 leading-relaxed">
                                             {caseStudy.challenge}
                                         </p>
                                     </div>
@@ -704,7 +704,7 @@ export function ProjectShowcase() {
                                             </span>
                                             Our Approach
                                         </h4>
-                                        <ul className="space-y-3 pl-13">
+                                        <ul className="space-y-3 pl-0 sm:pl-13">
                                             {caseStudy.approach.map((step: string, i: number) => (
                                                 <li
                                                     key={i}
@@ -725,7 +725,7 @@ export function ProjectShowcase() {
                                             </span>
                                             The Solution
                                         </h4>
-                                        <p className="text-muted-foreground pl-13 leading-relaxed">
+                                        <p className="text-muted-foreground pl-0 sm:pl-13 leading-relaxed">
                                             {caseStudy.solution}
                                         </p>
                                     </div>
@@ -755,7 +755,7 @@ export function ProjectShowcase() {
                                             </span>
                                             Results
                                         </h4>
-                                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                                        <div className="grid grid-cols-3 md:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
                                             {caseStudy.results.map((result: { metric: string; value: string }) => (
                                                 <div
                                                     key={result.metric}
@@ -776,10 +776,10 @@ export function ProjectShowcase() {
                                     {caseStudy.clientQuote && (
                                         <div className="relative p-6 md:p-8 rounded-2xl bg-gradient-to-br from-brand-secondary/10 to-brand-accent/10 border border-brand-secondary/20">
                                             <Quote className="absolute top-6 left-6 w-10 h-10 text-brand-secondary/30" />
-                                            <p className="text-lg md:text-xl italic text-foreground mb-4 pl-14">
+                                            <p className="text-base sm:text-lg md:text-xl italic text-foreground mb-4 pl-8 sm:pl-14">
                                                 "{caseStudy.clientQuote.text}"
                                             </p>
-                                            <div className="pl-14">
+                                            <div className="pl-8 sm:pl-14">
                                                 <div className="font-semibold text-foreground">
                                                     {caseStudy.clientQuote.author}
                                                 </div>
@@ -831,7 +831,7 @@ export function ProjectShowcase() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.6 }}
-                className="text-center pt-16 pb-20 px-4"
+                className="text-center pt-16 pb-40 px-4"
             >
                 <p className="text-muted-foreground mb-4">
                     Don't see what you're looking for? We build custom projects too.

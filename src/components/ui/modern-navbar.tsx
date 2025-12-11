@@ -274,7 +274,7 @@ export function ModernNavbar() {
 
                             <button
                                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                                className="relative z-50 p-2 text-gray-900 dark:text-white"
+                                className="relative z-50 p-3 text-gray-900 dark:text-white"
                                 aria-label="Toggle menu"
                             >
                                 {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}

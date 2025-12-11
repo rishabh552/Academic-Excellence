@@ -394,7 +394,7 @@ const CircularGallery = React.forwardRef<HTMLDivElement, CircularGalleryProps>(
                                         }}
                                     >
                                         {/* Image */}
-                                        <div className="relative h-[55%] overflow-hidden">
+                                        <div className="relative h-[50%] overflow-hidden">
                                             <img
                                                 src={item.photo.url}
                                                 alt={item.photo.text}
@@ -414,7 +414,7 @@ const CircularGallery = React.forwardRef<HTMLDivElement, CircularGalleryProps>(
                                         </div>
 
                                         {/* Content */}
-                                        <div className="p-4 h-[45%] flex flex-col">
+                                        <div className="p-3 sm:p-4 h-[50%] flex flex-col">
                                             <h3 className="text-lg font-bold text-white mb-2 line-clamp-1">
                                                 {item.common}
                                             </h3>
@@ -495,7 +495,7 @@ const CircularGallery = React.forwardRef<HTMLDivElement, CircularGalleryProps>(
 
                                         {/* Features Section */}
                                         <div
-                                            className="flex-grow overflow-y-auto min-h-0 pr-1 touch-pan-y"
+                                            className="flex-grow overflow-y-auto min-h-0 pr-2 sm:pr-1 touch-pan-y"
                                             onPointerDown={(e) => e.stopPropagation()}
                                         >
                                             <h4 className={cn(
@@ -558,8 +558,8 @@ const CircularGallery = React.forwardRef<HTMLDivElement, CircularGalleryProps>(
                                 targetRotationRef.current = i * (360 / items.length);
                             }}
                             className={cn(
-                                "w-2 h-2 rounded-full transition-all duration-300",
-                                activeIndex === i ? "bg-white w-6" : "bg-white/20 hover:bg-white/40"
+                                "w-3 h-3 sm:w-2 sm:h-2 rounded-full transition-all duration-300",
+                                activeIndex === i ? "bg-white w-8 sm:w-6" : "bg-white/20 hover:bg-white/40"
                             )}
                             aria-label={`Go to project ${i + 1}`}
                         />
