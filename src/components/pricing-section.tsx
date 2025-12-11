@@ -411,7 +411,7 @@ export function PricingSection() {
             initial={{ opacity: 0, y: 30 }}
             animate={isInView ? { opacity: 1, y: 0 } : {}}
             transition={{ delay: 0.9 }}
-            className="mt-12 text-center"
+            className="mt-12 pb-40 text-center"
           >
             <p className="text-slate-400 text-sm">
               Need something custom?{" "}
