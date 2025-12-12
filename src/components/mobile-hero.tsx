@@ -17,14 +17,12 @@ export function MobileHero({ title = "Academic Excellence" }: MobileHeroProps) {
     return (
         <section
             id="mobile-hero"
-            className="relative mx-auto w-full pt-32 pb-24 px-6 text-center md:pt-40 md:px-8 
-            min-h-screen overflow-hidden bg-transparent"
+            className="relative mx-auto w-full pt-36 pb-24 px-6 text-center md:pt-44 md:px-8 min-h-screen overflow-hidden bg-transparent"
         >
-            {/* SVG GridBeam covering full hero area - Extra large for tall screens */}
+            {/* SVG GridBeam covering full hero area - Responsive full-screen coverage */}
             <GridBeam
                 className="top-0 left-0 opacity-50 -z-10"
-                rows={24}
-                cols={16}
+                fullScreen={true}
                 gridSize={48}
                 duration={3}
                 delay={1}

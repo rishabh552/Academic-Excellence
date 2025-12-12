@@ -120,7 +120,7 @@ export function ModernNavbar() {
                         : "bg-transparent border-transparent py-5"
                 )}
             >
-                <div className="container mx-auto px-4 md:px-6">
+                <div className="w-full px-6 md:px-8 lg:px-12">
                     <div className="flex items-center justify-between">
                         {/* Logo */}
                         <Link
@@ -139,8 +139,8 @@ export function ModernNavbar() {
                             </span>
                         </Link>
 
-                        {/* Desktop Navigation */}
-                        <div className="hidden md:flex items-center gap-1">
+                        {/* Desktop Navigation - Show only on large screens (1024px+) */}
+                        <div className="hidden lg:flex items-center gap-1">
                             <div className={cn(
                                 "flex items-center gap-1 px-2 py-1.5 rounded-full border transition-all duration-300",
                                 isScrolled
@@ -269,8 +269,8 @@ export function ModernNavbar() {
                             </div>
                         </div>
 
-                        {/* Mobile Menu Toggle */}
-                        <div className="md:hidden flex items-center gap-2">
+                        {/* Mobile Menu Toggle - Show on screens below 1024px */}
+                        <div className="lg:hidden flex items-center gap-2">
 
                             <button
                                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -294,7 +294,7 @@ export function ModernNavbar() {
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
                             transition={{ duration: 0.2 }}
-                            className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm md:hidden"
+                            className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm lg:hidden"
                             onClick={() => setIsMobileMenuOpen(false)}
                         />
 
@@ -312,7 +312,7 @@ export function ModernNavbar() {
                                     setIsMobileMenuOpen(false);
                                 }
                             }}
-                            className="fixed top-0 right-0 bottom-0 z-40 w-[85vw] max-w-sm bg-white dark:bg-neutral-950 pt-24 px-6 md:hidden overflow-y-auto shadow-2xl"
+                            className="fixed top-0 right-0 bottom-0 z-40 w-[85vw] max-w-sm bg-white dark:bg-neutral-950 pt-24 px-6 lg:hidden overflow-y-auto shadow-2xl"
                         >
                             {/* Swipe indicator */}
                             <div className="absolute left-3 top-1/2 -translate-y-1/2 w-1 h-16 rounded-full bg-gray-300 dark:bg-gray-700 opacity-50" />
