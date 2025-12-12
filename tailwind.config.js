@@ -83,12 +83,22 @@ export default {
           "0%, 100%": { boxShadow: "0 0 20px rgba(139, 92, 246, 0.3)" },
           "50%": { boxShadow: "0 0 40px rgba(139, 92, 246, 0.6)" },
         },
+        "fade-in": {
+          "0%": { opacity: "0", transform: "translateY(-10px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
+        "fade-up": {
+          "0%": { opacity: "0", transform: "translateY(20px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         float: "float 3s ease-in-out infinite",
         "pulse-glow": "pulse-glow 2s ease-in-out infinite",
+        "fade-in": "fade-in 0.8s ease-out 0.15s forwards",
+        "fade-up": "fade-up 0.8s ease-out 0.3s forwards",
       },
     },
   },

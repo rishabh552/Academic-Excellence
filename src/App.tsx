@@ -3,6 +3,7 @@ import { AnimatePresence } from "framer-motion";
 import { Suspense, lazy } from "react";
 import { ModernNavbar } from "./components/ui/modern-navbar";
 import { SwipeNavigation } from "./components/ui/swipe-navigation";
+import { PageTransition } from "./components/ui/page-transition";
 import { Home } from "./pages/Home";
 import { Services } from "./pages/Services";
 import { Process } from "./pages/Process";
@@ -66,14 +67,14 @@ function AppContent() {
         <Suspense fallback={<PageLoader />}>
           <AnimatePresence mode="wait">
             <Routes location={location} key={location.pathname}>
-              <Route path="/" element={<Home />} />
-              <Route path="/services" element={<Services />} />
-              <Route path="/process" element={<Process />} />
-              <Route path="/showcase" element={<ProjectShowcase />} />
-              <Route path="/pricing" element={<Pricing />} />
-              <Route path="/contact" element={<Contact />} />
-              <Route path="/start-project" element={<StartProject />} />
-              <Route path="*" element={<NotFound />} />
+              <Route path="/" element={<PageTransition><Home /></PageTransition>} />
+              <Route path="/services" element={<PageTransition><Services /></PageTransition>} />
+              <Route path="/process" element={<PageTransition><Process /></PageTransition>} />
+              <Route path="/showcase" element={<PageTransition><ProjectShowcase /></PageTransition>} />
+              <Route path="/pricing" element={<PageTransition><Pricing /></PageTransition>} />
+              <Route path="/contact" element={<PageTransition><Contact /></PageTransition>} />
+              <Route path="/start-project" element={<PageTransition><StartProject /></PageTransition>} />
+              <Route path="*" element={<PageTransition><NotFound /></PageTransition>} />
             </Routes>
           </AnimatePresence>
         </Suspense>
