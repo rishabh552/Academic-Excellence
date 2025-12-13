@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, HTMLAttributes } from 'react';
+import React, { useState, useEffect, useRef, HTMLAttributes, useCallback } from 'react';
 import { cn } from "@/lib/utils";
 import { Check, ArrowRight, ExternalLink, X } from "lucide-react";
 
@@ -244,20 +244,11 @@ const CircularGallery = React.forwardRef<HTMLDivElement, CircularGalleryProps>(
             (e.target as HTMLElement).releasePointerCapture?.(e.pointerId);
         };
 
-        // Wheel handler - don't block default behavior entirely
-        const handleWheel = (e: React.WheelEvent) => {
-            // Only prevent default if we're actually using the scroll for rotation
-            if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
-                e.stopPropagation();
-            }
-            lastInteractionTimeRef.current = Date.now();
-            if (flippedIndex !== null) {
-                setFlippedIndex(null);
-                return;
-            }
-            const delta = e.deltaY * 0.3;
-            targetRotationRef.current += delta;
-        };
+        // Wheel handler - scroll-to-rotate disabled completely
+        const handleWheel = useCallback((_e: React.WheelEvent) => {
+            // Scroll-to-rotate disabled - use drag, arrow buttons, or keyboard instead
+            return;
+        }, []);
 
         const handleCardClick = (index: number, isFront: boolean, isFlipped: boolean) => {
             if (hasDraggedRef.current) return;
@@ -524,7 +515,10 @@ const CircularGallery = React.forwardRef<HTMLDivElement, CircularGalleryProps>(
                                         </div>
 
                                         {/* CTA Button */}
-                                        <div className="mt-3 pt-3 border-t border-white/5">
+                                        <div
+                                            className="mt-3 pt-3 border-t border-white/5"
+                                            onPointerDown={(e) => e.stopPropagation()}
+                                        >
                                             <button
                                                 onClick={(e) => {
                                                     e.stopPropagation();
@@ -532,10 +526,12 @@ const CircularGallery = React.forwardRef<HTMLDivElement, CircularGalleryProps>(
                                                     setFlippedIndex(null); // Close flip state first
                                                     onCardExpand?.(item);
                                                 }}
+                                                onPointerDown={(e) => e.stopPropagation()}
                                                 className={cn(
-                                                    "w-full py-2.5 rounded-xl text-white text-xs font-semibold transition-all flex items-center justify-center gap-2",
+                                                    "w-full py-2.5 rounded-xl text-white text-xs font-semibold transition-all flex items-center justify-center gap-2 pointer-events-auto cursor-pointer",
                                                     "bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500",
-                                                    "shadow-lg shadow-emerald-900/20 hover:shadow-emerald-500/30"
+                                                    "shadow-lg shadow-emerald-900/20 hover:shadow-emerald-500/30",
+                                                    "active:scale-[0.98]"
                                                 )}>
                                                 <span>View Full Project</span>
                                                 <ExternalLink className="w-3.5 h-3.5" />
@@ -568,7 +564,7 @@ const CircularGallery = React.forwardRef<HTMLDivElement, CircularGalleryProps>(
 
                 {/* Navigation hints */}
                 <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 sm:gap-4 text-[10px] sm:text-xs text-muted-foreground bg-black/30 backdrop-blur-sm px-3 sm:px-4 py-2 rounded-full pointer-events-none">
-                    <span>Scroll or drag to rotate</span>
+                    <span>Drag to rotate</span>
                     <span className="w-1 h-1 rounded-full bg-muted-foreground"></span>
                     <span>Click card to flip</span>
                     <span className="w-1 h-1 rounded-full bg-muted-foreground hidden md:block"></span>

@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode, useCallback, useState } from "react";
+import { ReactNode, useCallback, useState, useEffect } from "react";
 import { motion, useMotionValue, useTransform, PanInfo } from "framer-motion";
 import { useNavigate, useLocation } from "react-router-dom";
 
@@ -26,6 +26,21 @@ export function SwipeNavigation({ children }: SwipeNavigationProps) {
     const location = useLocation();
     const x = useMotionValue(0);
     const [canNavigate, setCanNavigate] = useState(true);
+    const [isMobile, setIsMobile] = useState(false);
+
+    // Detect mobile/touch devices - only enable swipe on mobile
+    useEffect(() => {
+        const checkMobile = () => {
+            // Check if screen is small (mobile breakpoint) or has touch capability
+            const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+            const isSmallScreen = window.matchMedia('(max-width: 768px)').matches;
+            setIsMobile(isTouchDevice && isSmallScreen);
+        };
+
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+        return () => window.removeEventListener('resize', checkMobile);
+    }, []);
 
     // Check if current page needs zone-based swipe
     const isZoneBasedPage = zoneBasedPages.includes(location.pathname);
@@ -95,34 +110,39 @@ export function SwipeNavigation({ children }: SwipeNavigationProps) {
 
     return (
         <div className="relative overflow-hidden">
-            {/* Left edge indicator */}
-            {canGoBack && (
+            {/* Left edge indicator - only on mobile */}
+            {isMobile && canGoBack && (
                 <motion.div
-                    className="fixed left-0 top-0 bottom-0 w-1 bg-gradient-to-r from-blue-500/50 to-transparent z-50 pointer-events-none md:hidden"
+                    className="fixed left-0 top-0 bottom-0 w-1 bg-gradient-to-r from-blue-500/50 to-transparent z-50 pointer-events-none"
                     style={{ opacity: leftIndicatorOpacity }}
                 />
             )}
 
-            {/* Right edge indicator */}
-            {canGoForward && (
+            {/* Right edge indicator - only on mobile */}
+            {isMobile && canGoForward && (
                 <motion.div
-                    className="fixed right-0 top-0 bottom-0 w-1 bg-gradient-to-l from-purple-500/50 to-transparent z-50 pointer-events-none md:hidden"
+                    className="fixed right-0 top-0 bottom-0 w-1 bg-gradient-to-l from-purple-500/50 to-transparent z-50 pointer-events-none"
                     style={{ opacity: rightIndicatorOpacity }}
                 />
             )}
 
             {/* Draggable content wrapper - only on mobile */}
-            <motion.div
-                drag="x"
-                dragConstraints={{ left: 0, right: 0 }}
-                dragElastic={0.1}
-                onDragStart={handleDragStart}
-                onDragEnd={handleDragEnd}
-                style={{ x }}
-                className="touch-pan-y md:!transform-none"
-            >
-                {children}
-            </motion.div>
+            {isMobile ? (
+                <motion.div
+                    drag="x"
+                    dragConstraints={{ left: 0, right: 0 }}
+                    dragElastic={0.1}
+                    onDragStart={handleDragStart}
+                    onDragEnd={handleDragEnd}
+                    style={{ x }}
+                    className="touch-pan-y"
+                >
+                    {children}
+                </motion.div>
+            ) : (
+                <div>{children}</div>
+            )}
         </div>
     );
 }
+
