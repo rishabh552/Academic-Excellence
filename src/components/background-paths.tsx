@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { GlassButton } from "@/components/ui/glass-button";
+import { StarButton } from "@/components/ui/star-button";
 import { MorphingText } from "@/components/ui/morphing-text";
 
 function FloatingPaths({ position }: { position: number }) {
@@ -57,7 +57,7 @@ export function BackgroundPaths({ title = "Academic Projects Done Right" }: { ti
             <span className="text-sm text-muted-foreground font-medium">Accepting New Projects for Spring 2025</span>
           </div>
 
-          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-8xl font-bold mb-8 tracking-tight">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-8xl font-bold mb-8 tracking-tight drop-shadow-[0_0_35px_rgba(255,255,255,0.25)]">
             <span className="bg-clip-text text-transparent bg-gradient-to-b from-white to-white/60">
               {title}
             </span>
@@ -72,16 +72,23 @@ export function BackgroundPaths({ title = "Academic Projects Done Right" }: { ti
 
           <div className="flex flex-col md:flex-row justify-center gap-6 w-full max-w-lg mx-auto">
             <Link to="/start-project" className="w-full md:w-auto">
-              <GlassButton className="w-full px-8 py-4 text-lg bg-white/10 hover:bg-white/20 border-white/30 text-white">
-                <span className="opacity-90 group-hover:opacity-100 transition-opacity">Start Project</span>
-                <span className="ml-3 opacity-70 group-hover:opacity-100 group-hover:translate-x-1.5 transition-all duration-300">→</span>
-              </GlassButton>
+              <StarButton
+                className="w-full h-14 px-8 text-lg"
+                lightColor="#a78bfa"
+                backgroundColor="#0f111a"
+              >
+                Start Project →
+              </StarButton>
             </Link>
 
             <Link to="/showcase" className="w-full md:w-auto">
-              <GlassButton className="w-full px-8 py-4 text-lg bg-white/5 hover:bg-white/15 border-white/20 text-white/80 hover:text-white">
+              <StarButton
+                className="w-full h-14 px-8 text-lg"
+                lightColor="#64748b"
+                backgroundColor="#181a25"
+              >
                 View Showcase
-              </GlassButton>
+              </StarButton>
             </Link>
           </div>
         </motion.div>

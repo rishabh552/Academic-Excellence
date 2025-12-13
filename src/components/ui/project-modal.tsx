@@ -49,13 +49,13 @@ export function ProjectModal({ project, onClose }: ProjectModalProps) {
         <AnimatePresence>
             {project && (
                 <>
-                    {/* Backdrop */}
+                    {/* Backdrop - Heavy Glass Blur (Desktop Only) */}
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         onClick={onClose}
-                        className="fixed inset-0 bg-black/80 backdrop-blur-md z-50"
+                        className="fixed inset-0 bg-obsidian/70 backdrop-blur-sm md:backdrop-blur-[20px] saturate-150 z-50"
                     />
 
                     {/* Modal */}
@@ -66,7 +66,7 @@ export function ProjectModal({ project, onClose }: ProjectModalProps) {
                         transition={{ type: "spring", damping: 25, stiffness: 300 }}
                         className="fixed inset-4 md:inset-8 lg:inset-16 z-50 overflow-auto"
                     >
-                        <div className="max-w-5xl mx-auto bg-neutral-900 rounded-3xl border-2 border-white/10 shadow-2xl overflow-hidden">
+                        <div className="max-w-5xl mx-auto bg-obsidian-light rounded-3xl border border-glass-border shadow-2xl shadow-black/50 overflow-hidden">
                             {/* Close Button */}
                             <button
                                 onClick={onClose}

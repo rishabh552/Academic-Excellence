@@ -116,7 +116,7 @@ export function ModernNavbar() {
                 className={cn(
                     "fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b",
                     isScrolled
-                        ? "bg-white/80 dark:bg-neutral-950/80 backdrop-blur-md border-gray-200/50 dark:border-white/10 shadow-sm py-3"
+                        ? "bg-obsidian/90 md:bg-obsidian/80 backdrop-blur-lg md:backdrop-blur-xl saturate-150 border-white/5 shadow-lg shadow-black/10 py-3"
                         : "bg-transparent border-transparent py-5"
                 )}
             >

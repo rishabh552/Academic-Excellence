@@ -57,8 +57,21 @@ export default {
           error: "var(--status-error)",
           info: "var(--status-info)",
         },
+        // Premium "Obsidian Glass" System
+        obsidian: {
+          DEFAULT: "#0f111a",
+          light: "#181a25",
+          lighter: "#222430",
+        },
+        glass: {
+          DEFAULT: "rgba(255, 255, 255, 0.03)",
+          border: "rgba(255, 255, 255, 0.08)",
+          highlight: "rgba(255, 255, 255, 0.15)",
+        },
       },
       fontFamily: {
+        sans: ["Inter", "system-ui", "sans-serif"],
+        heading: ["Outfit", "system-ui", "sans-serif"],
         "sans-secondary": ["Roboto", "sans-serif"],
       },
       borderRadius: {

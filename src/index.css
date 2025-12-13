@@ -1,13 +1,13 @@
-@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Poppins:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=Roboto:wght@300;400;500;700&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    /* Modern Dark Theme (Default) - Zinc Palette */
-    --background: 240 5.9% 10%;
-    /* Zinc 900 #18181b */
+    /* Premium "Obsidian" Dark Theme - Blue-tinted Rich Black */
+    --background: 230 20% 7%;
+    /* Obsidian #0f111a */
     --foreground: 0 0% 98%;
     /* Zinc 50 #fafafa */
 
@@ -201,4 +201,101 @@ html {
 .gradient-animated {
   background-size: 200% 200%;
   animation: gradient-rotate 6s ease infinite;
+}
+
+/* ==========================================
+   Premium "Obsidian Glass" Visual System
+   ========================================== */
+
+/* Custom Text Selection */
+::selection {
+  background-color: rgba(139, 92, 246, 0.3);
+  color: white;
+}
+
+/* Shimmer Animation for Headlines */
+@keyframes shimmer {
+  0% {
+    background-position: -200% center;
+  }
+
+  100% {
+    background-position: 200% center;
+  }
+}
+
+.shimmer-text {
+  background: linear-gradient(90deg,
+      var(--gradient-start) 0%,
+      var(--gradient-middle) 25%,
+      var(--gradient-end) 50%,
+      var(--gradient-middle) 75%,
+      var(--gradient-start) 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: shimmer 8s linear infinite;
+}
+
+/* Noise Texture Overlay - Desktop Only for Performance */
+@media (min-width: 768px) {
+  .bg-noise::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    pointer-events: none;
+    opacity: 0.025;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    mix-blend-mode: overlay;
+  }
+}
+
+/* Glass Card Utility */
+.glass-card {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
+}
+
+/* Premium Typography - Heading Tracking */
+h1,
+h2,
+h3 {
+  letter-spacing: -0.02em;
+  font-family: "Outfit", system-ui, sans-serif;
+}
+
+/* Shiny Button - Conic Gradient Spin Animation */
+@property --shimmer-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@keyframes shimmer-spin {
+  0% {
+    --shimmer-angle: 0deg;
+  }
+
+  100% {
+    --shimmer-angle: 360deg;
+  }
+}
+
+/* Star Button Animation - Light travels around border */
+@keyframes star-btn {
+  0% {
+    offset-distance: 0%;
+  }
+
+  100% {
+    offset-distance: 100%;
+  }
+}
+
+.animate-star-btn {
+  animation: star-btn calc(var(--duration) * 1s) linear infinite;
 }

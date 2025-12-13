@@ -20,10 +20,10 @@ export function GradientHeadline({
                 viewport={{ once: true }}
                 transition={{ duration: 0.8, ease: "easeOut" }}
                 className={cn(
-                    "text-4xl md:text-6xl font-bold tracking-tight text-center bg-clip-text text-transparent pb-2",
+                    "text-4xl md:text-6xl font-bold tracking-tight text-center bg-clip-text text-transparent pb-2 shimmer-text",
                     className
                 )}
-                style={{ backgroundImage: 'linear-gradient(to right, var(--gradient-start), var(--gradient-middle), var(--gradient-end))' }}
+                style={{ backgroundImage: 'linear-gradient(90deg, var(--gradient-start), var(--gradient-middle), var(--gradient-end), var(--gradient-middle), var(--gradient-start))', backgroundSize: '200% auto' }}
             >
                 {text}
             </motion.h2>
