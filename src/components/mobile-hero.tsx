@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 import { ChevronRight } from "lucide-react";
 import { GlassButton } from "@/components/ui/glass-button";
 import { MorphingText } from "@/components/ui/morphing-text";
-import { GridBeam } from "@/components/ui/grid-beam";
+import { BlackHoleEffect } from "@/components/ui/black-hole-effect";
 
 interface MobileHeroProps {
     title?: string;
@@ -19,24 +19,8 @@ export function MobileHero({ title = "Academic Excellence" }: MobileHeroProps) {
             id="mobile-hero"
             className="relative mx-auto w-full pt-36 pb-24 px-6 text-center md:pt-44 md:px-8 min-h-screen overflow-hidden bg-transparent"
         >
-            {/* SVG GridBeam covering full hero area - Responsive full-screen coverage */}
-            <GridBeam
-                className="top-0 left-0 opacity-50 -z-10"
-                fullScreen={true}
-                gridSize={48}
-                duration={3}
-                delay={1}
-            />
-
-            {/* Radial Accent at Bottom - Enhanced purple glow */}
-            <div
-                className="absolute left-1/2 top-[calc(100%-150px)] 
-                h-[600px] w-[900px] md:h-[700px] md:w-[1200px]
-                -translate-x-1/2 rounded-[100%] 
-                bg-background
-                border-t border-purple-500/20
-                shadow-[0_-30px_100px_rgba(139,92,246,0.3),0_-10px_40px_rgba(139,92,246,0.2)]"
-            />
+            {/* Canvas Black Hole Effect - High Performance Background */}
+            <BlackHoleEffect />
 
             {/* Eyebrow Badge - Semantic colors */}
             <motion.div
