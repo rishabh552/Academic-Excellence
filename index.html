@@ -8,9 +8,19 @@
   <title>Modern UI Experience</title>
   <meta name="description"
     content="A fully responsive React UI page with Framer Motion animations, Three.js shaders, and Tailwind CSS" />
-  <!-- Preload LCP image for /showcase page -->
-  <link rel="preload" as="image" href="https://images.unsplash.com/photo-1557821552-17105176677c?w=800&q=80"
-    fetchpriority="high" />
+  <!-- Conditional LCP image preload - only for /showcase page -->
+  <script>
+    (function () {
+      if (window.location.pathname === '/showcase') {
+        var link = document.createElement('link');
+        link.rel = 'preload';
+        link.as = 'image';
+        link.href = 'https://images.unsplash.com/photo-1557821552-17105176677c?w=800&q=80';
+        link.fetchPriority = 'high';
+        document.head.appendChild(link);
+      }
+    })();
+  </script>
 </head>
 
 <body>
