@@ -102,7 +102,6 @@ export function CustomCursor() {
             }
 
             // 3. Button/Link Snapping (The "Cover Borders" Effect)
-            const buttonTarget = target.closest('button') || target.closest('a.button-link'); // Specific class for links if needed, or just specific A tags
             // For now, let's grab BUTTONs and A tags with specific styling if possible.
             // But standard 'closest(button)' covers most interactive buttons.
             // Let's also check for 'a' that IS NOT a simple text link?
