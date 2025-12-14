@@ -55,10 +55,32 @@ for (let i = 0; i < 25; i++) {
     });
 }
 
+import { useEffect, useRef, useState } from "react";
+
 export function BlackHoleEffect() {
+    const containerRef = useRef<HTMLDivElement>(null);
+    const [isPaused, setIsPaused] = useState(false);
+
+    // Pause animations when off-screen
+    useEffect(() => {
+        const container = containerRef.current;
+        if (!container) return;
+
+        const observer = new IntersectionObserver(
+            (entries) => {
+                setIsPaused(!entries[0].isIntersecting);
+            },
+            { threshold: 0, rootMargin: "50px" }
+        );
+
+        observer.observe(container);
+        return () => observer.disconnect();
+    }, []);
+
     return (
         <div
-            className="absolute inset-0 pointer-events-none"
+            ref={containerRef}
+            className={`absolute inset-0 pointer-events-none ${isPaused ? 'bh-paused' : ''}`}
             style={{
                 willChange: 'contents',
                 transform: 'translateZ(0)',
@@ -200,6 +222,13 @@ export function BlackHoleEffect() {
                         opacity: 0.5;
                         stroke-width: 3;
                     }
+                }
+
+                /* Pause animations when off-screen */
+                .bh-paused .vortex-path,
+                .bh-paused .pulse-core,
+                .bh-paused .pulse-ring {
+                    animation-play-state: paused;
                 }
             `}</style>
         </div>

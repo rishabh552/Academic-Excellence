@@ -76,8 +76,24 @@ export function NicheParticles({
         };
     }, [color]);
 
+    // Mouse move handler with proper cleanup
     useEffect(() => {
-        onMouseMove();
+        const handleMouseMove = (e: MouseEvent) => {
+            const rect = canvasRef.current?.getBoundingClientRect();
+            if (rect) {
+                const { w, h } = canvasSize.current;
+                const x = e.clientX - rect.left - w / 2;
+                const y = e.clientY - rect.top - h / 2;
+                const inside = x < w / 2 && x > -w / 2 && y < h / 2 && y > -h / 2;
+                if (inside) {
+                    mouse.current.x = x;
+                    mouse.current.y = y;
+                }
+            }
+        };
+
+        window.addEventListener("mousemove", handleMouseMove);
+        return () => window.removeEventListener("mousemove", handleMouseMove);
     }, []);
 
     useEffect(() => {
@@ -87,24 +103,6 @@ export function NicheParticles({
     const initCanvas = () => {
         resizeCanvas();
         drawParticles();
-    };
-
-    const onMouseMove = () => {
-        if (canvasRef.current) {
-            window.addEventListener("mousemove", (e) => {
-                const rect = canvasRef.current?.getBoundingClientRect();
-                if (rect) {
-                    const { w, h } = canvasSize.current;
-                    const x = e.clientX - rect.left - w / 2;
-                    const y = e.clientY - rect.top - h / 2;
-                    const inside = x < w / 2 && x > -w / 2 && y < h / 2 && y > -h / 2;
-                    if (inside) {
-                        mouse.current.x = x;
-                        mouse.current.y = y;
-                    }
-                }
-            });
-        }
     };
 
     type Circle = {

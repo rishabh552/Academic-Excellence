@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 const morphTime = 1.5;
 const cooldownTime = 0.5;
 
-const useMorphingText = (texts: string[]) => {
+const useMorphingText = (texts: string[], containerRef: React.RefObject<HTMLSpanElement>) => {
   const textIndexRef = useRef(0);
   const morphRef = useRef(0);
   const cooldownRef = useRef(0);
@@ -16,6 +16,23 @@ const useMorphingText = (texts: string[]) => {
 
   const text1Ref = useRef<HTMLSpanElement>(null);
   const text2Ref = useRef<HTMLSpanElement>(null);
+  const isVisibleRef = useRef(true);
+
+  // Visibility observer to pause animation when off-screen
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        isVisibleRef.current = entries[0].isIntersecting;
+      },
+      { threshold: 0, rootMargin: "50px" }
+    );
+
+    observer.observe(container);
+    return () => observer.disconnect();
+  }, [containerRef]);
 
   const setStyles = useCallback(
     (fraction: number) => {
@@ -70,6 +87,9 @@ const useMorphingText = (texts: string[]) => {
     const animate = () => {
       animationFrameId = requestAnimationFrame(animate);
 
+      // Skip animation when not visible (performance optimization)
+      if (!isVisibleRef.current || document.hidden) return;
+
       const newTime = new Date();
       const dt = (newTime.getTime() - timeRef.current.getTime()) / 1000;
       timeRef.current = newTime;
@@ -94,8 +114,12 @@ interface MorphingTextProps {
   texts: string[];
 }
 
-const Texts: React.FC<Pick<MorphingTextProps, "texts">> = ({ texts }) => {
-  const { text1Ref, text2Ref } = useMorphingText(texts);
+interface TextsProps extends Pick<MorphingTextProps, "texts"> {
+  containerRef: React.RefObject<HTMLSpanElement>;
+}
+
+const Texts: React.FC<TextsProps> = ({ texts, containerRef }) => {
+  const { text1Ref, text2Ref } = useMorphingText(texts, containerRef);
   return (
     <>
       <span
@@ -127,16 +151,21 @@ const SvgFilters: React.FC = () => (
   </svg>
 );
 
-const MorphingText: React.FC<MorphingTextProps> = ({ texts, className }) => (
-  <span
-    className={cn(
-      "relative inline-block h-[1.2em] min-w-[200px] font-bold [filter:url(#threshold)_blur(0.6px)]",
-      className,
-    )}
-  >
-    <Texts texts={texts} />
-    <SvgFilters />
-  </span>
-);
+const MorphingText: React.FC<MorphingTextProps> = ({ texts, className }) => {
+  const containerRef = useRef<HTMLSpanElement>(null);
 
-export {MorphingText};
+  return (
+    <span
+      ref={containerRef}
+      className={cn(
+        "relative inline-block h-[1.2em] min-w-[200px] font-bold [filter:url(#threshold)_blur(0.6px)]",
+        className,
+      )}
+    >
+      <Texts texts={texts} containerRef={containerRef} />
+      <SvgFilters />
+    </span>
+  );
+};
+
+export { MorphingText };

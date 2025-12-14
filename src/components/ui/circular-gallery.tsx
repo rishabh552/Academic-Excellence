@@ -391,7 +391,9 @@ const CircularGallery = React.forwardRef<HTMLDivElement, CircularGalleryProps>(
                                                 alt={item.photo.text}
                                                 className="w-full h-full object-cover"
                                                 style={{ objectPosition: item.photo.pos || 'center' }}
-                                                loading="lazy"
+                                                loading={isFront ? "eager" : "lazy"}
+                                                // @ts-ignore - fetchpriority is a valid HTML attribute
+                                                fetchpriority={isFront ? "high" : "auto"}
                                             />
                                             <div className="absolute inset-0 bg-gradient-to-t from-neutral-900 via-transparent to-transparent" />
 
