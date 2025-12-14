@@ -4,6 +4,7 @@ import { Suspense, lazy } from "react";
 import { ModernNavbar } from "./components/ui/modern-navbar";
 import { SwipeNavigation } from "./components/ui/swipe-navigation";
 import { PageTransition } from "./components/ui/page-transition";
+import { CircularContextMenu } from "./components/ui/circular-context-menu";
 import { Home } from "./pages/Home";
 import { Services } from "./pages/Services";
 import { Process } from "./pages/Process";
@@ -61,6 +62,9 @@ function AppContent() {
     <div className="relative min-h-screen">
       {/* Sticky Navigation */}
       <ModernNavbar />
+
+      {/* Global Context Menu */}
+      <CircularContextMenu />
 
       {/* Routes with Swipe Navigation for mobile */}
       <SwipeNavigation>

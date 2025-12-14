@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
+
 /**
  * Black Hole Effect - Enhanced Visual Impact
  * 
@@ -55,7 +57,7 @@ for (let i = 0; i < 25; i++) {
     });
 }
 
-import { useEffect, useRef, useState } from "react";
+
 
 export function BlackHoleEffect() {
     const containerRef = useRef<HTMLDivElement>(null);
