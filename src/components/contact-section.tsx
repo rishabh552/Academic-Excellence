@@ -14,33 +14,60 @@ export function ContactSection() {
     name: "",
     email: "",
     subject: "",
-    message: ""
+    message: "",
   });
 
-  const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
+  const [status, setStatus] = useState<
+    "idle" | "submitting" | "success" | "error"
+  >("idle");
+  const [errorMessage, setErrorMessage] = useState("");
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     setFormState({
       ...formState,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setStatus("submitting");
+    setErrorMessage("");
 
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
-
-    // Simple validation simulation
-    if (formState.email && formState.message) {
-      setStatus("success");
-      setFormState({ name: "", email: "", subject: "", message: "" });
-      // Reset status after 3 seconds
-      setTimeout(() => setStatus("idle"), 3000);
-    } else {
+    // Validation
+    if (!formState.email || !formState.message) {
       setStatus("error");
+      setErrorMessage("Please fill in all required fields.");
+      return;
+    }
+
+    try {
+      const response = await fetch("/api/send-email", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formState),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setStatus("success");
+        setFormState({ name: "", email: "", subject: "", message: "" });
+        setTimeout(() => setStatus("idle"), 3000);
+      } else {
+        setStatus("error");
+        setErrorMessage(
+          data.error || "Failed to send message. Please try again."
+        );
+      }
+    } catch (error) {
+      console.error("Error sending email:", error);
+      setStatus("error");
+      setErrorMessage("Failed to send message. Please try again later.");
     }
   };
 
@@ -48,7 +75,6 @@ export function ContactSection() {
     <section id="contact" className="relative pt-24 pb-48 bg-transparent">
       <div className="container mx-auto px-4 md:px-6">
         <div className="grid lg:grid-cols-2 gap-12 items-start max-w-6xl mx-auto">
-
           {/* Contact Info */}
           <motion.div
             ref={ref}
@@ -62,15 +88,28 @@ export function ContactSection() {
                 Let's Discuss Your Project
               </h2>
               <p className="text-xl text-muted-foreground leading-relaxed">
-                Ready to take your academic project to the next level? Fill out the form or reach out directly.
+                Ready to take your academic project to the next level? Fill out
+                the form or reach out directly.
               </p>
             </div>
 
             <div className="space-y-6">
               {[
-                { icon: <Mail className="w-6 h-6 text-brand-primary" />, title: "Email Us", value: "contact@projectcraft.com" },
-                { icon: <Phone className="w-6 h-6 text-brand-secondary" />, title: "Call Us", value: "+1 (555) 123-4567" },
-                { icon: <MapPin className="w-6 h-6 text-brand-accent" />, title: "Location", value: "San Francisco, CA" }
+                {
+                  icon: <Mail className="w-6 h-6 text-brand-primary" />,
+                  title: "Email Us",
+                  value: "contact@projectcraft.com",
+                },
+                {
+                  icon: <Phone className="w-6 h-6 text-brand-secondary" />,
+                  title: "Call Us",
+                  value: "+1 (555) 123-4567",
+                },
+                {
+                  icon: <MapPin className="w-6 h-6 text-brand-accent" />,
+                  title: "Location",
+                  value: "San Francisco, CA",
+                },
               ].map((item, index) => (
                 <motion.div
                   key={index}
@@ -79,9 +118,7 @@ export function ContactSection() {
                   transition={{ delay: 0.3 + index * 0.1 }}
                   className="flex items-center gap-4 p-4 rounded-2xl bg-surface-elevated border border-white/5 hover:border-brand-primary/20 transition-colors"
                 >
-                  <div className="p-3 rounded-xl bg-white/5">
-                    {item.icon}
-                  </div>
+                  <div className="p-3 rounded-xl bg-white/5">{item.icon}</div>
                   <div>
                     <h3 className="font-medium text-white">{item.title}</h3>
                     <p className="text-muted-foreground">{item.value}</p>
@@ -100,11 +137,19 @@ export function ContactSection() {
           >
             <div className="absolute inset-0 bg-gradient-to-br from-brand-primary/10 to-brand-secondary/10 rounded-3xl blur-xl" />
 
-            <form onSubmit={handleSubmit} className="relative bg-surface-elevated/80 backdrop-blur-xl p-8 md:p-10 rounded-3xl border border-white/10 shadow-2xl">
+            <form
+              onSubmit={handleSubmit}
+              className="relative bg-surface-elevated/80 backdrop-blur-xl p-8 md:p-10 rounded-3xl border border-white/10 shadow-2xl"
+            >
               <div className="space-y-6">
                 <div className="grid md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <label htmlFor="name" className="text-sm font-medium text-muted-foreground">Name</label>
+                    <label
+                      htmlFor="name"
+                      className="text-sm font-medium text-muted-foreground"
+                    >
+                      Name
+                    </label>
                     <input
                       type="text"
                       id="name"
@@ -117,7 +162,12 @@ export function ContactSection() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <label htmlFor="email" className="text-sm font-medium text-muted-foreground">Email</label>
+                    <label
+                      htmlFor="email"
+                      className="text-sm font-medium text-muted-foreground"
+                    >
+                      Email
+                    </label>
                     <input
                       type="email"
                       id="email"
@@ -132,7 +182,12 @@ export function ContactSection() {
                 </div>
 
                 <div className="space-y-2">
-                  <label htmlFor="subject" className="text-sm font-medium text-muted-foreground">Subject</label>
+                  <label
+                    htmlFor="subject"
+                    className="text-sm font-medium text-muted-foreground"
+                  >
+                    Subject
+                  </label>
                   <input
                     type="text"
                     id="subject"
@@ -145,7 +200,12 @@ export function ContactSection() {
                 </div>
 
                 <div className="space-y-2">
-                  <label htmlFor="message" className="text-sm font-medium text-muted-foreground">Message</label>
+                  <label
+                    htmlFor="message"
+                    className="text-sm font-medium text-muted-foreground"
+                  >
+                    Message
+                  </label>
                   <textarea
                     id="message"
                     name="message"
@@ -170,15 +230,19 @@ export function ContactSection() {
                   {status === "submitting" ? (
                     <span className="animate-pulse">Sending...</span>
                   ) : status === "success" ? (
-                    <>Message Sent <Check className="w-5 h-5" /></>
+                    <>
+                      Message Sent <Check className="w-5 h-5" />
+                    </>
                   ) : (
-                    <>Send Message <Send className="w-5 h-5" /></>
+                    <>
+                      Send Message <Send className="w-5 h-5" />
+                    </>
                   )}
                 </button>
 
                 {status === "error" && (
                   <p className="text-status-error text-sm text-center animate-pulse">
-                    Please fill in all required fields.
+                    {errorMessage || "Please fill in all required fields."}
                   </p>
                 )}
               </div>
