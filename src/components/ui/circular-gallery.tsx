@@ -387,7 +387,12 @@ const CircularGallery = React.forwardRef<HTMLDivElement, CircularGalleryProps>(
                                         {/* Image */}
                                         <div className="relative h-[50%] overflow-hidden">
                                             <img
-                                                src={item.photo.url}
+                                                src={`${item.photo.url}&w=800&q=80`}
+                                                srcSet={`
+                                                    ${item.photo.url}&w=400&q=80 400w,
+                                                    ${item.photo.url}&w=800&q=80 800w
+                                                `}
+                                                sizes="(max-width: 640px) 250px, (max-width: 1024px) 300px, 400px"
                                                 alt={item.photo.text}
                                                 className="w-full h-full object-cover"
                                                 style={{ objectPosition: item.photo.pos || 'center' }}
