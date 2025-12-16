@@ -16,22 +16,20 @@ export function CustomCursor() {
     const [isVisible, setIsVisible] = useState(false);
     const [isMobile, setIsMobile] = useState(true);
     const [isClicking, setIsClicking] = useState(false);
-    const trailRef = useRef<{ x: number; y: number }[]>([]);
-    const rafRef = useRef<number>();
+
+    // Use ref to track last snapped element to avoid redundant updates
+    const lastSnapTargetRef = useRef<Element | null>(null);
 
     // Motion values for smooth cursor movement
     const cursorX = useMotionValue(0);
     const cursorY = useMotionValue(0);
 
-    // Ultra-smooth spring
-    const springConfig = { damping: 25, stiffness: 400, mass: 0.5 };
-    const cursorXSpring = useSpring(cursorX, springConfig);
-    const cursorYSpring = useSpring(cursorY, springConfig);
+    // Spring configs
+    const standardSpring = { damping: 25, stiffness: 300, mass: 0.5 };
+    const snappySpring = { damping: 40, stiffness: 1500, mass: 0.1 };
 
-    // Trail state
-    const [trail, setTrail] = useState<{ x: number; y: number; id: number }[]>([]);
-    const TRAIL_LENGTH = 4;
-    const trailIdRef = useRef(0);
+    const cursorXSpring = useSpring(cursorX, standardSpring);
+    const cursorYSpring = useSpring(cursorY, standardSpring);
 
     // Check if device is mobile/touch
     useEffect(() => {
@@ -46,32 +44,6 @@ export function CustomCursor() {
         return () => window.removeEventListener('resize', checkMobile);
     }, []);
 
-    // Mouse move handler
-    const handleMouseMove = useCallback((e: MouseEvent) => {
-        // If hovering a button, don't update position (snap logic handled in hover)
-        if (cursorState.variant === 'button') return;
-
-        const { clientX, clientY } = e;
-        cursorX.set(clientX);
-        cursorY.set(clientY);
-
-        // Update trail
-        if (rafRef.current) cancelAnimationFrame(rafRef.current);
-        rafRef.current = requestAnimationFrame(() => {
-            trailIdRef.current += 1;
-            const lastPoint = trailRef.current[0];
-            if (!lastPoint || Math.hypot(clientX - lastPoint.x, clientY - lastPoint.y) > 2) {
-                trailRef.current = [
-                    { x: clientX, y: clientY },
-                    ...trailRef.current.slice(0, TRAIL_LENGTH - 1)
-                ];
-                setTrail(trailRef.current.map((pos, i) => ({ ...pos, id: trailIdRef.current - i })));
-            }
-        });
-
-        if (!isVisible) setIsVisible(true);
-    }, [cursorX, cursorY, isVisible, cursorState.variant]);
-
     // Mouse enter/leave handler
     const handleMouseEnter = useCallback(() => setIsVisible(true), []);
     const handleMouseLeave = useCallback(() => setIsVisible(false), []);
@@ -80,57 +52,78 @@ export function CustomCursor() {
     const handleMouseDown = useCallback(() => setIsClicking(true), []);
     const handleMouseUp = useCallback(() => setIsClicking(false), []);
 
-    // Hover detection
+    // Combined mouse move and element detection
     useEffect(() => {
         if (isMobile) return;
 
-        const handleElementHover = (e: MouseEvent) => {
+        const handleMouseMove = (e: MouseEvent) => {
             const target = e.target as HTMLElement;
+            const { clientX, clientY } = e;
 
-            // 1. Custom Cursor Attribute
-            const cursorAttr = target.closest('[data-cursor]')?.getAttribute('data-cursor');
+            // 1. Explicit Custom Cursor Attribute (Highest Priority)
+            const cursorAttrElement = target.closest('[data-cursor]');
+            const cursorAttr = cursorAttrElement?.getAttribute('data-cursor');
             if (cursorAttr) {
+                // If data-cursor is "default", treat as no snap
+                if (cursorAttr === "default") {
+                    cursorX.set(clientX);
+                    cursorY.set(clientY);
+                    lastSnapTargetRef.current = null;
+                    setCursorState({ variant: "default" });
+                    if (!isVisible) setIsVisible(true);
+                    return;
+                }
+                // Other custom cursor types
+                cursorX.set(clientX);
+                cursorY.set(clientY);
+                lastSnapTargetRef.current = null;
                 setCursorState({ variant: cursorAttr as CursorVariant });
+                if (!isVisible) setIsVisible(true);
                 return;
             }
 
-            // 2. Text Cursor
-            const cursorText = target.closest('[data-cursor-text]')?.getAttribute('data-cursor-text');
+            // 2. Explicit Text Cursor
+            const cursorTextElement = target.closest('[data-cursor-text]');
+            const cursorText = cursorTextElement?.getAttribute('data-cursor-text');
             if (cursorText) {
+                cursorX.set(clientX);
+                cursorY.set(clientY);
+                lastSnapTargetRef.current = null;
                 setCursorState({ variant: "text", text: cursorText });
+                if (!isVisible) setIsVisible(true);
                 return;
             }
 
-            // 3. Button/Link Snapping (The "Cover Borders" Effect)
-            // For now, let's grab BUTTONs and A tags with specific styling if possible.
-            // But standard 'closest(button)' covers most interactive buttons.
-            // Let's also check for 'a' that IS NOT a simple text link?
-            // Simple heuristic: rect size.
-            const btn = target.closest('button') || target.closest('[role="button"]');
-            // Link as button? .closest('a') matching some class? 
-            // Let's stick to explicit buttons + class based A tags if they exist.
-            // Or just try closest('button') first.
+            // 3. STRICT Button Snapping
+            const explicitButton = target.closest('[data-cursor="button"]');
+            const semanticButton = target.closest('button');
+            const snapTarget = explicitButton || semanticButton;
 
-            if (btn) {
-                const rect = btn.getBoundingClientRect();
-                const computedStyle = window.getComputedStyle(btn);
+            if (snapTarget) {
+                const rect = snapTarget.getBoundingClientRect();
+                const computedStyle = window.getComputedStyle(snapTarget);
 
                 // Update position to center of button
                 cursorX.set(rect.left + rect.width / 2);
                 cursorY.set(rect.top + rect.height / 2);
 
-                setCursorState({
-                    variant: "button",
-                    rect: {
-                        width: rect.width,
-                        height: rect.height,
-                        radius: computedStyle.borderRadius
-                    }
-                });
+                // Only update state if target changed or rect might have changed
+                if (lastSnapTargetRef.current !== snapTarget) {
+                    lastSnapTargetRef.current = snapTarget;
+                    setCursorState({
+                        variant: "button",
+                        rect: {
+                            width: rect.width,
+                            height: rect.height,
+                            radius: computedStyle.borderRadius
+                        }
+                    });
+                }
+                if (!isVisible) setIsVisible(true);
                 return;
             }
 
-            // 4. Other Interactive Elements (Links that are just text)
+            // 4. Other Interactive Elements
             const isInteractive =
                 target.tagName === 'A' ||
                 target.tagName === 'INPUT' ||
@@ -138,27 +131,28 @@ export function CustomCursor() {
                 target.closest('a') ||
                 target.closest('[data-cursor-hover]');
 
+            // Not on a button, move cursor normally
+            cursorX.set(clientX);
+            cursorY.set(clientY);
+            lastSnapTargetRef.current = null;
             setCursorState({ variant: isInteractive ? "hover" : "default" });
+            if (!isVisible) setIsVisible(true);
         };
 
         document.addEventListener('mousemove', handleMouseMove);
-        document.addEventListener('mouseover', handleElementHover);
         document.addEventListener('mouseenter', handleMouseEnter);
         document.addEventListener('mouseleave', handleMouseLeave);
         document.addEventListener('mousedown', handleMouseDown);
         document.addEventListener('mouseup', handleMouseUp);
 
         return () => {
-            window.removeEventListener('resize', () => { });
             document.removeEventListener('mousemove', handleMouseMove);
-            document.removeEventListener('mouseover', handleElementHover);
             document.removeEventListener('mouseenter', handleMouseEnter);
             document.removeEventListener('mouseleave', handleMouseLeave);
             document.removeEventListener('mousedown', handleMouseDown);
             document.removeEventListener('mouseup', handleMouseUp);
-            if (rafRef.current) cancelAnimationFrame(rafRef.current);
         };
-    }, [isMobile, handleMouseMove, handleMouseEnter, handleMouseLeave, handleMouseDown, handleMouseUp, cursorX, cursorY]);
+    }, [isMobile, cursorX, cursorY, isVisible, handleMouseEnter, handleMouseLeave, handleMouseDown, handleMouseUp]);
 
     if (isMobile) return null;
 
@@ -176,33 +170,6 @@ export function CustomCursor() {
         }
       `}</style>
 
-            {/* Trail - Hide when snapping to button for cleanliness */}
-            <AnimatePresence>
-                {!isButton && trail.map((pos) => (
-                    <motion.div
-                        key={pos.id}
-                        className="fixed pointer-events-none z-[9998]"
-                        initial={{ opacity: 0.2, scale: 0.8 }}
-                        animate={{
-                            opacity: 0,
-                            scale: 0.4,
-                            x: pos.x,
-                            y: pos.y,
-                        }}
-                        transition={{ duration: 0.2, ease: "linear" }}
-                        style={{
-                            x: "-50%",
-                            y: "-50%",
-                            width: "12px",
-                            height: "12px",
-                            background: "rgba(34, 211, 238, 0.2)",
-                            borderRadius: "50%",
-                            filter: "blur(2px)",
-                        }}
-                    />
-                ))}
-            </AnimatePresence>
-
             {/* Main Cursor Wrapper */}
             <motion.div
                 className="fixed pointer-events-none z-[9999] flex items-center justify-center"
@@ -213,15 +180,11 @@ export function CustomCursor() {
                     y: "-50%",
                 }}
                 animate={{
-                    width: isButton ? (cursorState.rect?.width || 0) + 8 : 32, // +8 for padding
+                    width: isButton ? (cursorState.rect?.width || 0) + 8 : 32,
                     height: isButton ? (cursorState.rect?.height || 0) + 8 : 32,
                     borderRadius: isButton ? (cursorState.rect?.radius === '0px' ? '8px' : cursorState.rect?.radius || '8px') : "50%",
                 }}
-                transition={{
-                    type: "spring",
-                    stiffness: 400,
-                    damping: 25,
-                }}
+                transition={isButton ? snappySpring : standardSpring}
             >
                 {/* Button Overlay Glow Border */}
                 {isButton && (
