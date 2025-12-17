@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Link, useLocation } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
 import { Suspense, lazy } from "react";
 import { ModernNavbar } from "./components/ui/modern-navbar";
@@ -32,20 +32,7 @@ function Footer() {
   return (
     <footer className="absolute bottom-0 left-0 right-0 pb-8">
       <div className="container mx-auto px-4 md:px-6">
-        <div className="flex flex-col items-center text-center space-y-4">
-          {/* Navigation Links */}
-          <nav className="flex flex-wrap justify-center gap-x-6 gap-y-2">
-            {["Home", "Services", "Process", "Showcase", "Pricing", "Start Project", "Contact"].map((link) => (
-              <Link
-                key={link}
-                to={link === "Home" ? "/" : link === "Start Project" ? "/start-project" : `/${link.toLowerCase()}`}
-                className="text-slate-400 dark:text-slate-600 hover:text-slate-700 dark:hover:text-slate-400 transition-colors duration-200 text-sm"
-              >
-                {link}
-              </Link>
-            ))}
-          </nav>
-
+        <div className="flex flex-col items-center text-center">
           {/* Copyright */}
           <p className="text-xs text-slate-400 dark:text-slate-600">
             © 2025 ProjectCraft
