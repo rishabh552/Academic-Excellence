@@ -263,6 +263,7 @@ function Step1ProjectType({
                             onClick={() => onSelect(type.id)}
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
+                            data-cursor="default"
                             className={cn(
                                 'relative p-6 rounded-2xl border text-left transition-all',
                                 isSelected
@@ -357,6 +358,7 @@ function Step2Details({
                             onClick={() => onSelect(project.id, project.title)}
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
+                            data-cursor="default"
                             className={cn(
                                 'relative rounded-2xl border overflow-hidden text-left transition-all',
                                 isSelected
@@ -412,6 +414,7 @@ function Step2Details({
             <div className="text-center mt-6">
                 <button
                     onClick={() => onSelect('custom', 'Custom Project')}
+                    data-cursor="default"
                     className={cn(
                         'px-6 py-3 rounded-full border transition-all',
                         selectedProject === 'custom'
@@ -459,6 +462,7 @@ function Step3Package({
                             onClick={() => onSelect(pkg.id)}
                             whileHover={{ scale: 1.02, y: -5 }}
                             whileTap={{ scale: 0.98 }}
+                            data-cursor="default"
                             className={cn(
                                 'relative p-6 rounded-2xl border text-left transition-all',
                                 isSelected
