@@ -1,5 +1,5 @@
 import { ServicesSection } from "@/components/services-section";
-import { NicheParticles } from "@/components/ui/niche-particles";
+import { BeamsBackground } from "@/components/ui/beams-background";
 import { motion } from "framer-motion";
 
 const pageVariants = {
@@ -18,12 +18,11 @@ export function Services() {
             transition={{ duration: 0.3 }}
             className="relative pt-20 font-sans-secondary min-h-screen"
         >
-            <NicheParticles
-                className="absolute inset-0 -z-10"
-                quantity={100}
-                ease={80}
-                color="#8b5cf6" // Violet
-                refresh
+            <BeamsBackground
+                intensity="medium"
+                colorHue={270} // Purple/Violet
+                colorRange={40}
+                beamCount={12}
             />
             <ServicesSection />
         </motion.div>

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { NicheParticles } from '@/components/ui/niche-particles';
+import { BeamsBackground } from '@/components/ui/beams-background';
 import { GradientHeadline } from '@/components/ui/gradient-headline';
 import { cn } from '@/lib/utils';
 import {
@@ -751,12 +751,11 @@ export function StartProject() {
             transition={{ duration: 0.3 }}
             className="relative pt-20 min-h-screen font-sans-secondary"
         >
-            <NicheParticles
-                className="absolute inset-0 -z-10"
-                quantity={80}
-                ease={80}
-                color="#8b5cf6"
-                refresh
+            <BeamsBackground
+                intensity="medium"
+                colorHue={270} // Purple
+                colorRange={40}
+                beamCount={12}
             />
 
             <div className="container mx-auto px-4 py-12">
