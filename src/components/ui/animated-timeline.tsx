@@ -28,7 +28,7 @@ export function TimelineNode({ status, icon }: TimelineNodeProps) {
             transition={{
                 duration: 0.5,
                 scale: {
-                    repeat: status === "active" ? Infinity : 0,
+                    repeat: status === "active" ? 3 : 0,
                     repeatType: "reverse",
                     duration: 1.5,
                 }
