@@ -1,6 +1,11 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import nodemailer from "nodemailer";
 
+// Simple in-memory rate limiter (per IP)
+const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000; // 1 hour
+const RATE_LIMIT_MAX = 5; // 5 requests per window
+const rateLimitMap = new Map();
+
 // Gmail SMTP Configuration
 // Set these in Vercel Environment Variables:
 // GMAIL_USER - Your Gmail address
@@ -8,6 +13,27 @@ import nodemailer from "nodemailer";
 // CONTACT_EMAIL - Email to receive contact form submissions (can be same as GMAIL_USER)
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  // Rate limiting (per IP)
+  const ip =
+    req.headers["x-forwarded-for"]?.toString().split(",")[0] ||
+    req.socket?.remoteAddress ||
+    "unknown";
+  const now = Date.now();
+  let entry = rateLimitMap.get(ip);
+  if (!entry || now - entry.start > RATE_LIMIT_WINDOW_MS) {
+    // Reset window
+    entry = { count: 1, start: now };
+    rateLimitMap.set(ip, entry);
+  } else {
+    entry.count++;
+    if (entry.count > RATE_LIMIT_MAX) {
+      res
+        .status(429)
+        .json({ error: `Rate limit exceeded. Please try again later.` });
+      return;
+    }
+  }
+
   // Only allow POST requests
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
