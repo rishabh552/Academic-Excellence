@@ -72,6 +72,8 @@ const CircularGallery = React.forwardRef<HTMLDivElement, CircularGalleryProps>(
         const isUnmountedRef = useRef(false);
         const containerRef = useRef<HTMLDivElement>(null);
         const isVisibleRef = useRef(true);
+        const swipeDirectionRef = useRef<'none' | 'horizontal' | 'vertical'>('none');
+        const pointerIdRef = useRef<number | null>(null);
 
         // Keep refs in sync with state
         useEffect(() => {
@@ -210,38 +212,68 @@ const CircularGallery = React.forwardRef<HTMLDivElement, CircularGalleryProps>(
                 setFlippedIndex(null);
                 return;
             }
+            // Start tracking but don't capture yet - wait to detect direction
             isDraggingRef.current = true;
             hasDraggedRef.current = false;
+            swipeDirectionRef.current = 'none';
             dragStartRef.current = { x: e.clientX, y: e.clientY };
             lastXRef.current = e.clientX;
             velocityRef.current = 0;
-            (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
+            pointerIdRef.current = e.pointerId;
+            // Don't capture pointer immediately - let browser handle scroll initially
         };
 
         const handlePointerMove = (e: React.PointerEvent) => {
-            if (!isDraggingRef.current) return;
+            if (!isDraggingRef.current || !dragStartRef.current) return;
+
+            const deltaX = Math.abs(e.clientX - dragStartRef.current.x);
+            const deltaY = Math.abs(e.clientY - dragStartRef.current.y);
+
+            // Detect swipe direction on first significant movement (threshold: 10px)
+            if (swipeDirectionRef.current === 'none' && (deltaX > 10 || deltaY > 10)) {
+                if (deltaY > deltaX) {
+                    // Vertical swipe - let browser handle scroll
+                    swipeDirectionRef.current = 'vertical';
+                    isDraggingRef.current = false;
+                    dragStartRef.current = null;
+                    return;
+                } else {
+                    // Horizontal swipe - capture for carousel rotation
+                    swipeDirectionRef.current = 'horizontal';
+                    (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
+                }
+            }
+
+            // Only process horizontal swipes
+            if (swipeDirectionRef.current !== 'horizontal') return;
 
             lastInteractionTimeRef.current = Date.now();
-            const deltaX = e.clientX - lastXRef.current;
-            velocityRef.current = deltaX * 0.5;
-            targetRotationRef.current += deltaX * 0.4;
+            const moveDeltaX = e.clientX - lastXRef.current;
+            velocityRef.current = moveDeltaX * 0.5;
+            targetRotationRef.current += moveDeltaX * 0.4;
             lastXRef.current = e.clientX;
 
-            if (dragStartRef.current) {
-                const moveDistance = Math.sqrt(
-                    Math.pow(e.clientX - dragStartRef.current.x, 2) +
-                    Math.pow(e.clientY - dragStartRef.current.y, 2)
-                );
-                if (moveDistance > 5) {
-                    hasDraggedRef.current = true;
-                }
+            const moveDistance = Math.sqrt(
+                Math.pow(e.clientX - dragStartRef.current.x, 2) +
+                Math.pow(e.clientY - dragStartRef.current.y, 2)
+            );
+            if (moveDistance > 5) {
+                hasDraggedRef.current = true;
             }
         };
 
         const handlePointerUp = (e: React.PointerEvent) => {
             isDraggingRef.current = false;
             dragStartRef.current = null;
-            (e.target as HTMLElement).releasePointerCapture?.(e.pointerId);
+            swipeDirectionRef.current = 'none';
+            if (pointerIdRef.current !== null) {
+                try {
+                    (e.target as HTMLElement).releasePointerCapture?.(pointerIdRef.current);
+                } catch {
+                    // Pointer may not be captured, ignore
+                }
+            }
+            pointerIdRef.current = null;
         };
 
         // Wheel handler - scroll-to-rotate disabled completely
@@ -281,7 +313,7 @@ const CircularGallery = React.forwardRef<HTMLDivElement, CircularGalleryProps>(
                 role="region"
                 aria-label="Circular 3D Gallery"
                 className={cn(
-                    "relative w-full h-full flex items-center justify-center select-none touch-none",
+                    "relative w-full h-full flex items-center justify-center select-none touch-pan-y",
                     className
                 )}
                 style={{ perspective: '1200px' }}
