@@ -11,9 +11,9 @@ interface CategoryFilterProps {
 // Category color mapping - matches the badge colors from CircularGallery
 const categoryColors: Record<string, { bg: string; text: string; glow: string }> = {
     'All': {
-        bg: 'bg-gradient-to-r from-violet-500 to-purple-500',
+        bg: 'bg-blue-700 hover:bg-blue-800',
         text: 'text-white',
-        glow: 'shadow-violet-500/50'
+        glow: 'shadow-blue-700/50'
     },
     'Full Stack Web': {
         bg: 'bg-gradient-to-r from-blue-500 to-blue-600',
