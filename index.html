@@ -1,31 +1,35 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" href="image.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>aqro for Students</title>
+    <meta
+      name="description"
+      content="A fully responsive React UI page with Framer Motion animations, Three.js shaders, and Tailwind CSS"
+    />
+    <meta property="og:image" content="/vite.svg" />
+    <meta property="og:image:type" content="image/svg+xml" />
+    <meta property="og:image:alt" content="Modern UI Experience Logo" />
+    <!-- Conditional LCP image preload - only for /showcase page -->
+    <script>
+      (function () {
+        if (window.location.pathname === "/showcase") {
+          var link = document.createElement("link");
+          link.rel = "preload";
+          link.as = "image";
+          link.href =
+            "https://images.unsplash.com/photo-1557821552-17105176677c?w=800&q=80";
+          link.fetchPriority = "high";
+          document.head.appendChild(link);
+        }
+      })();
+    </script>
+  </head>
 
-<head>
-  <meta charset="UTF-8" />
-  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Modern UI Experience</title>
-  <meta name="description"
-    content="A fully responsive React UI page with Framer Motion animations, Three.js shaders, and Tailwind CSS" />
-  <!-- Conditional LCP image preload - only for /showcase page -->
-  <script>
-    (function () {
-      if (window.location.pathname === '/showcase') {
-        var link = document.createElement('link');
-        link.rel = 'preload';
-        link.as = 'image';
-        link.href = 'https://images.unsplash.com/photo-1557821552-17105176677c?w=800&q=80';
-        link.fetchPriority = 'high';
-        document.head.appendChild(link);
-      }
-    })();
-  </script>
-</head>
-
-<body>
-  <div id="root"></div>
-  <script type="module" src="/src/main.tsx"></script>
-</body>
-
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
 </html>
