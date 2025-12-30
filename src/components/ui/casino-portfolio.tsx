@@ -3,7 +3,7 @@ import gsap from 'gsap';
 import { PokerCard, Project } from './poker-card';
 import { cn } from '@/lib/utils';
 import './casino-portfolio.css';
-import { Check, Github, ExternalLink } from 'lucide-react';
+import { Check, Github, ExternalLink, X } from 'lucide-react';
 
 interface CasinoPortfolioProps {
     items: Project[];
@@ -122,6 +122,22 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
         if (isDealing || activeProject) return;
         if (focusedIndex === index) return;
 
+        // BUG FIX: Prevent multiple card selections - fold any currently focused card first
+        if (focusedIndex !== null && focusedIndex !== index) {
+            handleFold();
+            // Wait for fold animation before inspecting new card
+            setTimeout(() => {
+                inspectCard(index);
+            }, 500);
+            return;
+        }
+
+        inspectCard(index);
+    };
+
+    // Extracted inspection logic
+    const inspectCard = (index: number) => {
+
         const card = handRefs.current[index];
         if (!card || !containerRef.current) return;
 
@@ -164,6 +180,53 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
                 gsap.to(c, {
                     filter: "blur(4px) brightness(0.5)",
                     scale: 0.9,
+                    duration: 0.4
+                });
+            }
+        });
+    };
+
+    // CLOSE ACTIVE PROJECT - Return played card to hand
+    const handleCloseActive = () => {
+        if (!activeProject || focusedIndex === null) return;
+
+        const index = focusedIndex;
+        const card = handRefs.current[index];
+        if (!card || !containerRef.current) return;
+
+        const containerRect = containerRef.current.getBoundingClientRect();
+        const pos = getHandPosition(index, hand.length, containerRect.width, containerRect.height);
+
+        // Hide details panel first
+        gsap.to(".details-panel", {
+            right: "-50%",
+            bottom: "-50%",
+            duration: 0.5,
+            ease: "power2.in"
+        });
+
+        // Animate card back to hand
+        gsap.to(card, {
+            x: pos.x,
+            y: pos.y,
+            rotation: pos.rotation,
+            scale: 1,
+            zIndex: 10 + index,
+            duration: 0.6,
+            ease: "power3.out",
+            onComplete: () => {
+                setActiveProject(null);
+                setFocusedIndex(null);
+                onActiveProjectChange?.(null);
+            }
+        });
+
+        // Unblur other cards
+        handRefs.current.forEach((c, i) => {
+            if (i !== index && c) {
+                gsap.to(c, {
+                    filter: "blur(0px) brightness(1)",
+                    scale: 1,
                     duration: 0.4
                 });
             }
@@ -267,24 +330,97 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
         });
     };
 
-    // Draw Card (Draws from Deck to Hand? Or resets?)
-    // This seems to be "Return Active Project to Hand/Deck"
+    // DRAW CARD - Draw a new card from deck into hand
     const handleDraw = () => {
-        // ... (keeping existing logic for now, but focus is on Deal/Play)
-        if (activeProject) {
-            setActiveProject(null);
-            onActiveProjectChange?.(null);
+        // Don't draw if currently dealing, focused on a card, or have an active project
+        if (isDealing || focusedIndex !== null || activeProject) return;
 
-            gsap.to(".details-panel", {
-                right: "-50%",
-                bottom: "-50%",
-                duration: 0.5,
-                ease: "power2.in"
+        // Check if there are cards in the deck
+        if (deck.length === 0) return;
+
+        // Check if hand is full (max 5 cards)
+        if (hand.length >= 5) return;
+
+        // Draw top card from deck
+        const newCard = deck[0];
+        const newDeck = deck.slice(1);
+        const newHand = [...hand, newCard];
+
+        setDeck(newDeck);
+        setHand(newHand);
+
+        // Animate the new card being dealt
+        setIsDealing(true);
+        setTimeout(() => {
+            if (!containerRef.current || !deckRef.current) return;
+
+            const deckRect = deckRef.current.getBoundingClientRect();
+            const containerRect = containerRef.current.getBoundingClientRect();
+            const newIndex = newHand.length - 1;
+            const card = handRefs.current[newIndex];
+
+            if (!card) {
+                setIsDealing(false);
+                return;
+            }
+
+            const startX = deckRect.left - containerRect.left;
+            const startY = deckRect.top - containerRect.top;
+            const pos = getHandPosition(newIndex, newHand.length, containerRect.width, containerRect.height);
+
+            // Start position (at deck)
+            gsap.set(card, {
+                x: startX,
+                y: startY,
+                rotation: 0,
+                rotateY: 180,
+                scale: 0.9,
+                opacity: 0,
+                zIndex: 10 + newIndex
             });
 
-            // "Fold" logic handles the return
-            handleFold();
-        }
+            // Animate to hand position
+            const tl = gsap.timeline({
+                onComplete: () => {
+                    setIsDealing(false);
+                    // Re-position all cards in hand for proper arc
+                    repositionHand(newHand.length);
+                }
+            });
+
+            tl.to(card, { opacity: 1, duration: 0.1 })
+                .to(card, {
+                    x: pos.x,
+                    y: pos.y,
+                    rotation: pos.rotation,
+                    scale: 1,
+                    duration: 0.6,
+                    ease: "power2.out"
+                })
+                .to(card, {
+                    rotateY: 0,
+                    duration: 0.4,
+                    ease: "back.out(1.2)"
+                }, "-=0.2");
+        }, 100);
+    };
+
+    // Reposition all cards in hand for proper arc spacing
+    const repositionHand = (total: number) => {
+        if (!containerRef.current) return;
+        const containerRect = containerRef.current.getBoundingClientRect();
+
+        handRefs.current.forEach((card, i) => {
+            if (!card || i >= total) return;
+            const pos = getHandPosition(i, total, containerRect.width, containerRect.height);
+            gsap.to(card, {
+                x: pos.x,
+                y: pos.y,
+                rotation: pos.rotation,
+                duration: 0.4,
+                ease: "power2.out"
+            });
+        });
     };
 
     // Helper: Position Calculation (Refined for better arc)
@@ -328,14 +464,14 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
             {/* Visual Deck Stack */}
             <div
                 ref={deckRef}
-                className="deck-stack absolute top-[15%] right-[10%] w-[260px] h-[360px] perspective-1000 z-0"
+                className="deck-stack absolute top-[15%] right-[10%] w-[260px] h-[360px] perspective-1000 z-30 cursor-pointer"
                 onClick={handleDraw}
             >
                 {/* Simulated Stack Layers */}
                 {[...Array(5)].map((_, i) => (
                     <div
                         key={i}
-                        className="absolute inset-0 bg-neutral-900 border border-white/10 rounded-2xl shadow-xl"
+                        className="absolute inset-0 bg-neutral-900 border border-white/10 rounded-2xl shadow-xl pointer-events-none"
                         style={{
                             transform: `translate(${i * 2}px, ${-i * 2}px)`,
                             zIndex: i,
@@ -346,7 +482,7 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
 
                 {/* Top Card (Interactive) */}
                 <div
-                    className="absolute inset-0 bg-neutral-800 border border-white/20 rounded-2xl shadow-2xl flex flex-col items-center justify-center cursor-pointer hover:bg-neutral-800/80 transition-colors"
+                    className="absolute inset-0 bg-neutral-800 border border-white/20 rounded-2xl shadow-2xl flex flex-col items-center justify-center hover:bg-neutral-800/80 transition-colors pointer-events-none"
                     style={{
                         transform: `translate(10px, -10px)`,
                         zIndex: 10
@@ -356,8 +492,8 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
                     <div className="text-white/10 text-6xl font-black mt-2">{deck.length}</div>
 
                     {/* Hover Hint */}
-                    <div className="absolute bottom-6 text-emerald-500/50 text-xs uppercase tracking-wider opacity-0 hover:opacity-100 transition-opacity">
-                        Repopulate
+                    <div className="absolute bottom-6 text-emerald-500/50 text-xs uppercase tracking-wider">
+                        {deck.length > 0 && hand.length < 5 ? 'Click to Draw' : deck.length === 0 ? 'Empty' : 'Hand Full'}
                     </div>
                 </div>
             </div>
@@ -379,6 +515,7 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
                         onClick={() => handleInspect(index)}
                         onFold={handleFold}
                         onPlay={handlePlay}
+                        style={{ opacity: 0 }}
                     />
                 )
             ))}
@@ -407,12 +544,20 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
                             ))}
                         </div>
 
-                        <div className="mt-auto pt-6 border-t border-white/10 flex gap-4">
-                            <button className="flex-1 bg-emerald-600 hover:bg-emerald-500 py-3 rounded-xl font-bold flex items-center justify-center transition-all shadow-lg hover:shadow-emerald-500/20 active:scale-95">
-                                Launch Project <ExternalLink size={18} className="ml-2" />
-                            </button>
-                            <button className="flex-1 bg-gray-800 hover:bg-gray-700 py-3 rounded-xl font-bold flex items-center justify-center transition-all hover:bg-white/10 active:scale-95">
-                                Code <Github size={18} className="ml-2" />
+                        <div className="mt-auto pt-6 border-t border-white/10 space-y-3">
+                            <div className="flex gap-4">
+                                <button className="flex-1 bg-emerald-600 hover:bg-emerald-500 py-3 rounded-xl font-bold flex items-center justify-center transition-all shadow-lg hover:shadow-emerald-500/20 active:scale-95">
+                                    Launch Project <ExternalLink size={18} className="ml-2" />
+                                </button>
+                                <button className="flex-1 bg-gray-800 hover:bg-gray-700 py-3 rounded-xl font-bold flex items-center justify-center transition-all hover:bg-white/10 active:scale-95">
+                                    Code <Github size={18} className="ml-2" />
+                                </button>
+                            </div>
+                            <button
+                                onClick={handleCloseActive}
+                                className="w-full bg-red-600/20 hover:bg-red-600/40 text-red-400 py-2.5 rounded-xl font-medium flex items-center justify-center transition-all border border-red-500/30 active:scale-95"
+                            >
+                                <X size={18} className="mr-2" /> Close & Return to Hand
                             </button>
                         </div>
                     </div>
