@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
-import { CircularGallery, GalleryItem } from "@/components/ui/circular-gallery";
+import { ArcGallery, GalleryItem } from "@/components/ui/arc-gallery";
 import { CategoryFilter } from "@/components/ui/category-filter";
 import { GradientHeadline } from "@/components/ui/gradient-headline";
 import { motion, AnimatePresence } from "framer-motion";
@@ -232,28 +232,8 @@ export function ProjectShowcase() {
         { value: "100%", label: "Client Satisfaction" },
     ];
 
-    const [dimensions, setDimensions] = React.useState({
-        radius: 400,
-        width: 280,
-        height: 400
-    });
 
-    React.useEffect(() => {
-        const handleResize = () => {
-            const width = window.innerWidth;
-            if (width < 640) { // Mobile - increased radius, smaller cards to prevent overlap
-                setDimensions({ radius: 280, width: 180, height: 300 });
-            } else if (width < 1024) { // Tablet
-                setDimensions({ radius: 300, width: 250, height: 360 });
-            } else { // Desktop
-                setDimensions({ radius: 400, width: 280, height: 400 });
-            }
-        };
-
-        handleResize(); // Initial set
-        window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
-    }, []);
+    // Note: ArcGallery handles responsive sizing internally
 
     // Get ambient gradient based on active project or selected filter
     const activeGradient = useMemo(() => {
@@ -408,12 +388,8 @@ export function ProjectShowcase() {
                     className="h-[550px] md:h-[700px] w-full overflow-hidden relative z-10 mb-8 pointer-events-auto"
                     data-no-swipe="true"
                 >
-                    <CircularGallery
+                    <ArcGallery
                         items={filteredItems}
-                        radius={dimensions.radius}
-                        itemWidth={dimensions.width}
-                        itemHeight={dimensions.height}
-                        autoRotateSpeed={0.4}
                         onCardExpand={handleCardExpand}
                         onActiveIndexChange={setActiveProjectIndex}
                     />
