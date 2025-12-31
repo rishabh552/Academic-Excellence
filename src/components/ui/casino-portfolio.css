@@ -74,7 +74,9 @@
 }
 
 .poker-card.interactive:hover .card-tilt-inner {
-    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6);
+    box-shadow: 
+        0 30px 60px rgba(0, 0, 0, 0.6),
+        0 0 40px rgba(16, 185, 129, 0.1);
 }
 
 /* Card Faces */
@@ -116,20 +118,23 @@
     justify-content: center;
 }
 
-/* PREMIUM GLARE */
+/* PREMIUM GLARE - Holographic Effect */
 .card-glare-overlay {
     position: absolute;
     top: -50%;
     left: -50%;
     width: 200%;
     height: 200%;
-    background: radial-gradient(circle at center,
-            rgba(255, 255, 255, 0.25) 0%,
+    background: 
+        radial-gradient(circle at center,
+            rgba(255, 255, 255, 0.3) 0%,
+            rgba(16, 185, 129, 0.1) 25%,
             transparent 50%);
     opacity: 0;
     pointer-events: none;
     mix-blend-mode: overlay;
-    transition: opacity 0.3s ease;
+    transition: opacity 0.4s ease;
+    z-index: 10;
 }
 
 .poker-card.interactive:hover .card-glare-overlay {

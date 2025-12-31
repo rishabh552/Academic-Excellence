@@ -33,7 +33,8 @@ export const PokerCard = forwardRef<HTMLDivElement, PokerCardProps>(({
     onFold,
     onPlay,
     className,
-    style
+    style,
+    isFocused
 }, ref) => {
 
     // TILT LOGIC
@@ -57,24 +58,27 @@ export const PokerCard = forwardRef<HTMLDivElement, PokerCardProps>(({
         const mouseX = e.clientX - rect.left;
         const mouseY = e.clientY - rect.top;
 
-        // Calculate rotation (-15 to 15 deg)
-        const rotateY = ((mouseX / width) - 0.5) * 30;
-        const rotateX = -((mouseY / height) - 0.5) * 30;
+        // Only apply tilt rotation when NOT focused (let parent control flip)
+        if (!isFocused) {
+            // Calculate rotation (-15 to 15 deg)
+            const rotateY = ((mouseX / width) - 0.5) * 30;
+            const rotateX = -((mouseY / height) - 0.5) * 30;
 
-        // Use standard gsap.to with overwrite: "auto" for stability
-        gsap.to(cardInnerRef.current, {
-            rotateY: rotateY,
-            rotateX: rotateX,
-            duration: 0.3,
-            ease: "power2.out",
-            overwrite: "auto"
-        });
+            gsap.to(cardInnerRef.current, {
+                rotateY: rotateY,
+                rotateX: rotateX,
+                duration: 0.3,
+                ease: "power2.out",
+                overwrite: "auto"
+            });
+        }
 
-        // Glare position
+        // Glare effect always active for premium feel
         if (glareRef.current) {
             gsap.to(glareRef.current, {
                 backgroundPositionX: `${(mouseX / width) * 100}%`,
                 backgroundPositionY: `${(mouseY / height) * 100}%`,
+                opacity: isFocused ? 0.5 : 1, // Subtle glare when focused
                 duration: 0.3,
                 ease: "power2.out",
                 overwrite: "auto"
@@ -85,18 +89,22 @@ export const PokerCard = forwardRef<HTMLDivElement, PokerCardProps>(({
     const handleMouseLeave = () => {
         if (!cardInnerRef.current) return;
 
-        gsap.to(cardInnerRef.current, {
-            rotateX: 0,
-            rotateY: 0,
-            duration: 0.5,
-            ease: "power2.out",
-            overwrite: "auto"
-        });
+        // Only reset rotation if not focused
+        if (!isFocused) {
+            gsap.to(cardInnerRef.current, {
+                rotateX: 0,
+                rotateY: 0,
+                duration: 0.5,
+                ease: "power2.out",
+                overwrite: "auto"
+            });
+        }
 
         if (glareRef.current) {
             gsap.to(glareRef.current, {
                 backgroundPositionX: "50%",
                 backgroundPositionY: "50%",
+                opacity: 0,
                 duration: 0.5,
                 ease: "power2.out",
                 overwrite: "auto"
