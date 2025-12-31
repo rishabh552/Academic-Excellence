@@ -499,7 +499,7 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
         });
     };
 
-    // FOLD ANIMATION - "Boomerang Spin" (Fast & Impactful)
+    // FOLD ANIMATION - Shake + 360° Turn
     const handleFold = () => {
         if (focusedIndex === null || isTransitioning) return;
 
@@ -533,49 +533,44 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
         if (actions) tl.set(actions, { opacity: 0 }, 0);
         if (glare) tl.set(glare, { opacity: 0 }, 0);
 
-        // 2. Quick flip reset (parallel with movement)
+        // 2. SHAKE Animation - rapid side-to-side wobble
+        tl.to(card, { rotation: "+=8", duration: 0.05, ease: "power1.inOut" }, 0)
+            .to(card, { rotation: "-=16", duration: 0.05, ease: "power1.inOut" })
+            .to(card, { rotation: "+=14", duration: 0.05, ease: "power1.inOut" })
+            .to(card, { rotation: "-=10", duration: 0.05, ease: "power1.inOut" })
+            .to(card, { rotation: "+=6", duration: 0.04, ease: "power1.inOut" });
+
+        // 3. 360° TURN on Y-axis (card flip)
         if (tiltInner) {
             tl.to(tiltInner, {
-                rotateY: 0,
-                rotateX: 0,
-                duration: 0.2,
-                ease: "power3.out"
-            }, 0);
+                rotateY: "+=360",
+                duration: 0.5,
+                ease: "power2.inOut"
+            });
         }
 
-        // 3. "Boomerang Spin" - Fast & Dynamic
-        // Phase A: Anticipation "Pop" - quick scale up + slight lift
-        tl.to(card, {
-            scale: 1.15,
-            y: "-=20",
-            duration: 0.08,
-            ease: "power2.out"
-        }, 0);
-
-        // Phase B: WHOOSH - Spin + fly to position with velocity stretch
+        // 4. Fly back to hand position
         tl.to(card, {
             x: pos.x,
             y: pos.y,
-            rotation: "+=540", // 1.5 spins for extra flair
-            scaleX: 0.85,  // Horizontal squeeze = velocity
-            scaleY: 1.1,   // Vertical stretch = velocity
-            zIndex: 10 + index,
-            duration: 0.25,
-            ease: "power3.in"  // Accelerate INTO the motion
-        }, 0.08);
-
-        // Phase C: SNAP Landing - instant settle with bounce
-        tl.to(card, {
             rotation: pos.rotation,
-            scaleX: 1.08,  // Slight overshoot squash
-            scaleY: 0.94,
-            duration: 0.06,
+            scale: 1,
+            zIndex: 10 + index,
+            duration: 0.4,
+            ease: "power3.out"
+        }, "-=0.2");
+
+        // 5. Snap landing effect
+        tl.to(card, {
+            scaleX: 1.05,
+            scaleY: 0.95,
+            duration: 0.08,
             ease: "power2.out"
         })
             .to(card, {
                 scale: 1,
-                duration: 0.1,
-                ease: "elastic.out(1, 0.5)" // Tight elastic pop
+                duration: 0.15,
+                ease: "elastic.out(1, 0.6)"
             });
 
         // Restore others (fast)
