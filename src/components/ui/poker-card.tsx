@@ -73,12 +73,16 @@ export const PokerCard = forwardRef<HTMLDivElement, PokerCardProps>(({
             });
         }
 
-        // Glare effect always active for premium feel
+        // Glare effect - use CSS custom properties for dynamic positioning
         if (glareRef.current) {
+            const glareX = (mouseX / width) * 100;
+            const glareY = (mouseY / height) * 100;
+
+            glareRef.current.style.setProperty('--glare-x', `${glareX}%`);
+            glareRef.current.style.setProperty('--glare-y', `${glareY}%`);
+
             gsap.to(glareRef.current, {
-                backgroundPositionX: `${(mouseX / width) * 100}%`,
-                backgroundPositionY: `${(mouseY / height) * 100}%`,
-                opacity: isFocused ? 0.5 : 1, // Subtle glare when focused
+                opacity: isFocused ? 0.6 : 1,
                 duration: 0.3,
                 ease: "power2.out",
                 overwrite: "auto"
@@ -101,9 +105,10 @@ export const PokerCard = forwardRef<HTMLDivElement, PokerCardProps>(({
         }
 
         if (glareRef.current) {
+            glareRef.current.style.setProperty('--glare-x', '50%');
+            glareRef.current.style.setProperty('--glare-y', '50%');
+
             gsap.to(glareRef.current, {
-                backgroundPositionX: "50%",
-                backgroundPositionY: "50%",
                 opacity: 0,
                 duration: 0.5,
                 ease: "power2.out",
@@ -118,9 +123,11 @@ export const PokerCard = forwardRef<HTMLDivElement, PokerCardProps>(({
             className={cn(
                 "poker-card",
                 isInHand && "interactive",
+                isFocused && "focused",
                 className
             )}
             style={style}
+            data-focused={isFocused}
             onClick={onClick}
             onMouseMove={handleMouseMove}
             onMouseLeave={handleMouseLeave}

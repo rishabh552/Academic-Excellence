@@ -149,7 +149,7 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
         inspectCard(index);
     };
 
-    // Fold current card and then inspect the new one
+    // Fold current card and then inspect the new one - OPTIMIZED
     const foldAndInspect = (newIndex: number) => {
         if (focusedIndex === null) {
             setIsTransitioning(false);
@@ -172,13 +172,11 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
         const tiltInner = card.querySelector('.card-tilt-inner') as HTMLElement;
         const glare = card.querySelector('.card-glare-overlay') as HTMLElement;
 
-        // Kill any ongoing animations on this card
-        gsap.killTweensOf(card);
-        if (tiltInner) gsap.killTweensOf(tiltInner);
-        if (actions) gsap.killTweensOf(actions);
-        if (glare) gsap.killTweensOf(glare);
+        // Kill animations and glare immediately
+        gsap.killTweensOf([card, tiltInner, actions, glare]);
+        if (glare) gsap.set(glare, { opacity: 0 });
 
-        // Quick fold animation for card switching
+        // FAST fold for card switching - total ~0.3s
         const tl = gsap.timeline({
             onComplete: () => {
                 setFocusedIndex(null);
@@ -187,35 +185,30 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
                 // Now inspect the new card
                 const pending = pendingInspectRef.current;
                 pendingInspectRef.current = null;
-                setIsTransitioning(false);
 
                 if (pending !== null) {
-                    // Small delay to let state settle
-                    requestAnimationFrame(() => {
-                        inspectCard(pending);
-                    });
+                    // Immediate - no delay needed
+                    setIsTransitioning(false);
+                    inspectCard(pending);
+                } else {
+                    setIsTransitioning(false);
                 }
             }
         });
 
-        // Quick hide actions
+        // Instant hide actions
         if (actions) {
-            tl.to(actions, { opacity: 0, duration: 0.15, ease: "power2.in" }, 0);
+            tl.set(actions, { opacity: 0 }, 0);
         }
 
-        // Quick flip back
+        // Quick flip back + return simultaneously
         if (tiltInner) {
             tl.to(tiltInner, {
                 rotateY: 0,
                 rotateX: 0,
-                duration: 0.3,
-                ease: "power2.inOut"
+                duration: 0.25,
+                ease: "power3.out"
             }, 0);
-        }
-
-        // Reset glare
-        if (glare) {
-            tl.to(glare, { opacity: 0, duration: 0.2 }, 0);
         }
 
         // Quick return to hand
@@ -225,26 +218,25 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
             rotation: pos.rotation,
             scale: 1,
             zIndex: 10 + currentIndex,
-            boxShadow: "0 10px 30px rgba(0,0,0,0.4), 0 4px 8px rgba(0,0,0,0.2)",
-            duration: 0.4,
+            duration: 0.3,
             ease: "power3.out"
-        }, 0.1);
+        }, 0);
 
-        // Restore other cards
+        // Restore other cards INSTANTLY
         handRefs.current.forEach((c, i) => {
             if (i !== currentIndex && c) {
                 gsap.to(c, {
-                    filter: "blur(0px) brightness(1)",
                     scale: 1,
                     opacity: 1,
-                    duration: 0.3,
+                    filter: "none",
+                    duration: 0.2,
                     ease: "power2.out"
                 });
             }
         });
     };
 
-    // Extracted inspection logic
+    // Extracted inspection logic - OPTIMIZED for speed
     const inspectCard = (index: number) => {
         // Double check we're not in a bad state
         if (isTransitioning) return;
@@ -252,89 +244,86 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
         const card = handRefs.current[index];
         if (!card || !containerRef.current) return;
 
-        // Kill any existing animations on ALL cards to prevent conflicts
+        setIsTransitioning(true);
+
+        // Kill any existing animations on ALL cards
         handRefs.current.forEach((c) => {
             if (c) {
                 gsap.killTweensOf(c);
                 const inner = c.querySelector('.card-tilt-inner');
+                const glare = c.querySelector('.card-glare-overlay');
                 if (inner) gsap.killTweensOf(inner);
+                if (glare) gsap.set(glare, { opacity: 0 }); // Kill ALL glare immediately
             }
         });
 
         setFocusedIndex(index);
 
-        // Get the inner tilt container for flip animation
+        // Get elements
         const tiltInner = card.querySelector('.card-tilt-inner') as HTMLElement;
         const actions = card.querySelector('.action-buttons') as HTMLElement;
         const glare = card.querySelector('.card-glare-overlay') as HTMLElement;
 
         if (tiltInner) {
-            // Ensure it starts from correct position
             gsap.set(tiltInner, { rotateX: 0, rotateY: 0 });
+        }
+        if (glare) {
+            gsap.set(glare, { opacity: 0 }); // No rainbow during pick
         }
 
         const containerRect = containerRef.current.getBoundingClientRect();
-        const centerX = containerRect.width / 2 - 130; // Centered
-        const centerY = containerRect.height / 2 - 200; // Centered visually
+        const centerX = containerRect.width / 2 - 130;
+        const centerY = containerRect.height / 2 - 200;
 
-        // Premium animation timeline
-        const tl = gsap.timeline();
+        // FAST inspect animation - total ~0.5s
+        const tl = gsap.timeline({
+            onComplete: () => {
+                setIsTransitioning(false);
+            }
+        });
 
-        // Set initial state for action buttons (for animation)
+        // Set initial state for action buttons
         if (actions) {
             gsap.set(actions, { opacity: 0, y: 20 });
         }
 
-        // 1. Lift card with anticipation - slight scale down then up
+        // 1. Quick lift + move to center (no anticipation scale)
         tl.to(card, {
-            scale: 0.95,
-            duration: 0.1,
-            ease: "power2.in",
-        })
-            // 2. Move card to center with premium easing
-            .to(card, {
-                x: centerX,
-                y: centerY,
-                rotation: 0,
-                scale: 1.5,
-                zIndex: 100,
-                duration: 0.7,
-                ease: "expo.out",
-                boxShadow: "0 50px 100px rgba(0,0,0,0.6), 0 0 60px rgba(16, 185, 129, 0.15)"
-            });
+            x: centerX,
+            y: centerY,
+            rotation: 0,
+            scale: 1.5,
+            zIndex: 100,
+            duration: 0.4,
+            ease: "power3.out"
+        });
 
-        // 3. Flip to show details with satisfying snap
+        // 2. Quick flip to show details
         if (tiltInner) {
             tl.to(tiltInner, {
                 rotateY: 180,
-                duration: 0.6,
-                ease: "back.out(1.5)"
-            }, "-=0.2");
+                duration: 0.4,
+                ease: "power3.out"
+            }, "-=0.15");
         }
 
-        // 4. Fade glare during flip for polish
-        if (glare) {
-            tl.to(glare, { opacity: 0.3, duration: 0.4 }, "-=0.5");
-        }
-
-        // 5. Show action buttons with slide up effect
+        // 3. Show action buttons with slide up
         if (actions) {
             tl.to(actions, {
                 opacity: 1,
                 y: 0,
-                duration: 0.4,
-                ease: "back.out(1.5)"
-            }, "-=0.2");
+                duration: 0.25,
+                ease: "power2.out"
+            }, "-=0.15");
         }
 
-        // Dim & Blur others with cinematic feel
+        // Dim others - NO BLUR (performance), just opacity + scale
         handRefs.current.forEach((c, i) => {
             if (i !== index && c) {
                 gsap.to(c, {
-                    filter: "blur(6px) brightness(0.4)",
-                    scale: 0.85,
-                    opacity: 0.7,
-                    duration: 0.5,
+                    opacity: 0.4,
+                    scale: 0.9,
+                    duration: 0.3,
                     ease: "power2.out"
                 });
             }
@@ -388,8 +377,7 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
         });
     };
 
-    // FOLD ANIMATION (Return to Hand)
-    // Premium animation with satisfying return
+    // FOLD ANIMATION (Return to Hand) - OPTIMIZED for speed & polish
     const handleFold = () => {
         if (focusedIndex === null || isTransitioning) return;
 
@@ -397,8 +385,7 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
         const card = handRefs.current[index];
         if (!card || !containerRef.current) return;
 
-        // Kill any existing animations
-        gsap.killTweensOf(card);
+        setIsTransitioning(true);
 
         const containerRect = containerRef.current.getBoundingClientRect();
         const pos = getHandPosition(index, hand.length, containerRect.width, containerRect.height);
@@ -408,71 +395,64 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
         const tiltInner = card.querySelector('.card-tilt-inner') as HTMLElement;
         const glare = card.querySelector('.card-glare-overlay') as HTMLElement;
 
-        if (tiltInner) gsap.killTweensOf(tiltInner);
-        if (actions) gsap.killTweensOf(actions);
+        // Kill all existing animations immediately
+        gsap.killTweensOf([card, tiltInner, actions, glare]);
 
-        // Premium fold sequence
+        // FAST fold sequence - total ~0.4s
         const tl = gsap.timeline({
             onComplete: () => {
                 setFocusedIndex(null);
-                // Reset action buttons for next time
+                setIsTransitioning(false);
                 if (actions) gsap.set(actions, { opacity: 0, y: 20 });
             }
         });
 
-        // 1. Hide actions with slide down
+        // 1. Instant hide actions
         if (actions) {
-            tl.to(actions, {
-                opacity: 0,
-                y: 20,
-                duration: 0.25,
-                ease: "power2.in"
-            });
+            tl.to(actions, { opacity: 0, y: 10, duration: 0.1, ease: "power2.in" });
         }
 
-        // 2. Flip back to image side with satisfying snap
+        // 2. Kill glare immediately (no rainbow during fold)
+        if (glare) {
+            tl.set(glare, { opacity: 0 }, 0);
+        }
+
+        // 3. Quick flip + return HOME simultaneously
         if (tiltInner) {
             tl.to(tiltInner, {
                 rotateY: 0,
                 rotateX: 0,
-                duration: 0.5,
-                ease: "back.out(1.5)"
-            }, "-=0.1");
+                duration: 0.35,
+                ease: "power3.out"
+            }, 0.05);
         }
 
-        // 3. Reset glare
-        if (glare) {
-            tl.to(glare, { opacity: 0, duration: 0.3 }, "-=0.4");
-        }
-
-        // 4. Fly home with arc motion
+        // 4. Fly home FAST
         tl.to(card, {
             x: pos.x,
             y: pos.y,
             rotation: pos.rotation,
             scale: 1,
             zIndex: 10 + index,
-            boxShadow: "0 10px 30px rgba(0,0,0,0.4), 0 4px 8px rgba(0,0,0,0.2)",
-            duration: 0.7,
-            ease: "expo.out"
-        }, "-=0.3");
+            duration: 0.4,
+            ease: "power3.out"
+        }, 0.05);
 
-        // Restore others with premium fade-in
+        // Restore others INSTANTLY - no stagger, no blur animation
         handRefs.current.forEach((c, i) => {
             if (i !== index && c) {
                 gsap.to(c, {
-                    filter: "blur(0px) brightness(1)",
-                    scale: 1,
                     opacity: 1,
-                    duration: 0.5,
-                    delay: i * 0.05, // Subtle stagger
+                    scale: 1,
+                    filter: "none",
+                    duration: 0.25,
                     ease: "power2.out"
                 });
             }
         });
     };
 
-    // PLAY ANIMATION (Move to Active Slot) - Premium cinematic reveal
+    // PLAY ANIMATION (Move to Active Slot) - OPTIMIZED for speed & polish  
     const handlePlay = () => {
         if (focusedIndex === null || isTransitioning) return;
 
@@ -482,15 +462,14 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
 
         if (!card || !containerRef.current || !activeSlotRef.current) return;
 
-        // Kill any existing animations
-        gsap.killTweensOf(card);
+        setIsTransitioning(true);
 
         const actions = card.querySelector('.action-buttons') as HTMLElement;
         const tiltInner = card.querySelector('.card-tilt-inner') as HTMLElement;
         const glare = card.querySelector('.card-glare-overlay') as HTMLElement;
 
-        if (tiltInner) gsap.killTweensOf(tiltInner);
-        if (actions) gsap.killTweensOf(actions);
+        // Kill all existing animations immediately
+        gsap.killTweensOf([card, tiltInner, actions, glare]);
 
         const slotRect = activeSlotRef.current.getBoundingClientRect();
         const containerRect = containerRef.current.getBoundingClientRect();
@@ -498,81 +477,64 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
         const targetX = slotRect.left - containerRect.left;
         const targetY = slotRect.top - containerRect.top;
 
-        // Premium play animation timeline
+        // FAST play animation - total ~0.5s
         const tl = gsap.timeline({
             onComplete: () => {
                 setActiveProject(project);
+                setIsTransitioning(false);
                 onActiveProjectChange?.(project);
-                // Reset action buttons for next time
                 if (actions) gsap.set(actions, { opacity: 0, y: 20 });
 
-                // Slide in details panel with spring
+                // Slide in details panel FAST
                 gsap.to(".details-panel", {
                     right: 0,
                     bottom: 0,
-                    duration: 0.8,
-                    ease: "expo.out"
+                    duration: 0.5,
+                    ease: "power3.out"
                 });
             }
         });
 
-        // 1. Hide actions with slide down
+        // 1. Instant hide actions & glare (no rainbow during play)
         if (actions) {
-            tl.to(actions, {
-                opacity: 0,
-                y: 20,
-                duration: 0.25,
-                ease: "power2.in"
-            });
+            tl.to(actions, { opacity: 0, y: 10, duration: 0.1, ease: "power2.in" });
+        }
+        if (glare) {
+            tl.set(glare, { opacity: 0 }, 0);
         }
 
-        // 2. Dramatic tilt forward before flip (the "throw" anticipation)
-        if (tiltInner) {
-            tl.to(tiltInner, {
-                rotateX: -15,
-                rotateY: 90,
-                duration: 0.3,
-                ease: "power2.in"
-            }, "-=0.1");
-        }
-
-        // 3. Flip back to image side with satisfying tilt motion
+        // 2. Quick flip to image side
         if (tiltInner) {
             tl.to(tiltInner, {
                 rotateY: 0,
-                rotateX: 15, // Tilt back for "landing" effect
-                duration: 0.4,
-                ease: "power2.out"
-            });
+                rotateX: 0,
+                duration: 0.3,
+                ease: "power3.out"
+            }, 0.05);
         }
 
-        // 4. Add golden glow effect during transition
-        if (glare) {
-            tl.to(glare, { opacity: 0.6, duration: 0.3 }, "-=0.3")
-                .to(glare, { opacity: 0, duration: 0.4 }, "-=0.1");
-        }
-
-        // 5. Fly to slot with cinematic motion + final tilt reset
+        // 3. Fly to slot FAST with punch
         tl.to(card, {
             x: targetX,
             y: targetY,
             rotation: 0,
             scale: 1,
             zIndex: 50,
-            boxShadow: "0 30px 60px rgba(0,0,0,0.5), 0 0 40px rgba(16, 185, 129, 0.2)",
-            duration: 0.9,
-            ease: "expo.inOut",
-        }, "-=0.4");
+            duration: 0.45,
+            ease: "power3.out"
+        }, 0.1);
 
-        // 6. Reset tilt to flat after landing
-        if (tiltInner) {
-            tl.to(tiltInner, {
-                rotateX: 0,
-                rotateY: 0,
-                duration: 0.3,
-                ease: "power2.out"
-            }, "-=0.3");
-        }
+        // Hide other cards smoothly but quickly
+        handRefs.current.forEach((c, i) => {
+            if (i !== index && c) {
+                gsap.to(c, {
+                    opacity: 0.3,
+                    scale: 0.9,
+                    duration: 0.3,
+                    ease: "power2.out"
+                });
+            }
+        });
     };
 
     // DRAW CARD - Draw a new card from deck into hand

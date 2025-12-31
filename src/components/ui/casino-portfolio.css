@@ -48,19 +48,65 @@
     pointer-events: none;
 }
 
-/* Card Styling */
+/* Card Styling - Premium 3D Thickness */
 .poker-card {
     position: absolute;
     width: 260px;
-    /* Slightly larger */
     height: 360px;
     border-radius: 16px;
     cursor: pointer;
     will-change: transform;
     transform-style: preserve-3d;
+    /* 3D Thickness Effect - Layered shadows create physical depth */
     box-shadow:
-        0 10px 30px rgba(0, 0, 0, 0.4),
-        0 4px 8px rgba(0, 0, 0, 0.2);
+        /* Top edge highlight */
+        inset 0 1px 0 rgba(255, 255, 255, 0.08),
+        /* Card edge layers (stacked for thickness) */
+        0 2px 0 #1a1a1f,
+        0 4px 0 #151518,
+        0 6px 0 #101013,
+        0 8px 0 #0a0a0c,
+        /* Soft ambient shadow */
+        0 12px 20px rgba(0, 0, 0, 0.4),
+        /* Deep shadow for depth */
+        0 25px 50px rgba(0, 0, 0, 0.5);
+    transition: box-shadow 0.3s ease, transform 0.3s ease;
+}
+
+/* Hover state - Lift and glow */
+.poker-card.interactive:hover {
+    box-shadow:
+        /* Top edge highlight - brighter on hover */
+        inset 0 1px 0 rgba(255, 255, 255, 0.12),
+        /* Card edge layers */
+        0 2px 0 #1a1a1f,
+        0 4px 0 #151518,
+        0 6px 0 #101013,
+        0 8px 0 #0a0a0c,
+        /* Lifted shadow */
+        0 20px 40px rgba(0, 0, 0, 0.5),
+        /* Deeper shadow for more lift */
+        0 40px 80px rgba(0, 0, 0, 0.4),
+        /* Emerald glow */
+        0 0 60px rgba(16, 185, 129, 0.15);
+}
+
+/* Focused/Inspected card - Maximum presence */
+.poker-card[data-focused="true"],
+.poker-card.focused {
+    box-shadow:
+        /* Top edge highlight - brightest */
+        inset 0 1px 0 rgba(255, 255, 255, 0.15),
+        /* Card edge layers */
+        0 2px 0 #1a1a1f,
+        0 4px 0 #151518,
+        0 6px 0 #101013,
+        0 8px 0 #0a0a0c,
+        /* Massive lifted shadow */
+        0 40px 80px rgba(0, 0, 0, 0.6),
+        /* Emerald spotlight glow */
+        0 0 100px rgba(16, 185, 129, 0.25),
+        0 0 150px rgba(16, 185, 129, 0.1);
 }
 
 /* Tilt Container - The actual 3D object */
@@ -74,12 +120,12 @@
 }
 
 .poker-card.interactive:hover .card-tilt-inner {
-    box-shadow: 
+    box-shadow:
         0 30px 60px rgba(0, 0, 0, 0.6),
         0 0 40px rgba(16, 185, 129, 0.1);
 }
 
-/* Card Faces */
+/* Card Faces - Premium Materials */
 .card-face {
     position: absolute;
     width: 100%;
@@ -88,15 +134,22 @@
     backface-visibility: hidden;
     -webkit-backface-visibility: hidden;
     overflow: hidden;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    /* Premium border with subtle gradient */
+    border: 1px solid rgba(255, 255, 255, 0.12);
     background-color: #1a1a20;
-    /* Base */
+    /* Inner shadow for depth */
+    box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.3);
 }
 
-/* Front Face (Details) */
+/* Front Face (Details) - Premium Dark */
 .card-front {
     transform: rotateY(180deg);
-    background: linear-gradient(135deg, #23232a 0%, #16161a 100%);
+    background:
+        /* Subtle noise texture */
+        url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E"),
+        linear-gradient(135deg, #1e1e24 0%, #12121a 100%);
+    /* Top accent line */
+    border-top: 2px solid rgba(16, 185, 129, 0.4);
 }
 
 .card-front-content {
@@ -106,29 +159,51 @@
     flex-direction: column;
 }
 
-/* Back Face (Image/Logo) - Initial View */
+/* Back Face (Image/Logo) - Initial View with Gold Foil Pattern */
 .card-back {
-    /* Pattern */
     background:
-        repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.02) 0, rgba(255, 255, 255, 0.02) 2px, transparent 2px, transparent 8px),
+        /* Diamond pattern overlay */
+        repeating-linear-gradient(45deg,
+            rgba(255, 215, 0, 0.02) 0,
+            rgba(255, 215, 0, 0.02) 1px,
+            transparent 1px,
+            transparent 8px),
+        repeating-linear-gradient(-45deg,
+            rgba(255, 215, 0, 0.02) 0,
+            rgba(255, 215, 0, 0.02) 1px,
+            transparent 1px,
+            transparent 8px),
+        /* Base gradient */
         linear-gradient(135deg, #1e1e24 0%, #0f0f12 100%);
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    /* Premium frame border */
+    border: 1px solid rgba(255, 215, 0, 0.08);
 }
 
-/* PREMIUM GLARE - Holographic Effect */
+/* PREMIUM GLARE - Enhanced Holographic Effect */
 .card-glare-overlay {
     position: absolute;
     top: -50%;
     left: -50%;
     width: 200%;
     height: 200%;
-    background: 
-        radial-gradient(circle at center,
-            rgba(255, 255, 255, 0.3) 0%,
-            rgba(16, 185, 129, 0.1) 25%,
+    /* Multi-layer holographic effect */
+    background:
+        /* Rainbow shimmer layer */
+        linear-gradient(105deg,
+            rgba(255, 100, 100, 0.08) 0%,
+            rgba(255, 255, 100, 0.08) 20%,
+            rgba(100, 255, 100, 0.08) 40%,
+            rgba(100, 255, 255, 0.08) 60%,
+            rgba(100, 100, 255, 0.08) 80%,
+            rgba(255, 100, 255, 0.08) 100%),
+        /* Primary light spot */
+        radial-gradient(circle at var(--glare-x, 50%) var(--glare-y, 50%),
+            rgba(255, 255, 255, 0.5) 0%,
+            rgba(16, 185, 129, 0.15) 25%,
             transparent 50%);
     opacity: 0;
     pointer-events: none;
@@ -139,6 +214,12 @@
 
 .poker-card.interactive:hover .card-glare-overlay {
     opacity: 1;
+}
+
+/* Focused card glare - more intense */
+.poker-card:focus-within .card-glare-overlay,
+.poker-card[data-focused="true"] .card-glare-overlay {
+    opacity: 0.8;
 }
 
 /* FAKE 3D THICKNESS */
