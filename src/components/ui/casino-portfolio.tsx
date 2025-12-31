@@ -14,6 +14,7 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
     // STATE MACHINE
     const [deck, setDeck] = useState<Project[]>([]);
     const [hand, setHand] = useState<Project[]>([]);
+    const [playedIndices, setPlayedIndices] = useState<Set<number>>(new Set()); // Track indices of cards that have been played
     const [focusedIndex, setFocusedIndex] = useState<number | null>(null); // Index in HAND
     const [activeProject, setActiveProject] = useState<Project | null>(null);
     const [isDealing, setIsDealing] = useState(false);
@@ -36,10 +37,116 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
 
         setHand(initialHand);
         setDeck(remainingDeck);
+        setPlayedIndices(new Set());
 
         // Trigger deal animation on mount
         dealCards(initialHandSize);
     }, [items]); // Only run when items change (initial load)
+
+    // Auto-shuffle and deal when ALL cards in hand have been played
+    useEffect(() => {
+        // Check if all cards in hand have been played at least once
+        if (hand.length > 0 && playedIndices.size >= hand.length && !isDealing && !activeProject) {
+            performShuffleAnimation();
+        }
+    }, [playedIndices.size, hand.length, isDealing, activeProject]);
+
+    // Visual shuffle animation
+    const performShuffleAnimation = () => {
+        if (!containerRef.current || !deckRef.current) return;
+
+        setIsDealing(true);
+
+        const deckRect = deckRef.current.getBoundingClientRect();
+        const containerRect = containerRef.current.getBoundingClientRect();
+        const deckX = deckRect.left - containerRect.left;
+        const deckY = deckRect.top - containerRect.top;
+
+        // 1. Animate all cards flying to the deck
+        const flyToDeckTimeline = gsap.timeline({
+            onComplete: () => {
+                // After cards reach deck, do shuffle animation
+                shuffleDeckAnimation();
+            }
+        });
+
+        handRefs.current.forEach((card, i) => {
+            if (!card) return;
+
+            flyToDeckTimeline.to(card, {
+                x: deckX + Math.random() * 20 - 10,
+                y: deckY + Math.random() * 20 - 10,
+                rotation: Math.random() * 30 - 15,
+                scale: 0.9,
+                opacity: 0.8,
+                duration: 0.4,
+                ease: "power2.in"
+            }, i * 0.1);
+        });
+    };
+
+    // Deck shuffle animation
+    const shuffleDeckAnimation = () => {
+        if (!deckRef.current) return;
+
+        // Make cards invisible (they're now "in" the deck)
+        handRefs.current.forEach(card => {
+            if (card) gsap.set(card, { opacity: 0 });
+        });
+
+        // Animate the deck stack with a shuffle effect
+        const deckStack = deckRef.current;
+
+        const shuffleTl = gsap.timeline({
+            onComplete: () => {
+                // After shuffle animation, deal new cards
+                dealNewHand();
+            }
+        });
+
+        // Wobble/shuffle animation on the deck
+        shuffleTl
+            .to(deckStack, { rotation: -5, duration: 0.1, ease: "power1.inOut" })
+            .to(deckStack, { rotation: 5, duration: 0.1, ease: "power1.inOut" })
+            .to(deckStack, { rotation: -3, duration: 0.1, ease: "power1.inOut" })
+            .to(deckStack, { rotation: 3, duration: 0.1, ease: "power1.inOut" })
+            .to(deckStack, { rotation: -2, y: -10, duration: 0.1, ease: "power1.inOut" })
+            .to(deckStack, { rotation: 2, y: 10, duration: 0.1, ease: "power1.inOut" })
+            .to(deckStack, { rotation: 0, y: 0, scale: 1.05, duration: 0.15, ease: "power2.out" })
+            .to(deckStack, { scale: 1, duration: 0.15, ease: "power2.in" });
+    };
+
+    // Deal new shuffled hand
+    const dealNewHand = () => {
+        // Shuffle all cards and deal new hand
+        const allCards = [...hand, ...deck];
+        const shuffled = shuffleArray(allCards);
+
+        // Deal new hand from shuffled cards
+        const newHandSize = Math.min(5, shuffled.length);
+        const newHand = shuffled.slice(0, newHandSize);
+        const newDeck = shuffled.slice(newHandSize);
+
+        // Reset state
+        setPlayedIndices(new Set());
+        setHand(newHand);
+        setDeck(newDeck);
+
+        // Trigger deal animation after a short delay for state to update
+        setTimeout(() => {
+            dealCards(newHandSize);
+        }, 100);
+    };
+
+    // Fisher-Yates shuffle algorithm
+    const shuffleArray = (array: Project[]): Project[] => {
+        const shuffled = [...array];
+        for (let i = shuffled.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        }
+        return shuffled;
+    };
 
     // Global Mouse Tracking for Lighting
     const handleGlobalMouseMove = (e: React.MouseEvent) => {
@@ -330,7 +437,7 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
         });
     };
 
-    // CLOSE ACTIVE PROJECT - Return played card to hand
+    // CLOSE ACTIVE PROJECT - Return card to hand but track as played
     const handleCloseActive = () => {
         if (!activeProject || focusedIndex === null) return;
 
@@ -341,6 +448,9 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
         const containerRect = containerRef.current.getBoundingClientRect();
         const pos = getHandPosition(index, hand.length, containerRect.width, containerRect.height);
 
+        // Mark this card as played
+        setPlayedIndices(prev => new Set([...prev, index]));
+
         // Hide details panel first
         gsap.to(".details-panel", {
             right: "-50%",
@@ -349,12 +459,18 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
             ease: "power2.in"
         });
 
+        // Hide active slot when closing
+        if (activeSlotRef.current) {
+            activeSlotRef.current.classList.remove('visible');
+        }
+
         // Animate card back to hand
         gsap.to(card, {
             x: pos.x,
             y: pos.y,
             rotation: pos.rotation,
             scale: 1,
+            opacity: 1,
             zIndex: 10 + index,
             duration: 0.6,
             ease: "power3.out",
@@ -365,11 +481,12 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
             }
         });
 
-        // Unblur other cards
-        handRefs.current.forEach((c, i) => {
-            if (i !== index && c) {
+        // Restore all cards to full visibility
+        handRefs.current.forEach((c) => {
+            if (c) {
                 gsap.to(c, {
                     filter: "blur(0px) brightness(1)",
+                    opacity: 1,
                     scale: 1,
                     duration: 0.4
                 });
@@ -463,6 +580,11 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
         if (!card || !containerRef.current || !activeSlotRef.current) return;
 
         setIsTransitioning(true);
+
+        // Show active slot when playing a card
+        if (activeSlotRef.current) {
+            activeSlotRef.current.classList.add('visible');
+        }
 
         const actions = card.querySelector('.action-buttons') as HTMLElement;
         const tiltInner = card.querySelector('.card-tilt-inner') as HTMLElement;

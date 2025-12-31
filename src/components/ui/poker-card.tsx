@@ -28,6 +28,7 @@ interface PokerCardProps {
 
 export const PokerCard = forwardRef<HTMLDivElement, PokerCardProps>(({
     project,
+    isActive,
     isInHand,
     onClick,
     onFold,
@@ -73,8 +74,8 @@ export const PokerCard = forwardRef<HTMLDivElement, PokerCardProps>(({
             });
         }
 
-        // Glare effect - use CSS custom properties for dynamic positioning
-        if (glareRef.current) {
+        // Glare effect - only show when card is played/active (not on hover)
+        if (glareRef.current && isActive) {
             const glareX = (mouseX / width) * 100;
             const glareY = (mouseY / height) * 100;
 
@@ -82,7 +83,7 @@ export const PokerCard = forwardRef<HTMLDivElement, PokerCardProps>(({
             glareRef.current.style.setProperty('--glare-y', `${glareY}%`);
 
             gsap.to(glareRef.current, {
-                opacity: isFocused ? 0.6 : 1,
+                opacity: 0.6,
                 duration: 0.3,
                 ease: "power2.out",
                 overwrite: "auto"

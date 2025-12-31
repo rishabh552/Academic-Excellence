@@ -212,9 +212,7 @@
     z-index: 10;
 }
 
-.poker-card.interactive:hover .card-glare-overlay {
-    opacity: 1;
-}
+/* Glare only shows on played/focused cards, not on hover */
 
 /* Focused card glare - more intense */
 .poker-card:focus-within .card-glare-overlay,
@@ -289,6 +287,12 @@
     border-radius: 16px;
     box-shadow: inset 0 0 50px rgba(255, 215, 0, 0.05);
     pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.active-slot.visible {
+    opacity: 1;
 }
 
 /* Details Panel */
