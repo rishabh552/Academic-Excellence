@@ -439,9 +439,11 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
 
     // CLOSE ACTIVE PROJECT - Return card to hand but track as played
     const handleCloseActive = () => {
-        if (!activeProject || focusedIndex === null) return;
+        if (!activeProject) return;
 
-        const index = focusedIndex;
+        const index = hand.indexOf(activeProject);
+        if (index === -1) return;
+
         const card = handRefs.current[index];
         if (!card || !containerRef.current) return;
 
@@ -464,7 +466,7 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
             activeSlotRef.current.classList.remove('visible');
         }
 
-        // Animate card back to hand
+        // Animate card back to hand with "Vacuum Snap" physics
         gsap.to(card, {
             x: pos.x,
             y: pos.y,
@@ -472,12 +474,15 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
             scale: 1,
             opacity: 1,
             zIndex: 10 + index,
-            duration: 0.6,
-            ease: "power3.out",
+            duration: 0.7, // Slower to see the effect
+            ease: "back.out(2.0)", // Stronger Snap
             onComplete: () => {
                 setActiveProject(null);
                 setFocusedIndex(null);
                 onActiveProjectChange?.(null);
+                // Reset tilts
+                const tiltInner = card.querySelector('.card-tilt-inner');
+                if (tiltInner) gsap.set(tiltInner, { rotateX: 0, rotateY: 0 });
             }
         });
 
@@ -494,7 +499,7 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
         });
     };
 
-    // FOLD ANIMATION (Return to Hand) - OPTIMIZED for speed & polish
+    // FOLD ANIMATION - "Boomerang Spin" (Fast & Impactful)
     const handleFold = () => {
         if (focusedIndex === null || isTransitioning) return;
 
@@ -512,64 +517,82 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
         const tiltInner = card.querySelector('.card-tilt-inner') as HTMLElement;
         const glare = card.querySelector('.card-glare-overlay') as HTMLElement;
 
-        // Kill all existing animations immediately
+        // Kill all existing animations
         gsap.killTweensOf([card, tiltInner, actions, glare]);
 
-        // FAST fold sequence - total ~0.4s
         const tl = gsap.timeline({
             onComplete: () => {
                 setFocusedIndex(null);
                 setIsTransitioning(false);
                 if (actions) gsap.set(actions, { opacity: 0, y: 20 });
+                gsap.set(card, { scaleX: 1, scaleY: 1, rotation: pos.rotation });
             }
         });
 
-        // 1. Instant hide actions
-        if (actions) {
-            tl.to(actions, { opacity: 0, y: 10, duration: 0.1, ease: "power2.in" });
-        }
+        // 1. Instant hide UI
+        if (actions) tl.set(actions, { opacity: 0 }, 0);
+        if (glare) tl.set(glare, { opacity: 0 }, 0);
 
-        // 2. Kill glare immediately (no rainbow during fold)
-        if (glare) {
-            tl.set(glare, { opacity: 0 }, 0);
-        }
-
-        // 3. Quick flip + return HOME simultaneously
+        // 2. Quick flip reset (parallel with movement)
         if (tiltInner) {
             tl.to(tiltInner, {
                 rotateY: 0,
                 rotateX: 0,
-                duration: 0.35,
+                duration: 0.2,
                 ease: "power3.out"
-            }, 0.05);
+            }, 0);
         }
 
-        // 4. Fly home FAST
+        // 3. "Boomerang Spin" - Fast & Dynamic
+        // Phase A: Anticipation "Pop" - quick scale up + slight lift
+        tl.to(card, {
+            scale: 1.15,
+            y: "-=20",
+            duration: 0.08,
+            ease: "power2.out"
+        }, 0);
+
+        // Phase B: WHOOSH - Spin + fly to position with velocity stretch
         tl.to(card, {
             x: pos.x,
             y: pos.y,
-            rotation: pos.rotation,
-            scale: 1,
+            rotation: "+=540", // 1.5 spins for extra flair
+            scaleX: 0.85,  // Horizontal squeeze = velocity
+            scaleY: 1.1,   // Vertical stretch = velocity
             zIndex: 10 + index,
-            duration: 0.4,
-            ease: "power3.out"
-        }, 0.05);
+            duration: 0.25,
+            ease: "power3.in"  // Accelerate INTO the motion
+        }, 0.08);
 
-        // Restore others INSTANTLY - no stagger, no blur animation
+        // Phase C: SNAP Landing - instant settle with bounce
+        tl.to(card, {
+            rotation: pos.rotation,
+            scaleX: 1.08,  // Slight overshoot squash
+            scaleY: 0.94,
+            duration: 0.06,
+            ease: "power2.out"
+        })
+            .to(card, {
+                scale: 1,
+                duration: 0.1,
+                ease: "elastic.out(1, 0.5)" // Tight elastic pop
+            });
+
+        // Restore others (fast)
         handRefs.current.forEach((c, i) => {
             if (i !== index && c) {
                 gsap.to(c, {
                     opacity: 1,
                     scale: 1,
                     filter: "none",
-                    duration: 0.25,
+                    duration: 0.2,
                     ease: "power2.out"
                 });
             }
         });
     };
 
-    // PLAY ANIMATION (Move to Active Slot) - OPTIMIZED for speed & polish  
+    // PLAY ANIMATION (Move to Active Slot) - "Dealer Toss" Physics 
     const handlePlay = () => {
         if (focusedIndex === null || isTransitioning) return;
 
@@ -599,13 +622,17 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
         const targetX = slotRect.left - containerRect.left;
         const targetY = slotRect.top - containerRect.top;
 
-        // FAST play animation - total ~0.5s
+        // "Dealer Toss" play sequence
         const tl = gsap.timeline({
             onComplete: () => {
                 setActiveProject(project);
+                setFocusedIndex(null); // Clear focus so CSS glare doesn't stick
                 setIsTransitioning(false);
                 onActiveProjectChange?.(project);
                 if (actions) gsap.set(actions, { opacity: 0, y: 20 });
+
+                // Impact "Thud" effect - subtle settle
+                gsap.to(card, { scale: 1, duration: 0.2, ease: "power2.out" });
 
                 // Slide in details panel FAST
                 gsap.to(".details-panel", {
@@ -617,34 +644,59 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
             }
         });
 
-        // 1. Instant hide actions & glare (no rainbow during play)
-        if (actions) {
-            tl.to(actions, { opacity: 0, y: 10, duration: 0.1, ease: "power2.in" });
-        }
-        if (glare) {
-            tl.set(glare, { opacity: 0 }, 0);
-        }
+        // 1. Prepare
+        if (actions) tl.to(actions, { opacity: 0, duration: 0.1 }, 0);
+        if (glare) tl.set(glare, { opacity: 0 }, 0);
+        if (tiltInner) tl.to(tiltInner, { rotateY: 0, rotateX: 0, duration: 0.2 }, 0);
 
-        // 2. Quick flip to image side
-        if (tiltInner) {
-            tl.to(tiltInner, {
-                rotateY: 0,
-                rotateX: 0,
-                duration: 0.3,
-                ease: "power3.out"
-            }, 0.05);
-        }
+        // 2. "Slingshot" Sequence
+        // Phase A: Pull Back (Anticipation)
+        const randomRot = (Math.random() * 6) - 3;
 
-        // 3. Fly to slot FAST with punch
         tl.to(card, {
-            x: targetX,
-            y: targetY,
-            rotation: 0,
-            scale: 1,
-            zIndex: 50,
-            duration: 0.45,
-            ease: "power3.out"
-        }, 0.1);
+            scale: 0.85, // Compress energy
+            y: "+=30", // Pull down slightly
+            rotation: randomRot * 2,
+            duration: 0.25,
+            ease: "back.in(2.0)"
+        }, 0)
+
+            // Phase B: Shoot (Release)
+            .to(card, {
+                x: targetX,
+                y: targetY,
+                rotation: randomRot,
+                scale: 1.1, // Zoom in fly
+                zIndex: 50,
+                duration: 0.35,
+                ease: "power4.out" // High velocity
+            })
+
+            // Phase C: Impact Slam
+            .to(card, {
+                scale: 1.0,
+                duration: 0.1,
+                ease: "power2.in",
+                onStart: () => {
+                    // SCREEN SHAKE IMPACT
+                    gsap.to(containerRef.current, {
+                        y: 3, // Initial jolt down
+                        duration: 0.05,
+                        yoyo: true,
+                        repeat: 3,
+                        onComplete: () => { gsap.set(containerRef.current, { y: 0 }); }
+                    });
+
+                    // SHOCKWAVE RIPPLE
+                    const ripple = activeSlotRef.current?.querySelector('.impact-ripple');
+                    if (ripple) {
+                        gsap.fromTo(ripple,
+                            { scale: 0.5, opacity: 0.8, borderColor: "rgba(16, 185, 129, 0.8)" },
+                            { scale: 2.5, opacity: 0, duration: 0.6, ease: "power2.out" }
+                        );
+                    }
+                }
+            });
 
         // Hide other cards smoothly but quickly
         handRefs.current.forEach((c, i) => {
@@ -658,6 +710,7 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
             }
         });
     };
+
 
     // DRAW CARD - Draw a new card from deck into hand
     const handleDraw = () => {
@@ -796,7 +849,7 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
             onMouseMove={handleGlobalMouseMove}
         >
             {/* Table Trim */}
-            <div className="table-trim" />
+            < div className="table-trim" />
             <div className="table-spotlight" /> {/* New Lighting Layer */}
 
             {/* Visual Deck Stack */}
@@ -834,29 +887,34 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
                         {deck.length > 0 && hand.length < 5 ? 'Click to Draw' : deck.length === 0 ? 'Empty' : 'Hand Full'}
                     </div>
                 </div>
-            </div>
+            </div >
 
             {/* Active Slot */}
-            <div ref={activeSlotRef} className="active-slot" />
+            <div ref={activeSlotRef} className="active-slot">
+                <div className="impact-ripple" />
+            </div>
 
             {/* Hand Area */}
-            {hand.map((project, index) => (
-                project && (
-                    <PokerCard
-                        key={`${project.common}-${index}`}
-                        ref={el => { handRefs.current[index] = el; }}
-                        project={project}
-                        index={index}
-                        isActive={activeProject === project}
-                        isFocused={focusedIndex === index}
-                        isInHand={true}
-                        onClick={() => handleInspect(index)}
-                        onFold={handleFold}
-                        onPlay={handlePlay}
-                        style={{ opacity: 0 }}
-                    />
-                )
-            ))}
+            {
+                hand.map((project, index) => (
+                    project && (
+                        <PokerCard
+                            key={`${project.common}-${index}`}
+                            ref={el => { handRefs.current[index] = el; }}
+                            project={project}
+                            index={index}
+                            isActive={activeProject === project}
+                            isFocused={focusedIndex === index}
+                            isInHand={true}
+                            wasPlayed={playedIndices.has(index)}
+                            onClick={() => handleInspect(index)}
+                            onFold={handleFold}
+                            onPlay={handlePlay}
+                            style={{ opacity: 0 }}
+                        />
+                    )
+                ))
+            }
 
             {/* Details Panel */}
             <div className="details-panel">
@@ -901,7 +959,7 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
                     </div>
                 )}
             </div>
-        </div>
+        </div >
     );
 }
 

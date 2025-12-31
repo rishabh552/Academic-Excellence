@@ -19,6 +19,7 @@ interface PokerCardProps {
     isActive: boolean;
     isFocused: boolean;
     isInHand: boolean;
+    wasPlayed?: boolean; // New prop to track if card has been played at least once
     onClick: () => void;
     onFold?: () => void;
     onPlay?: () => void;
@@ -35,7 +36,8 @@ export const PokerCard = forwardRef<HTMLDivElement, PokerCardProps>(({
     onPlay,
     className,
     style,
-    isFocused
+    isFocused,
+    wasPlayed = false
 }, ref) => {
 
     // TILT LOGIC
@@ -74,8 +76,8 @@ export const PokerCard = forwardRef<HTMLDivElement, PokerCardProps>(({
             });
         }
 
-        // Glare effect - only show when card is played/active (not on hover)
-        if (glareRef.current && isActive) {
+        // Glare effect - show when card was previously played (on hover), BUT NOT if currently active (picked) OR focused (inspected)
+        if (glareRef.current && wasPlayed && !isActive && !isFocused) {
             const glareX = (mouseX / width) * 100;
             const glareY = (mouseY / height) * 100;
 
