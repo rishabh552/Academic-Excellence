@@ -358,3 +358,98 @@
         padding: 1.5rem;
     }
 }
+
+/* --- VADER / SITH LORD HYBRID FX --- */
+
+/* Anticipation: Dark Shadow (Choke) */
+.sith-shadow {
+    position: absolute;
+    width: 280px;
+    height: 380px;
+    border-radius: 16px;
+    pointer-events: none;
+    z-index: 3;
+    opacity: 0;
+
+    /* Vader's presence */
+    background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.95) 0%, rgba(20, 0, 0, 0.6) 50%, transparent 80%);
+    filter: blur(18px);
+}
+
+/* Anticipation: Red Plasma Instability (Ignition) */
+.sith-plasma {
+    position: absolute;
+    width: 260px;
+    height: 360px;
+    border-radius: 14px;
+    pointer-events: none;
+    z-index: 4;
+    opacity: 0;
+
+    /* Unstable kyber crystal energy */
+    background: radial-gradient(circle at center, rgba(255, 0, 0, 0.5) 0%, transparent 60%);
+    box-shadow: 0 0 40px rgba(255, 0, 0, 0.4), inset 0 0 30px rgba(255, 0, 0, 0.3);
+}
+
+.sith-plasma::before {
+    content: '';
+    position: absolute;
+    inset: -8px;
+    border-radius: 18px;
+    border: 2px solid transparent;
+    background: linear-gradient(45deg, transparent 40%, rgba(255, 0, 0, 0.9) 50%, transparent 60%);
+    background-size: 200% 200%;
+    filter: blur(3px);
+    animation: sith-crackle 0.08s infinite steps(2);
+}
+
+@keyframes sith-crackle {
+    0% {
+        opacity: 0.4;
+        transform: scale(0.97) skew(1deg);
+    }
+
+    50% {
+        opacity: 0.9;
+        transform: scale(1.03) skew(-1deg);
+    }
+
+    100% {
+        opacity: 0.5;
+        transform: scale(0.99) skew(0.5deg);
+    }
+}
+
+/* Impact: RED Sith Sparks */
+.sith-spark {
+    position: absolute;
+    width: 3px;
+    height: 10px;
+    background: linear-gradient(to bottom, #fff 0%, #ff2200 40%, #cc0000 100%);
+    border-radius: 2px;
+    pointer-events: none;
+    z-index: 70;
+    opacity: 0;
+    will-change: transform, opacity;
+    box-shadow: 0 0 10px #ff0000, 0 0 15px #cc0000;
+}
+
+/* Card Aftermath: Sith Aura */
+.card-sith {
+    box-shadow: 0 0 20px rgba(255, 0, 0, 0.5), 0 0 40px rgba(150, 0, 0, 0.3), inset 0 0 15px rgba(100, 0, 0, 0.4) !important;
+    border: 1px solid rgba(255, 50, 50, 0.6) !important;
+    filter: brightness(0.9) saturate(1.1);
+}
+
+/* Impact: Dark ripple under card */
+.sith-impact {
+    position: absolute;
+    width: 300px;
+    height: 80px;
+    border-radius: 50%;
+    background: radial-gradient(ellipse at center, rgba(255, 0, 0, 0.6) 0%, rgba(100, 0, 0, 0.3) 40%, transparent 70%);
+    filter: blur(12px);
+    pointer-events: none;
+    z-index: 2;
+    opacity: 0;
+}

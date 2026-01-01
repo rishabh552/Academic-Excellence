@@ -499,7 +499,7 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
         });
     };
 
-    // FOLD ANIMATION - "Vader's Force Pull" (Resistance -> Force Flip -> Snap -> Earthquake)
+    // FOLD ANIMATION - "Vader's Force Pull" (SITH LORD HYBRID)
     const handleFold = () => {
         if (focusedIndex === null || isTransitioning) return;
 
@@ -517,12 +517,36 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
         const tiltInner = card.querySelector('.card-tilt-inner') as HTMLElement;
         const glare = card.querySelector('.card-glare-overlay') as HTMLElement;
 
-        // Disable CSS transitions to prevent flickering/fighting with GSAP
+        // --- FX LAYER SETUP ---
+        const fxLayer = document.createElement('div');
+        fxLayer.className = 'sith-fx-layer';
+        fxLayer.style.cssText = 'position:absolute;inset:0;pointer-events:none;overflow:visible;';
+        containerRef.current.appendChild(fxLayer);
+
+        // 1. ANTICIPATION: Dark Shadow (from Choke)
+        const shadow = document.createElement('div');
+        shadow.className = 'sith-shadow';
+        fxLayer.appendChild(shadow);
+        gsap.set(shadow, { x: pos.x - 20, y: pos.y - 10 });
+
+        // 2. ANTICIPATION: Red Plasma Instability (from Ignition)
+        const plasma = document.createElement('div');
+        plasma.className = 'sith-plasma';
+        fxLayer.appendChild(plasma);
+        gsap.set(plasma, { x: pos.x - 10, y: pos.y - 10 });
+
+        // 3. IMPACT: Red ripple effect
+        const impact = document.createElement('div');
+        impact.className = 'sith-impact';
+        fxLayer.appendChild(impact);
+        gsap.set(impact, { x: pos.x - 10, y: pos.y + 300 });
+
+        // Disable CSS transitions
         const originalTransition = card.style.transition;
         card.style.transition = 'none';
         if (tiltInner) tiltInner.style.transition = 'none';
 
-        // Kill all existing animations
+        // Kill existing tweens
         gsap.killTweensOf([card, tiltInner, actions, glare, containerRef.current]);
 
         // Calculate Force Vector
@@ -530,7 +554,6 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
         const currentY = Number(gsap.getProperty(card, "y"));
         const dx = pos.x - currentX;
         const dy = pos.y - currentY;
-        // Align the card's "Head" (Top) to the target vector
         const forceAngle = (Math.atan2(dy, dx) * 180 / Math.PI) + 90;
 
         const tl = gsap.timeline({
@@ -538,20 +561,25 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
                 setFocusedIndex(null);
                 setIsTransitioning(false);
                 if (actions) gsap.set(actions, { opacity: 0, y: 20 });
+
+                // Cleanup FX
+                if (fxLayer.parentNode) fxLayer.parentNode.removeChild(fxLayer);
+
                 // Clean reset
                 if (tiltInner) {
                     gsap.set(tiltInner, { rotateX: 0, rotateY: 0, rotateZ: 0, x: 0, y: 0 });
-                    tiltInner.style.transition = ''; // Restore transition
+                    tiltInner.style.transition = '';
                 }
-                gsap.set(card, { 
-                    scaleX: 1, scaleY: 1, 
-                    x: pos.x, y: pos.y, 
-                    rotation: pos.rotation, 
+                gsap.set(card, {
+                    scaleX: 1, scaleY: 1,
+                    x: pos.x, y: pos.y,
+                    rotation: pos.rotation,
                     zIndex: 10 + index,
                     boxShadow: "none",
                     filter: "none"
                 });
-                card.style.transition = originalTransition; // Restore transition
+                card.classList.remove('card-sith');
+                card.style.transition = originalTransition;
             }
         });
 
@@ -559,26 +587,43 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
         if (actions) tl.set(actions, { opacity: 0 }, 0);
         if (glare) tl.set(glare, { opacity: 0 }, 0);
 
-        // 2. THE GRIP (Resistance) - 0.6s
-        const gripDuration = 0.6;
-        
-        // Levitate & Glow (Force Field)
-        tl.to(card, {
-            z: 50,
-            scale: 1.05,
-            boxShadow: "0 0 30px rgba(64, 224, 208, 0.8)",
-            duration: 0.2,
+        // 2. THE GRIP (Shadow + Plasma) - 0.55s
+        const gripDuration = 0.55;
+
+        // FX: Dark shadow fades in ominously
+        tl.to(shadow, {
+            opacity: 0.95,
+            scale: 1.1,
+            duration: 0.3,
             ease: "power2.out"
         }, 0);
 
-        // Align to Vector (Obey the force)
+        // FX: Red plasma crackles in (slightly delayed)
+        tl.to(plasma, {
+            opacity: 0.8,
+            scale: 1.05,
+            duration: 0.25,
+            ease: "power2.out"
+        }, 0.1);
+
+        // Card Levitate with RED glow (Sith)
+        tl.to(card, {
+            z: 55,
+            scale: 1.06,
+            boxShadow: "0 0 30px rgba(255, 0, 0, 0.5)", // Dark red glow
+            filter: "brightness(0.85)", // Slightly dimmed (oppressive)
+            duration: 0.25,
+            ease: "power2.out"
+        }, 0);
+
+        // Align to Vector
         tl.to(card, {
             rotation: forceAngle,
             duration: 0.4,
             ease: "back.out(1.2)"
         }, 0);
 
-        // The "Drag" - Card moves slightly towards hand (15%) while resisting
+        // The "Drag" (15% towards target while fighting)
         tl.to(card, {
             x: currentX + (dx * 0.15),
             y: currentY + (dy * 0.15),
@@ -586,87 +631,127 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
             ease: "power1.in"
         }, 0);
 
-        // Violent Shake (Inner element)
+        // Violent Shake (RoughEase for that unstable Sith energy)
         if (tiltInner) {
-            const shakeCount = 12;
+            const shakeCount = 10;
             const shakeStep = gripDuration / shakeCount;
-            
             for (let i = 0; i < shakeCount; i++) {
                 tl.to(tiltInner, {
-                    x: "random(-6, 6)",
-                    y: "random(-6, 6)",
-                    rotateZ: "random(-3, 3)",
+                    x: "random(-5, 5)", y: "random(-5, 5)", rotateZ: "random(-2, 2)",
                     duration: shakeStep,
-                    ease: "rough({ strength: 1, points: 20, template: none, randomize: true, clamp: false })"
+                    ease: "rough({ strength: 1.5, points: 15, randomize: true })"
                 }, i * shakeStep);
             }
-            
-            // Reset inner shake at end of grip
             tl.to(tiltInner, { x: 0, y: 0, rotateZ: 0, duration: 0.05 }, gripDuration - 0.05);
         }
 
-        // 3. THE FORCE FLIP (Before/During Pull)
-        // Violent flip face-down right before the snap
+        // 3. FORCE FLIP
         if (tiltInner) {
             tl.to(tiltInner, {
-                rotateY: 0, // Slam shut (assuming it was 180)
-                rotateX: 20, // Slight pitch forward for aerodynamics
-                duration: 0.15,
-                ease: "power4.in"
-            }, gripDuration - 0.1); // Start slightly before the pull
+                rotateY: 0, rotateX: 15,
+                duration: 0.12, ease: "power4.in"
+            }, gripDuration - 0.1);
         }
 
-        // 4. THE PULL (Instant Snap)
+        // 4. THE PULL (Snap) - Fast & Brutal
         const pullStart = gripDuration;
-        const pullDuration = 0.15;
+        const pullDuration = 0.1; // FASTER for Sith brutality
+
+        // FX: Plasma intensifies (volatile)
+        tl.to(plasma, { scale: 1.4, opacity: 1, duration: 0.06 }, pullStart - 0.06);
 
         tl.to(card, {
             x: pos.x,
             y: pos.y,
             rotation: pos.rotation,
-            scaleY: 1.4, // Extreme stretch
-            scaleX: 0.6, // Extreme narrow
-            boxShadow: "0 0 80px rgba(64, 224, 208, 1), 0 0 120px rgba(255, 255, 255, 0.9)",
-            filter: "brightness(1.5)",
+            scaleY: 1.3, // Stretch (velocity distortion)
+            scaleX: 0.7,
+            boxShadow: "0 0 80px rgba(255, 0, 0, 0.9), 0 0 40px rgba(255, 100, 100, 0.7)", // Intense red
+            filter: "brightness(1.3)",
             duration: pullDuration,
             ease: "expo.in"
         }, pullStart);
 
-        // 5. IMPACT (Earthquake)
+        // 5. IMPACT (Sith Lord)
         const impactTime = pullStart + pullDuration;
 
-        // Card Slam & Dissipate
+        // FX: Remove shadow/plasma
+        tl.to([shadow, plasma], { opacity: 0, duration: 0.08 }, impactTime);
+
+        // FX: Show red impact ripple
+        tl.to(impact, {
+            opacity: 1,
+            scaleX: 1.5,
+            duration: 0.1,
+            ease: "power2.out"
+        }, impactTime)
+            .to(impact, {
+                opacity: 0,
+                scaleX: 2,
+                duration: 0.4,
+                ease: "power2.in"
+            }, impactTime + 0.1);
+
+        // FX: RED Sith Sparks (outward explosion)
+        const sparkCount = 14;
+        for (let i = 0; i < sparkCount; i++) {
+            const spark = document.createElement('div');
+            spark.className = 'sith-spark';
+            fxLayer.appendChild(spark);
+            const angle = (i / sparkCount) * Math.PI * 2;
+            const startX = pos.x + 120;
+            const startY = pos.y + 170;
+            const rotation = (angle * 180 / Math.PI) + 90;
+            gsap.set(spark, { x: startX, y: startY, rotation, opacity: 0 });
+
+            tl.to(spark, {
+                x: startX + Math.cos(angle) * (70 + Math.random() * 50),
+                y: startY + Math.sin(angle) * (50 + Math.random() * 40) - 20,
+                opacity: 1,
+                scale: 1.2,
+                duration: 0.12,
+                ease: "power2.out"
+            }, impactTime)
+                .to(spark, {
+                    y: `-=${15 + Math.random() * 15}`,
+                    opacity: 0,
+                    scale: 0,
+                    duration: 0.35,
+                    ease: "power1.in"
+                }, impactTime + 0.12);
+        }
+
+        // Card Slam & Sith Aura
         tl.to(card, {
-            scaleX: 1,
-            scaleY: 1,
-            boxShadow: "0 0 0 rgba(0,0,0,0)", // Fade out shadow smoothly
-            filter: "brightness(1)", // Fade out brightness smoothly
-            duration: 0.15,
-            ease: "elastic.out(1, 0.3)"
+            scaleX: 1, scaleY: 1,
+            boxShadow: "none",
+            filter: "none",
+            duration: 0.12,
+            ease: "power4.out",
+            onStart: () => card.classList.add('card-sith')
         }, impactTime);
 
-        // EARTHQUAKE (Container Shake)
+        // HEAVY Container Recoil (Vader's strength)
         tl.to(containerRef.current, {
-            x: "random(-10, 10)",
-            y: "random(-10, 10)",
-            duration: 0.05,
-            repeat: 5,
-            yoyo: true,
-            ease: "rough({ strength: 2, points: 20 })",
-            onComplete: () => {
-                gsap.set(containerRef.current, { x: 0, y: 0 });
-            }
-        }, impactTime);
+            y: 12, // HEAVY thud
+            duration: 0.07,
+            ease: "power4.out"
+        }, impactTime)
+            .to(containerRef.current, {
+                y: 0,
+                duration: 0.35,
+                ease: "elastic.out(1, 0.3)"
+            }, impactTime + 0.07);
+
+        // Sith aura cool down
+        tl.call(() => card.classList.remove('card-sith'), [], impactTime + 1.0);
 
         // Restore others
         handRefs.current.forEach((c, i) => {
             if (i !== index && c) {
                 gsap.to(c, {
-                    opacity: 1,
-                    scale: 1,
-                    filter: "none",
-                    duration: 0.2,
-                    delay: 0.1
+                    opacity: 1, scale: 1, filter: "none",
+                    duration: 0.2, delay: 0.15
                 });
             }
         });
