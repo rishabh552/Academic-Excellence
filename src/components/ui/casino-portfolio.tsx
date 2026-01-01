@@ -499,7 +499,7 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
         });
     };
 
-    // FOLD ANIMATION - Shake + 360° Turn
+    // FOLD ANIMATION - Simple slide back to hand
     const handleFold = () => {
         if (focusedIndex === null || isTransitioning) return;
 
@@ -525,7 +525,6 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
                 setFocusedIndex(null);
                 setIsTransitioning(false);
                 if (actions) gsap.set(actions, { opacity: 0, y: 20 });
-                gsap.set(card, { scaleX: 1, scaleY: 1, rotation: pos.rotation });
             }
         });
 
@@ -533,23 +532,17 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
         if (actions) tl.set(actions, { opacity: 0 }, 0);
         if (glare) tl.set(glare, { opacity: 0 }, 0);
 
-        // 2. SHAKE Animation - rapid side-to-side wobble
-        tl.to(card, { rotation: "+=8", duration: 0.05, ease: "power1.inOut" }, 0)
-            .to(card, { rotation: "-=16", duration: 0.05, ease: "power1.inOut" })
-            .to(card, { rotation: "+=14", duration: 0.05, ease: "power1.inOut" })
-            .to(card, { rotation: "-=10", duration: 0.05, ease: "power1.inOut" })
-            .to(card, { rotation: "+=6", duration: 0.04, ease: "power1.inOut" });
-
-        // 3. 360° TURN on Y-axis (card flip)
+        // 2. Spin and return to hand simultaneously
         if (tiltInner) {
             tl.to(tiltInner, {
-                rotateY: "+=360",
-                duration: 0.5,
+                rotateY: "+=720", // 2 full flips
+                rotateX: 0,
+                duration: 0.4,
                 ease: "power2.inOut"
-            });
+            }, 0);
         }
 
-        // 4. Fly back to hand position
+        // 3. Slide back to hand position (same duration as spin)
         tl.to(card, {
             x: pos.x,
             y: pos.y,
@@ -558,22 +551,12 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
             zIndex: 10 + index,
             duration: 0.4,
             ease: "power3.out"
-        }, "-=0.2");
+        }, 0);
+        
+        // 4. Reset rotation to 0 at the end (720° = 0° visually)
+        tl.set(tiltInner, { rotateY: 0 });
 
-        // 5. Snap landing effect
-        tl.to(card, {
-            scaleX: 1.05,
-            scaleY: 0.95,
-            duration: 0.08,
-            ease: "power2.out"
-        })
-            .to(card, {
-                scale: 1,
-                duration: 0.15,
-                ease: "elastic.out(1, 0.6)"
-            });
-
-        // Restore others (fast)
+        // Restore others
         handRefs.current.forEach((c, i) => {
             if (i !== index && c) {
                 gsap.to(c, {
