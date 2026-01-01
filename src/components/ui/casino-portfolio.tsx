@@ -499,7 +499,7 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
         });
     };
 
-    // FOLD ANIMATION - Simple slide back to hand
+    // FOLD ANIMATION - "Vader's Force Pull" (Resistance -> Force Flip -> Snap -> Earthquake)
     const handleFold = () => {
         if (focusedIndex === null || isTransitioning) return;
 
@@ -517,44 +517,146 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
         const tiltInner = card.querySelector('.card-tilt-inner') as HTMLElement;
         const glare = card.querySelector('.card-glare-overlay') as HTMLElement;
 
+        // Disable CSS transitions to prevent flickering/fighting with GSAP
+        const originalTransition = card.style.transition;
+        card.style.transition = 'none';
+        if (tiltInner) tiltInner.style.transition = 'none';
+
         // Kill all existing animations
-        gsap.killTweensOf([card, tiltInner, actions, glare]);
+        gsap.killTweensOf([card, tiltInner, actions, glare, containerRef.current]);
+
+        // Calculate Force Vector
+        const currentX = Number(gsap.getProperty(card, "x"));
+        const currentY = Number(gsap.getProperty(card, "y"));
+        const dx = pos.x - currentX;
+        const dy = pos.y - currentY;
+        // Align the card's "Head" (Top) to the target vector
+        const forceAngle = (Math.atan2(dy, dx) * 180 / Math.PI) + 90;
 
         const tl = gsap.timeline({
             onComplete: () => {
                 setFocusedIndex(null);
                 setIsTransitioning(false);
                 if (actions) gsap.set(actions, { opacity: 0, y: 20 });
+                // Clean reset
+                if (tiltInner) {
+                    gsap.set(tiltInner, { rotateX: 0, rotateY: 0, rotateZ: 0, x: 0, y: 0 });
+                    tiltInner.style.transition = ''; // Restore transition
+                }
+                gsap.set(card, { 
+                    scaleX: 1, scaleY: 1, 
+                    x: pos.x, y: pos.y, 
+                    rotation: pos.rotation, 
+                    zIndex: 10 + index,
+                    boxShadow: "none",
+                    filter: "none"
+                });
+                card.style.transition = originalTransition; // Restore transition
             }
         });
 
-        // 1. Instant hide UI
+        // 1. Instant cleanup
         if (actions) tl.set(actions, { opacity: 0 }, 0);
         if (glare) tl.set(glare, { opacity: 0 }, 0);
 
-        // 2. Spin and return to hand simultaneously
+        // 2. THE GRIP (Resistance) - 0.6s
+        const gripDuration = 0.6;
+        
+        // Levitate & Glow (Force Field)
+        tl.to(card, {
+            z: 50,
+            scale: 1.05,
+            boxShadow: "0 0 30px rgba(64, 224, 208, 0.8)",
+            duration: 0.2,
+            ease: "power2.out"
+        }, 0);
+
+        // Align to Vector (Obey the force)
+        tl.to(card, {
+            rotation: forceAngle,
+            duration: 0.4,
+            ease: "back.out(1.2)"
+        }, 0);
+
+        // The "Drag" - Card moves slightly towards hand (15%) while resisting
+        tl.to(card, {
+            x: currentX + (dx * 0.15),
+            y: currentY + (dy * 0.15),
+            duration: gripDuration,
+            ease: "power1.in"
+        }, 0);
+
+        // Violent Shake (Inner element)
         if (tiltInner) {
-            tl.to(tiltInner, {
-                rotateY: "+=720", // 2 full flips
-                rotateX: 0,
-                duration: 0.4,
-                ease: "power2.inOut"
-            }, 0);
+            const shakeCount = 12;
+            const shakeStep = gripDuration / shakeCount;
+            
+            for (let i = 0; i < shakeCount; i++) {
+                tl.to(tiltInner, {
+                    x: "random(-6, 6)",
+                    y: "random(-6, 6)",
+                    rotateZ: "random(-3, 3)",
+                    duration: shakeStep,
+                    ease: "rough({ strength: 1, points: 20, template: none, randomize: true, clamp: false })"
+                }, i * shakeStep);
+            }
+            
+            // Reset inner shake at end of grip
+            tl.to(tiltInner, { x: 0, y: 0, rotateZ: 0, duration: 0.05 }, gripDuration - 0.05);
         }
 
-        // 3. Slide back to hand position (same duration as spin)
+        // 3. THE FORCE FLIP (Before/During Pull)
+        // Violent flip face-down right before the snap
+        if (tiltInner) {
+            tl.to(tiltInner, {
+                rotateY: 0, // Slam shut (assuming it was 180)
+                rotateX: 20, // Slight pitch forward for aerodynamics
+                duration: 0.15,
+                ease: "power4.in"
+            }, gripDuration - 0.1); // Start slightly before the pull
+        }
+
+        // 4. THE PULL (Instant Snap)
+        const pullStart = gripDuration;
+        const pullDuration = 0.15;
+
         tl.to(card, {
             x: pos.x,
             y: pos.y,
             rotation: pos.rotation,
-            scale: 1,
-            zIndex: 10 + index,
-            duration: 0.4,
-            ease: "power3.out"
-        }, 0);
-        
-        // 4. Reset rotation to 0 at the end (720° = 0° visually)
-        tl.set(tiltInner, { rotateY: 0 });
+            scaleY: 1.4, // Extreme stretch
+            scaleX: 0.6, // Extreme narrow
+            boxShadow: "0 0 80px rgba(64, 224, 208, 1), 0 0 120px rgba(255, 255, 255, 0.9)",
+            filter: "brightness(1.5)",
+            duration: pullDuration,
+            ease: "expo.in"
+        }, pullStart);
+
+        // 5. IMPACT (Earthquake)
+        const impactTime = pullStart + pullDuration;
+
+        // Card Slam & Dissipate
+        tl.to(card, {
+            scaleX: 1,
+            scaleY: 1,
+            boxShadow: "0 0 0 rgba(0,0,0,0)", // Fade out shadow smoothly
+            filter: "brightness(1)", // Fade out brightness smoothly
+            duration: 0.15,
+            ease: "elastic.out(1, 0.3)"
+        }, impactTime);
+
+        // EARTHQUAKE (Container Shake)
+        tl.to(containerRef.current, {
+            x: "random(-10, 10)",
+            y: "random(-10, 10)",
+            duration: 0.05,
+            repeat: 5,
+            yoyo: true,
+            ease: "rough({ strength: 2, points: 20 })",
+            onComplete: () => {
+                gsap.set(containerRef.current, { x: 0, y: 0 });
+            }
+        }, impactTime);
 
         // Restore others
         handRefs.current.forEach((c, i) => {
@@ -564,7 +666,7 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
                     scale: 1,
                     filter: "none",
                     duration: 0.2,
-                    ease: "power2.out"
+                    delay: 0.1
                 });
             }
         });
