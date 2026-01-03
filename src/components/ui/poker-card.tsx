@@ -154,60 +154,60 @@ export const PokerCard = forwardRef<HTMLDivElement, PokerCardProps>(({
                         />
                     </div>
 
-                    <div className="relative z-10 text-center p-4">
+                    <div className="relative z-10 text-center p-2 md:p-4">
                         <div className={cn(
-                            "inline-flex items-center justify-center w-12 h-12 rounded-full mb-3 backdrop-blur-md border border-white/10 shadow-xl",
+                            "inline-flex items-center justify-center w-8 h-8 md:w-12 md:h-12 rounded-full mb-2 md:mb-3 backdrop-blur-md border border-white/10 shadow-xl",
                             getBadgeClass(project.binomial)
                         )}>
-                            <Layers className="w-6 h-6 text-white" />
+                            <Layers className="w-4 h-4 md:w-6 md:h-6 text-white" />
                         </div>
 
-                        <h3 className="text-2xl font-bold text-white mb-1 drop-shadow-xl tracking-wide font-display">
+                        <h3 className="text-base md:text-2xl font-bold text-white mb-1 drop-shadow-xl tracking-wide font-display">
                             {project.common}
                         </h3>
-                        <div className="h-0.5 w-12 bg-white/30 mx-auto mt-2 rounded-full" />
+                        <div className="h-0.5 w-8 md:w-12 bg-white/30 mx-auto mt-1 md:mt-2 rounded-full" />
                     </div>
                 </div>
 
                 {/* FRONT FACE = Details (Shown when inspected) */}
                 <div className="card-face card-front">
-                    <div className="card-front-content">
-                        <div className="flex justify-between items-start mb-4 border-b border-white/10 pb-2">
-                            <h3 className="text-lg font-bold text-white leading-tight">
+                    <div className="card-front-content p-3 md:p-6">
+                        <div className="flex justify-between items-start mb-2 md:mb-4 border-b border-white/10 pb-1 md:pb-2">
+                            <h3 className="text-sm md:text-lg font-bold text-white leading-tight">
                                 {project.common}
                             </h3>
-                            <div className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center">
-                                <span className="text-xs text-emerald-400">♥</span>
+                            <div className="w-5 h-5 md:w-6 md:h-6 rounded-full bg-white/10 flex items-center justify-center">
+                                <span className="text-[10px] md:text-xs text-emerald-400">♥</span>
                             </div>
                         </div>
 
-                        <p className="text-sm text-gray-300 flex-grow mb-4 leading-relaxed font-light">
+                        <p className="text-xs md:text-sm text-gray-300 flex-grow mb-2 md:mb-4 leading-relaxed font-light line-clamp-3 md:line-clamp-none">
                             {project.description}
                         </p>
 
-                        <div className="space-y-2 mb-6">
+                        <div className="space-y-1 md:space-y-2 mb-3 md:mb-6">
                             {project.features.slice(0, 3).map((f, i) => (
-                                <div key={i} className="flex items-center text-xs text-gray-400">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-2 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
-                                    {f}
+                                <div key={i} className="flex items-center text-[10px] md:text-xs text-gray-400">
+                                    <span className="w-1 h-1 md:w-1.5 md:h-1.5 rounded-full bg-emerald-500 mr-1.5 md:mr-2 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+                                    <span className="truncate">{f}</span>
                                 </div>
                             ))}
                         </div>
 
                         {/* Action Buttons */}
-                        <div className="mt-auto grid grid-cols-2 gap-3 opacity-0 action-buttons">
+                        <div className="mt-auto grid grid-cols-2 gap-2 md:gap-3 opacity-0 action-buttons">
                             <button
                                 onClick={(e) => { e.stopPropagation(); onFold?.(); }}
-                                className="bg-white/5 hover:bg-white/10 text-white text-xs py-2 px-3 rounded-lg border border-white/10 flex items-center justify-center transition-all"
+                                className="bg-white/5 hover:bg-white/10 text-white text-[10px] md:text-xs py-1.5 md:py-2 px-2 md:px-3 rounded-lg border border-white/10 flex items-center justify-center transition-all"
                             >
-                                <RefreshCw size={14} className="mr-1.5" />
+                                <RefreshCw size={12} className="mr-1" />
                                 Fold
                             </button>
                             <button
                                 onClick={(e) => { e.stopPropagation(); onPlay?.(); }}
-                                className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs py-2 px-3 rounded-lg flex items-center justify-center transition-all shadow-lg shadow-emerald-900/40 transform hover:scale-105"
+                                className="bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] md:text-xs py-1.5 md:py-2 px-2 md:px-3 rounded-lg flex items-center justify-center transition-all shadow-lg shadow-emerald-900/40 transform hover:scale-105"
                             >
-                                <Eye size={14} className="mr-1.5" />
+                                <Eye size={12} className="mr-1" />
                                 Play
                             </button>
                         </div>

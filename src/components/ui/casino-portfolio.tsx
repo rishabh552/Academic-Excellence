@@ -19,6 +19,7 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
     const [activeProject, setActiveProject] = useState<Project | null>(null);
     const [isDealing, setIsDealing] = useState(false);
     const [isTransitioning, setIsTransitioning] = useState(false); // Prevent double clicks
+    const [isMobile, setIsMobile] = useState(false); // Responsive sizing
 
     // REFS
     const containerRef = useRef<HTMLDivElement>(null);
@@ -42,6 +43,23 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
         // Trigger deal animation on mount
         dealCards(initialHandSize);
     }, [items]); // Only run when items change (initial load)
+
+    // Detect Mobile & Handle Resize + Reposition Hand
+    useEffect(() => {
+        const checkMobile = () => {
+            const wasMobile = isMobile;
+            const nowMobile = window.innerWidth < 768;
+            setIsMobile(nowMobile);
+
+            // If screen size category changed, reposition hand after state updates
+            if (wasMobile !== nowMobile && hand.length > 0) {
+                setTimeout(() => repositionHand(hand.length), 100);
+            }
+        };
+        checkMobile(); // Initial check
+        window.addEventListener('resize', checkMobile);
+        return () => window.removeEventListener('resize', checkMobile);
+    }, [isMobile, hand.length]);
 
     // Auto-shuffle and deal when ALL cards in hand have been played
     useEffect(() => {
@@ -523,23 +541,28 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
         fxLayer.style.cssText = 'position:absolute;inset:0;pointer-events:none;overflow:visible;';
         containerRef.current.appendChild(fxLayer);
 
+        // Responsive FX offsets
+        const fxOffsetX = isMobile ? 10 : 20;
+        const fxOffsetY = isMobile ? 5 : 10;
+        const impactY = isMobile ? 180 : 300;
+
         // 1. Dark Shadow
         const shadow = document.createElement('div');
         shadow.className = 'sith-shadow';
         fxLayer.appendChild(shadow);
-        gsap.set(shadow, { x: pos.x - 20, y: pos.y - 10 });
+        gsap.set(shadow, { x: pos.x - fxOffsetX, y: pos.y - fxOffsetY });
 
         // 2. Red Plasma
         const plasma = document.createElement('div');
         plasma.className = 'sith-plasma';
         fxLayer.appendChild(plasma);
-        gsap.set(plasma, { x: pos.x - 10, y: pos.y - 10 });
+        gsap.set(plasma, { x: pos.x - (fxOffsetX / 2), y: pos.y - fxOffsetY });
 
         // 3. Impact ripple
         const impact = document.createElement('div');
         impact.className = 'sith-impact';
         fxLayer.appendChild(impact);
-        gsap.set(impact, { x: pos.x - 10, y: pos.y + 300 });
+        gsap.set(impact, { x: pos.x - (fxOffsetX / 2), y: pos.y + impactY });
 
         // Disable CSS transitions
         const originalTransition = card.style.transition;
@@ -915,30 +938,57 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
         });
     };
 
-    // Helper: Position Calculation (Refined for better arc)
+    // Helper: Position Calculation (Responsive for mobile/desktop)
     const getHandPosition = (index: number, total: number, w: number, h: number) => {
+        // Check mobile DIRECTLY from window to avoid stale closure issues
+        const isMobileNow = window.innerWidth < 768;
+
+        if (isMobileNow) {
+            // MOBILE: Simple linear fan at bottom of screen
+            const cardW = 150;
+            const cardH = 200;
+            const cardSpacing = 30; // overlap amount (smaller = more overlap)
+            const totalWidth = cardW + (total - 1) * cardSpacing;
+            const startX = (w - totalWidth) / 2;
+            const baseY = h - cardH - 20; // 20px from bottom edge
+
+            // Fan rotation
+            const maxRotation = 20;
+            const rotationStep = total > 1 ? (maxRotation * 2) / (total - 1) : 0;
+            const rotation = -maxRotation + index * rotationStep;
+
+            // Slight arc effect (cards at edges slightly higher)
+            const centerIndex = (total - 1) / 2;
+            const distFromCenter = Math.abs(index - centerIndex);
+            const yOffset = distFromCenter * 8; // edge cards 8px higher per position
+
+            return {
+                x: startX + index * cardSpacing,
+                y: baseY - yOffset,
+                rotation
+            };
+        }
+
+        // DESKTOP: Original arc calculation
         const cardW = 240;
-
-        // Revised Arc Math
-        // We want a nice consistent fan at the bottom
-        // Fixed radius usually works better than dynamic for consistency
-        const arcRadius = 1500; // Large radius for subtle curve
-        const centerArcX = w / 2;
-        const centerArcY = h + arcRadius - 200; // Center is WAY below screen
-
-        // Spread degrees
-        const spreadMax = 40; // Max spread in degrees
+        const arcRadius = 1500;
+        const yOffset = 200;
+        const yCardOffset = 340;
+        const spreadMax = 40;
         const spreadPerCard = 6;
-        const totalSpread = Math.min(spreadMax, (total - 1) * spreadPerCard);
 
+        const centerArcX = w / 2;
+        const centerArcY = h + arcRadius - yOffset;
+
+        const totalSpread = Math.min(spreadMax, (total - 1) * spreadPerCard);
         const startDeg = -totalSpread / 2;
         const step = total > 1 ? totalSpread / (total - 1) : 0;
 
         const deg = startDeg + index * step;
-        const rad = (deg - 90) * (Math.PI / 180); // 0 is right, -90 is up
+        const rad = (deg - 90) * (Math.PI / 180);
 
         const x = centerArcX + arcRadius * Math.cos(rad) - cardW / 2;
-        const y = centerArcY + arcRadius * Math.sin(rad) - 340; // Offset
+        const y = centerArcY + arcRadius * Math.sin(rad) - yCardOffset;
 
         return { x, y, rotation: deg };
     };
@@ -956,7 +1006,7 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
             {/* Visual Deck Stack */}
             <div
                 ref={deckRef}
-                className="deck-stack absolute top-[15%] right-[10%] w-[260px] h-[360px] perspective-1000 z-30 cursor-pointer"
+                className="deck-stack absolute top-[10%] right-[5%] md:top-[15%] md:right-[10%] w-[140px] h-[200px] md:w-[260px] md:h-[360px] perspective-1000 z-30 cursor-pointer"
                 onClick={handleDraw}
             >
                 {/* Simulated Stack Layers */}
@@ -980,11 +1030,11 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
                         zIndex: 10
                     }}
                 >
-                    <div className="text-white/30 font-bold tracking-widest text-lg">PROJECTS</div>
-                    <div className="text-white/10 text-6xl font-black mt-2">{deck.length}</div>
+                    <div className="text-white/30 font-bold tracking-widest text-xs md:text-lg">PROJECTS</div>
+                    <div className="text-white/10 text-3xl md:text-6xl font-black mt-1 md:mt-2">{deck.length}</div>
 
                     {/* Hover Hint */}
-                    <div className="absolute bottom-6 text-emerald-500/50 text-xs uppercase tracking-wider">
+                    <div className="absolute bottom-3 md:bottom-6 text-emerald-500/50 text-[10px] md:text-xs uppercase tracking-wider">
                         {deck.length > 0 && hand.length < 5 ? 'Click to Draw' : deck.length === 0 ? 'Empty' : 'Hand Full'}
                     </div>
                 </div>
@@ -1020,41 +1070,41 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
             {/* Details Panel */}
             <div className="details-panel">
                 {activeProject && (
-                    <div className="text-white space-y-6 h-full flex flex-col p-2">
+                    <div className="text-white space-y-3 md:space-y-6 h-full flex flex-col p-1 md:p-2">
                         <div>
                             <span className={cn(
-                                "inline-block px-3 py-1 rounded-full text-xs font-semibold mb-3 border border-emerald-500/30 text-emerald-400",
+                                "inline-block px-2 md:px-3 py-0.5 md:py-1 rounded-full text-[10px] md:text-xs font-semibold mb-2 md:mb-3 border border-emerald-500/30 text-emerald-400",
                                 getBadgeClass(activeProject.binomial)
                             )}>
                                 {activeProject.binomial}
                             </span>
-                            <h1 className="text-4xl font-bold mb-2 tracking-tight">{activeProject.common}</h1>
-                            <p className="text-xl text-gray-400 font-light leading-relaxed">{activeProject.description}</p>
+                            <h1 className="text-xl md:text-4xl font-bold mb-1 md:mb-2 tracking-tight">{activeProject.common}</h1>
+                            <p className="text-sm md:text-xl text-gray-400 font-light leading-relaxed">{activeProject.description}</p>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-2 gap-2 md:gap-4">
                             {activeProject.features.map((f, i) => (
-                                <div key={i} className="bg-white/5 p-3 rounded-lg border border-white/10 flex items-start hover:bg-white/10 transition-colors">
-                                    <Check size={16} className="text-emerald-500 mt-1 mr-2 flex-shrink-0" />
-                                    <span className="text-sm text-gray-300">{f}</span>
+                                <div key={i} className="bg-white/5 p-2 md:p-3 rounded-lg border border-white/10 flex items-start hover:bg-white/10 transition-colors">
+                                    <Check size={14} className="text-emerald-500 mt-0.5 mr-1.5 md:mt-1 md:mr-2 flex-shrink-0" />
+                                    <span className="text-xs md:text-sm text-gray-300">{f}</span>
                                 </div>
                             ))}
                         </div>
 
-                        <div className="mt-auto pt-6 border-t border-white/10 space-y-3">
-                            <div className="flex gap-4">
-                                <button className="flex-1 bg-emerald-600 hover:bg-emerald-500 py-3 rounded-xl font-bold flex items-center justify-center transition-all shadow-lg hover:shadow-emerald-500/20 active:scale-95">
-                                    Launch Project <ExternalLink size={18} className="ml-2" />
+                        <div className="mt-auto pt-3 md:pt-6 border-t border-white/10 space-y-2 md:space-y-3">
+                            <div className="flex gap-2 md:gap-4">
+                                <button className="flex-1 bg-emerald-600 hover:bg-emerald-500 py-2 md:py-3 rounded-xl text-sm md:text-base font-bold flex items-center justify-center transition-all shadow-lg hover:shadow-emerald-500/20 active:scale-95">
+                                    Launch <ExternalLink size={16} className="ml-1 md:ml-2" />
                                 </button>
-                                <button className="flex-1 bg-gray-800 hover:bg-gray-700 py-3 rounded-xl font-bold flex items-center justify-center transition-all hover:bg-white/10 active:scale-95">
-                                    Code <Github size={18} className="ml-2" />
+                                <button className="flex-1 bg-gray-800 hover:bg-gray-700 py-2 md:py-3 rounded-xl text-sm md:text-base font-bold flex items-center justify-center transition-all hover:bg-white/10 active:scale-95">
+                                    Code <Github size={16} className="ml-1 md:ml-2" />
                                 </button>
                             </div>
                             <button
                                 onClick={handleCloseActive}
-                                className="w-full bg-red-600/20 hover:bg-red-600/40 text-red-400 py-2.5 rounded-xl font-medium flex items-center justify-center transition-all border border-red-500/30 active:scale-95"
+                                className="w-full bg-red-600/20 hover:bg-red-600/40 text-red-400 py-2 md:py-2.5 rounded-xl text-sm font-medium flex items-center justify-center transition-all border border-red-500/30 active:scale-95"
                             >
-                                <X size={18} className="mr-2" /> Close & Return to Hand
+                                <X size={16} className="mr-1 md:mr-2" /> Close
                             </button>
                         </div>
                     </div>
