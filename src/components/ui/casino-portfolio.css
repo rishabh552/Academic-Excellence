@@ -71,6 +71,8 @@
         /* Deep shadow for depth */
         0 25px 50px rgba(0, 0, 0, 0.5);
     transition: box-shadow 0.3s ease, transform 0.3s ease;
+    opacity: 0;
+    /* Default invisible, controlled by GSAP */
 }
 
 /* Hover state - Lift and glow */
@@ -301,7 +303,7 @@
 .active-slot {
     position: absolute;
     top: 50%;
-    left: 40%;
+    left: calc((100% - 500px) / 2);
     transform: translate(-50%, -50%);
     width: 260px;
     height: 360px;

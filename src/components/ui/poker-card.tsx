@@ -19,7 +19,6 @@ interface PokerCardProps {
     isActive: boolean;
     isFocused: boolean;
     isInHand: boolean;
-    wasPlayed?: boolean; // New prop to track if card has been played at least once
     onClick: () => void;
     onFold?: () => void;
     onPlay?: () => void;
@@ -29,20 +28,18 @@ interface PokerCardProps {
 
 export const PokerCard = forwardRef<HTMLDivElement, PokerCardProps>(({
     project,
-    isActive,
+    isActive: _isActive, // Kept for API consistency
     isInHand,
     onClick,
     onFold,
     onPlay,
     className,
     style,
-    isFocused,
-    wasPlayed = false
+    isFocused
 }, ref) => {
 
     // TILT LOGIC
     const cardInnerRef = useRef<HTMLDivElement>(null);
-    const glareRef = useRef<HTMLDivElement>(null);
 
     // Context for cleanup
     const ctx = useRef<gsap.Context>();
@@ -75,22 +72,6 @@ export const PokerCard = forwardRef<HTMLDivElement, PokerCardProps>(({
                 overwrite: "auto"
             });
         }
-
-        // Glare effect - show when card was previously played (on hover), BUT NOT if currently active (picked) OR focused (inspected)
-        if (glareRef.current && wasPlayed && !isActive && !isFocused) {
-            const glareX = (mouseX / width) * 100;
-            const glareY = (mouseY / height) * 100;
-
-            glareRef.current.style.setProperty('--glare-x', `${glareX}%`);
-            glareRef.current.style.setProperty('--glare-y', `${glareY}%`);
-
-            gsap.to(glareRef.current, {
-                opacity: 0.6,
-                duration: 0.3,
-                ease: "power2.out",
-                overwrite: "auto"
-            });
-        }
     };
 
     const handleMouseLeave = () => {
@@ -101,18 +82,6 @@ export const PokerCard = forwardRef<HTMLDivElement, PokerCardProps>(({
             gsap.to(cardInnerRef.current, {
                 rotateX: 0,
                 rotateY: 0,
-                duration: 0.5,
-                ease: "power2.out",
-                overwrite: "auto"
-            });
-        }
-
-        if (glareRef.current) {
-            glareRef.current.style.setProperty('--glare-x', '50%');
-            glareRef.current.style.setProperty('--glare-y', '50%');
-
-            gsap.to(glareRef.current, {
-                opacity: 0,
                 duration: 0.5,
                 ease: "power2.out",
                 overwrite: "auto"
@@ -213,12 +182,6 @@ export const PokerCard = forwardRef<HTMLDivElement, PokerCardProps>(({
                         </div>
                     </div>
                 </div>
-
-                {/* Glare Effect */}
-                <div
-                    ref={glareRef}
-                    className="card-glare-overlay"
-                />
             </div>
 
             {/* Side Thickness (Pseudo-3D) */}

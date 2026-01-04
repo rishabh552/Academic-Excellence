@@ -14,7 +14,7 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
     // STATE MACHINE
     const [deck, setDeck] = useState<Project[]>([]);
     const [hand, setHand] = useState<Project[]>([]);
-    const [playedIndices, setPlayedIndices] = useState<Set<number>>(new Set()); // Track indices of cards that have been played
+    const [discardPile, setDiscardPile] = useState<Project[]>([]); // Played cards stack
     const [focusedIndex, setFocusedIndex] = useState<number | null>(null); // Index in HAND
     const [activeProject, setActiveProject] = useState<Project | null>(null);
     const [isDealing, setIsDealing] = useState(false);
@@ -26,6 +26,7 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
     const handRefs = useRef<(HTMLDivElement | null)[]>([]);
     const deckRef = useRef<HTMLDivElement>(null);
     const activeSlotRef = useRef<HTMLDivElement>(null);
+    const discardPileRef = useRef<HTMLDivElement>(null); // Ref for discard pile positioning
     const pendingInspectRef = useRef<number | null>(null); // Track pending card to inspect
 
     // Initialize Game
@@ -38,7 +39,7 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
 
         setHand(initialHand);
         setDeck(remainingDeck);
-        setPlayedIndices(new Set());
+        setDiscardPile([]); // Reset discard pile on init
 
         // Trigger deal animation on mount
         dealCards(initialHandSize);
@@ -61,19 +62,30 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
         return () => window.removeEventListener('resize', checkMobile);
     }, [isMobile, hand.length]);
 
-    // Auto-shuffle and deal when ALL cards in hand have been played
+    // Auto-shuffle and deal when hand is empty and no active project
     useEffect(() => {
-        // Check if all cards in hand have been played at least once
-        if (hand.length > 0 && playedIndices.size >= hand.length && !isDealing && !activeProject) {
-            performShuffleAnimation();
+        // Check if hand is empty and there are cards in discardPile or deck to reshuffle
+        // Also ensure we're not in the middle of any animation
+        if (hand.length === 0 && !isDealing && !activeProject && !isTransitioning && (discardPile.length > 0 || deck.length > 0)) {
+            // Small delay to ensure all animations are complete
+            const timer = setTimeout(() => {
+                performShuffleAnimation();
+            }, 300);
+            return () => clearTimeout(timer);
         }
-    }, [playedIndices.size, hand.length, isDealing, activeProject]);
+    }, [hand.length, isDealing, activeProject, isTransitioning, discardPile.length, deck.length]);
 
     // Visual shuffle animation
     const performShuffleAnimation = () => {
-        if (!containerRef.current || !deckRef.current) return;
+        if (!containerRef.current || !deckRef.current || isDealing) return;
 
         setIsDealing(true);
+
+        // If hand is empty, skip fly-to-deck animation and go straight to shuffle
+        if (hand.length === 0) {
+            shuffleDeckAnimation();
+            return;
+        }
 
         const deckRect = deckRef.current.getBoundingClientRect();
         const containerRect = containerRef.current.getBoundingClientRect();
@@ -103,41 +115,115 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
         });
     };
 
-    // Deck shuffle animation
+    // Deck shuffle animation - SPLIT & RIFFLE
     const shuffleDeckAnimation = () => {
-        if (!deckRef.current) return;
+        if (!deckRef.current || !containerRef.current) return;
 
-        // Make cards invisible (they're now "in" the deck)
+        // Make any remaining cards invisible (they're now "in" the deck)
         handRefs.current.forEach(card => {
             if (card) gsap.set(card, { opacity: 0 });
         });
 
-        // Animate the deck stack with a shuffle effect
         const deckStack = deckRef.current;
+        const deckRect = deckStack.getBoundingClientRect();
+        const containerRect = containerRef.current.getBoundingClientRect();
+
+        // Create a temporary "split" packet for the riffle effect
+        const splitStack = document.createElement('div');
+        splitStack.className = 'deck-stack-split';
+        // Copy styles from main deck approx
+        splitStack.style.cssText = `
+            position: absolute;
+            width: ${deckRect.width}px;
+            height: ${deckRect.height}px;
+            background: #171717; /* neutral-900 */
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 1rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            z-index: 29;
+            pointer-events: none;
+            left: ${deckRect.left - containerRect.left}px;
+            top: ${deckRect.top - containerRect.top}px;
+            background-image: repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.02) 0, rgba(255, 255, 255, 0.02) 2px, transparent 2px, transparent 8px);
+        `;
+        containerRef.current.appendChild(splitStack);
 
         const shuffleTl = gsap.timeline({
             onComplete: () => {
+                // Cleanup
+                if (splitStack.parentNode) splitStack.parentNode.removeChild(splitStack);
                 // After shuffle animation, deal new cards
                 dealNewHand();
             }
         });
 
-        // Wobble/shuffle animation on the deck
+        // 1. Split the deck
         shuffleTl
-            .to(deckStack, { rotation: -5, duration: 0.1, ease: "power1.inOut" })
-            .to(deckStack, { rotation: 5, duration: 0.1, ease: "power1.inOut" })
-            .to(deckStack, { rotation: -3, duration: 0.1, ease: "power1.inOut" })
-            .to(deckStack, { rotation: 3, duration: 0.1, ease: "power1.inOut" })
-            .to(deckStack, { rotation: -2, y: -10, duration: 0.1, ease: "power1.inOut" })
-            .to(deckStack, { rotation: 2, y: 10, duration: 0.1, ease: "power1.inOut" })
-            .to(deckStack, { rotation: 0, y: 0, scale: 1.05, duration: 0.15, ease: "power2.out" })
-            .to(deckStack, { scale: 1, duration: 0.15, ease: "power2.in" });
+            .to(splitStack, {
+                x: "-=60",
+                rotation: -5,
+                duration: 0.25,
+                ease: "power2.out"
+            })
+            .to(deckStack, {
+                x: "+=60",
+                rotation: 5,
+                duration: 0.25,
+                ease: "power2.out"
+            }, "<")
+
+            // 2. Riffle (Wiggle both)
+            .to([splitStack, deckStack], {
+                y: "-=10",
+                duration: 0.1,
+                yoyo: true,
+                repeat: 3
+            })
+            .to(splitStack, {
+                rotation: -2,
+                duration: 0.05,
+                yoyo: true,
+                repeat: 5
+            }, "-=0.4")
+            .to(deckStack, {
+                rotation: 2,
+                duration: 0.05,
+                yoyo: true,
+                repeat: 5
+            }, "-=0.4")
+
+            // 3. Merge
+            .to(splitStack, {
+                x: 0,
+                y: 0,
+                rotation: 0,
+                duration: 0.3,
+                ease: "power3.in"
+            })
+            .to(deckStack, {
+                x: 0,
+                y: 0,
+                rotation: 0,
+                duration: 0.3,
+                ease: "power3.in"
+            }, "<")
+
+            // 4. Final squaring up
+            .to(deckStack, {
+                scale: 1.05,
+                duration: 0.1
+            })
+            .to(deckStack, {
+                scale: 1,
+                duration: 0.15,
+                ease: "power2.out"
+            });
     };
 
     // Deal new shuffled hand
     const dealNewHand = () => {
-        // Shuffle all cards and deal new hand
-        const allCards = [...hand, ...deck];
+        // Shuffle all cards (combining deck and discard pile - hand should be empty)
+        const allCards = [...deck, ...discardPile];
         const shuffled = shuffleArray(allCards);
 
         // Deal new hand from shuffled cards
@@ -145,15 +231,15 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
         const newHand = shuffled.slice(0, newHandSize);
         const newDeck = shuffled.slice(newHandSize);
 
-        // Reset state
-        setPlayedIndices(new Set());
+        // Reset state - clear discard pile after shuffling
+        setDiscardPile([]);
         setHand(newHand);
         setDeck(newDeck);
 
         // Trigger deal animation after a short delay for state to update
         setTimeout(() => {
             dealCards(newHandSize);
-        }, 100);
+        }, 150);
     };
 
     // Fisher-Yates shuffle algorithm
@@ -472,64 +558,108 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
         });
     };
 
-    // CLOSE ACTIVE PROJECT - Return card to hand but track as played
+    // CLOSE ACTIVE PROJECT - Move card to discard pile (like real card game)
     const handleCloseActive = () => {
-        if (!activeProject) return;
+        if (!activeProject || isTransitioning) return;
 
         const index = hand.indexOf(activeProject);
         if (index === -1) return;
 
         const card = handRefs.current[index];
-        if (!card || !containerRef.current) return;
+        if (!card || !containerRef.current || !discardPileRef.current) return;
 
+        setIsTransitioning(true);
+
+        const discardRect = discardPileRef.current.getBoundingClientRect();
         const containerRect = containerRef.current.getBoundingClientRect();
-        const pos = getHandPosition(index, hand.length, containerRect.width, containerRect.height);
 
-        // Mark this card as played
-        setPlayedIndices(prev => new Set([...prev, index]));
+        // Target: discard pile position
+        const targetX = discardRect.left - containerRect.left + (discardRect.width / 2) - 75;
+        const targetY = discardRect.top - containerRect.top;
 
-        // Hide details panel first
+        // Get the played card reference before state changes
+        const playedCard = hand[index];
+
+        // Hide details panel
         gsap.to(".details-panel", {
             right: "-50%",
             bottom: "-50%",
-            duration: 0.5,
+            duration: 0.4,
             ease: "power2.in"
         });
 
-        // Hide active slot when closing
+        // Hide active slot
         if (activeSlotRef.current) {
             activeSlotRef.current.classList.remove('visible');
         }
 
-        // Animate card back to hand with "Vacuum Snap" physics
-        gsap.to(card, {
-            x: pos.x,
-            y: pos.y,
-            rotation: pos.rotation,
-            scale: 1,
-            opacity: 1,
-            zIndex: 10 + index,
-            duration: 0.7, // Slower to see the effect
-            ease: "back.out(2.0)", // Stronger Snap
-            onComplete: () => {
-                setActiveProject(null);
-                setFocusedIndex(null);
-                onActiveProjectChange?.(null);
-                // Reset tilts
-                const tiltInner = card.querySelector('.card-tilt-inner');
-                if (tiltInner) gsap.set(tiltInner, { rotateX: 0, rotateY: 0 });
+        // FIRST: Immediately restore ALL cards to full visibility and clear any filters
+        // This ensures they are visible before any state changes
+        handRefs.current.forEach((c, i) => {
+            if (c) {
+                gsap.killTweensOf(c); // Kill any running animations
+                gsap.set(c, {
+                    filter: "none",
+                    opacity: 1,
+                    scale: 1,
+                    zIndex: 10 + i
+                });
             }
         });
 
-        // Restore all cards to full visibility
-        handRefs.current.forEach((c) => {
-            if (c) {
-                gsap.to(c, {
-                    filter: "blur(0px) brightness(1)",
-                    opacity: 1,
-                    scale: 1,
-                    duration: 0.4
-                });
+        // Flip the played card back to face-down
+        const tiltInner = card.querySelector('.card-tilt-inner') as HTMLElement;
+        if (tiltInner) {
+            gsap.to(tiltInner, {
+                rotateY: 0,
+                duration: 0.3,
+                ease: "power2.inOut"
+            });
+        }
+
+        // Fly card to discard pile
+        gsap.to(card, {
+            x: targetX,
+            y: targetY,
+            rotation: (Math.random() * 10) - 5,
+            scale: 0.6,
+            opacity: 0,
+            zIndex: 5,
+            duration: 0.5,
+            ease: "power3.in",
+            onComplete: () => {
+                // Update state AFTER animation completes
+                const newHand = hand.filter((_, i) => i !== index);
+                setHand(newHand);
+                setDiscardPile(prev => [...prev, playedCard]);
+                setActiveProject(null);
+                setFocusedIndex(null);
+                setIsTransitioning(false);
+                onActiveProjectChange?.(null);
+
+                // Reposition the remaining cards AFTER state update settles
+                // We need a timeout to let React re-render with new refs
+                setTimeout(() => {
+                    if (!containerRef.current) return;
+                    const rect = containerRef.current.getBoundingClientRect();
+
+                    // newHand.length is the correct count now
+                    handRefs.current.slice(0, newHand.length).forEach((c, i) => {
+                        if (!c) return;
+                        const pos = getHandPosition(i, newHand.length, rect.width, rect.height);
+
+                        // Ensure visibility and animate to position
+                        gsap.set(c, { opacity: 1, filter: "none", scale: 1 });
+                        gsap.to(c, {
+                            x: pos.x,
+                            y: pos.y,
+                            rotation: pos.rotation,
+                            zIndex: 10 + i,
+                            duration: 0.4,
+                            ease: "power2.out"
+                        });
+                    });
+                }, 50);
             }
         });
     };
@@ -771,6 +901,7 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
                 setIsTransitioning(false);
                 onActiveProjectChange?.(project);
                 if (actions) gsap.set(actions, { opacity: 0, y: 20 });
+                if (glare) gsap.set(glare, { opacity: 0 }); // Ensure glare is gone
 
                 // Impact "Thud" effect - subtle settle
                 gsap.to(card, { scale: 1, duration: 0.2, ease: "power2.out" });
@@ -795,11 +926,11 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
         const randomRot = (Math.random() * 6) - 3;
 
         tl.to(card, {
-            scale: 0.85, // Compress energy
-            y: "+=30", // Pull down slightly
-            rotation: randomRot * 2,
-            duration: 0.25,
-            ease: "back.in(2.0)"
+            scale: 0.8, // More compression
+            y: "+=50", // Deeper pull
+            rotation: randomRot * 3,
+            duration: 0.2, // Snappier
+            ease: "back.in(2.5)"
         }, 0)
 
             // Phase B: Shoot (Release)
@@ -807,11 +938,17 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
                 x: targetX,
                 y: targetY,
                 rotation: randomRot,
-                scale: 1.1, // Zoom in fly
+                scale: 1.05,
                 zIndex: 50,
-                duration: 0.35,
+                duration: 0.3,
                 ease: "power4.out" // High velocity
             })
+
+            // Add flight rotation for realism
+            .to(tiltInner, {
+                rotateX: 10, // Slight forward pitch
+                duration: 0.3
+            }, ">-0.3")
 
             // Phase C: Impact Slam
             .to(card, {
@@ -819,6 +956,8 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
                 duration: 0.1,
                 ease: "power2.in",
                 onStart: () => {
+                    if (tiltInner) gsap.to(tiltInner, { rotateX: 0, duration: 0.1 });
+
                     // SCREEN SHAKE IMPACT
                     gsap.to(containerRef.current, {
                         y: 3, // Initial jolt down
@@ -843,8 +982,9 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
         handRefs.current.forEach((c, i) => {
             if (i !== index && c) {
                 gsap.to(c, {
-                    opacity: 0.3,
-                    scale: 0.9,
+                    opacity: 1, // Keep visible! FIX for disappearance
+                    scale: 1,
+                    filter: "grayscale(100%) brightness(0.5)", // Dim them instead of hiding
                     duration: 0.3,
                     ease: "power2.out"
                 });
@@ -1057,6 +1197,37 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
                 </div>
             </div >
 
+            {/* Discard Pile - Played Cards Stack */}
+            <div
+                ref={discardPileRef}
+                className="discard-pile absolute top-[10%] left-[5%] md:top-[15%] md:left-[10%] w-[140px] h-[200px] md:w-[260px] md:h-[360px] perspective-1000 z-20"
+            >
+                {/* Simulated Stack Layers based on discard count */}
+                {[...Array(Math.min(5, discardPile.length))].map((_, i) => (
+                    <div
+                        key={i}
+                        className="absolute inset-0 bg-neutral-800 border border-white/10 rounded-2xl shadow-xl pointer-events-none"
+                        style={{
+                            transform: `translate(${i * 2}px, ${-i * 2}px) rotate(${(i * 3) - 6}deg)`,
+                            zIndex: i,
+                            backgroundImage: 'repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.02) 0, rgba(255, 255, 255, 0.02) 2px, transparent 2px, transparent 8px)'
+                        }}
+                    />
+                ))}
+
+                {/* Top Label */}
+                <div
+                    className={`absolute inset-0 border-2 border-dashed ${discardPile.length > 0 ? 'border-amber-500/30 bg-amber-500/5' : 'border-white/10'} rounded-2xl flex flex-col items-center justify-center transition-colors`}
+                    style={{
+                        transform: discardPile.length > 0 ? `translate(${Math.min(5, discardPile.length) * 2}px, ${-Math.min(5, discardPile.length) * 2}px)` : 'none',
+                        zIndex: 10
+                    }}
+                >
+                    <div className="text-white/30 font-bold tracking-widest text-xs md:text-lg">PLAYED</div>
+                    <div className={`text-3xl md:text-6xl font-black mt-1 md:mt-2 ${discardPile.length > 0 ? 'text-amber-500/30' : 'text-white/10'}`}>{discardPile.length}</div>
+                </div>
+            </div>
+
             {/* Active Slot */}
             <div ref={activeSlotRef} className="active-slot">
                 <div className="impact-ripple" />
@@ -1074,11 +1245,10 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
                             isActive={activeProject === project}
                             isFocused={focusedIndex === index}
                             isInHand={true}
-                            wasPlayed={playedIndices.has(index)}
                             onClick={() => handleInspect(index)}
                             onFold={handleFold}
                             onPlay={handlePlay}
-                            style={{ opacity: 0 }}
+                        // Removed style opacity=0, now handled by CSS + GSAP
                         />
                     )
                 ))
