@@ -336,27 +336,39 @@
 /* Responsive adjustments */
 @media (max-width: 768px) {
     .poker-card {
-        width: 160px;
-        height: 220px;
-        border-radius: 12px;
+        width: 165px;
+        height: 225px;
+        border-radius: 14px;
+        /* Enhanced shadow for better visibility */
+        box-shadow:
+            inset 0 1px 0 rgba(255, 255, 255, 0.1),
+            0 2px 0 #1a1a1f,
+            0 4px 0 #151518,
+            0 8px 16px rgba(0, 0, 0, 0.5),
+            0 16px 32px rgba(0, 0, 0, 0.4);
+    }
+
+    .poker-card.interactive:hover {
+        transform: translateY(-8px);
     }
 
     .active-slot {
         left: 50%;
-        top: 25%;
-        width: 160px;
-        height: 220px;
+        top: 20%;
+        width: 165px;
+        height: 225px;
     }
 
     .details-panel {
         width: 100%;
-        height: 55%;
+        height: 50%;
         top: auto;
         bottom: -50%;
         right: 0;
         border-left: none;
         border-top: 1px solid rgba(255, 255, 255, 0.1);
-        padding: 1rem;
+        padding: 1rem 1.25rem;
+        border-radius: 20px 20px 0 0;
     }
 
     /* Hide table trim on mobile for more space */
@@ -364,25 +376,13 @@
         display: none;
     }
 
-    /* Smaller Sith FX for mobile */
-    .sith-shadow {
-        width: 180px;
-        height: 240px;
+    /* Card face adjustments for mobile */
+    .card-face {
+        border-radius: 14px;
     }
 
-    .sith-plasma {
-        width: 170px;
-        height: 230px;
-    }
-
-    .sith-impact {
-        width: 200px;
-        height: 60px;
-    }
-
-    .sith-spark {
-        width: 2px;
-        height: 8px;
+    .card-tilt-inner {
+        border-radius: 14px;
     }
 }
 
@@ -479,4 +479,34 @@
     pointer-events: none;
     z-index: 2;
     opacity: 0;
+}
+
+/* Mobile overrides for Sith FX - MUST come after base styles */
+@media (max-width: 768px) {
+    .sith-shadow {
+        width: 185px;
+        height: 245px;
+        border-radius: 14px;
+    }
+
+    .sith-plasma {
+        width: 175px;
+        height: 235px;
+        border-radius: 12px;
+    }
+
+    .sith-plasma::before {
+        inset: -5px;
+        border-radius: 14px;
+    }
+
+    .sith-impact {
+        width: 200px;
+        height: 60px;
+    }
+
+    .sith-spark {
+        width: 2px;
+        height: 8px;
+    }
 }

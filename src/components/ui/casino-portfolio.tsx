@@ -397,8 +397,25 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
         }
 
         const containerRect = containerRef.current.getBoundingClientRect();
-        const centerX = containerRect.width / 2 - 130;
-        const centerY = containerRect.height / 2 - 200;
+
+        // Responsive positioning - on mobile, place card below deck to avoid overlap
+        const isMobileNow = window.innerWidth < 768;
+        let centerX: number;
+        let centerY: number;
+        let cardScale: number;
+
+        if (isMobileNow) {
+            // Mobile: Position card in the middle area, below the deck
+            const cardWidth = 165; // Mobile card width
+            centerX = (containerRect.width / 2) - (cardWidth / 2);
+            centerY = containerRect.height * 0.35; // 35% from top - below deck area
+            cardScale = 1.3; // Slightly smaller scale on mobile
+        } else {
+            // Desktop: Original centered positioning
+            centerX = containerRect.width / 2 - 130;
+            centerY = containerRect.height / 2 - 200;
+            cardScale = 1.5;
+        }
 
         // FAST inspect animation - total ~0.5s
         const tl = gsap.timeline({
@@ -417,7 +434,7 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
             x: centerX,
             y: centerY,
             rotation: 0,
-            scale: 1.5,
+            scale: cardScale,
             zIndex: 100,
             duration: 0.4,
             ease: "power3.out"
@@ -944,23 +961,23 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
         const isMobileNow = window.innerWidth < 768;
 
         if (isMobileNow) {
-            // MOBILE: Simple linear fan at bottom of screen
+            // MOBILE: Wider fan with better spacing for readability
             const cardW = 150;
             const cardH = 200;
-            const cardSpacing = 30; // overlap amount (smaller = more overlap)
+            const cardSpacing = 55; // wider spacing to reduce overlap
             const totalWidth = cardW + (total - 1) * cardSpacing;
             const startX = (w - totalWidth) / 2;
-            const baseY = h - cardH - 20; // 20px from bottom edge
+            const baseY = h - cardH - 40; // 40px from bottom edge for more breathing room
 
-            // Fan rotation
-            const maxRotation = 20;
+            // Fan rotation - slightly reduced for cleaner look
+            const maxRotation = 15;
             const rotationStep = total > 1 ? (maxRotation * 2) / (total - 1) : 0;
             const rotation = -maxRotation + index * rotationStep;
 
-            // Slight arc effect (cards at edges slightly higher)
+            // Arc effect - more pronounced for visual hierarchy
             const centerIndex = (total - 1) / 2;
             const distFromCenter = Math.abs(index - centerIndex);
-            const yOffset = distFromCenter * 8; // edge cards 8px higher per position
+            const yOffset = distFromCenter * 12; // edge cards 12px higher per position
 
             return {
                 x: startX + index * cardSpacing,
@@ -1070,41 +1087,54 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
             {/* Details Panel */}
             <div className="details-panel">
                 {activeProject && (
-                    <div className="text-white space-y-3 md:space-y-6 h-full flex flex-col p-1 md:p-2">
-                        <div>
-                            <span className={cn(
-                                "inline-block px-2 md:px-3 py-0.5 md:py-1 rounded-full text-[10px] md:text-xs font-semibold mb-2 md:mb-3 border border-emerald-500/30 text-emerald-400",
-                                getBadgeClass(activeProject.binomial)
-                            )}>
-                                {activeProject.binomial}
-                            </span>
-                            <h1 className="text-xl md:text-4xl font-bold mb-1 md:mb-2 tracking-tight">{activeProject.common}</h1>
-                            <p className="text-sm md:text-xl text-gray-400 font-light leading-relaxed">{activeProject.description}</p>
+                    <div className="text-white h-full flex flex-col relative">
+                        {/* Top close button for quick access on mobile */}
+                        <button
+                            onClick={handleCloseActive}
+                            className="absolute top-0 right-0 md:hidden w-8 h-8 bg-white/10 hover:bg-red-600/40 rounded-full flex items-center justify-center transition-all z-10"
+                            aria-label="Close"
+                        >
+                            <X size={16} className="text-white" />
+                        </button>
+
+                        {/* Scrollable Content Area */}
+                        <div className="flex-1 overflow-y-auto pr-1 space-y-3 md:space-y-6 pb-2">
+                            <div className="pr-8 md:pr-0">
+                                <span className={cn(
+                                    "inline-block px-2 md:px-3 py-0.5 md:py-1 rounded-full text-[10px] md:text-xs font-semibold mb-2 md:mb-3 border border-emerald-500/30 text-emerald-400",
+                                    getBadgeClass(activeProject.binomial)
+                                )}>
+                                    {activeProject.binomial}
+                                </span>
+                                <h1 className="text-lg md:text-4xl font-bold mb-1 md:mb-2 tracking-tight leading-tight">{activeProject.common}</h1>
+                                <p className="text-xs md:text-xl text-gray-400 font-light leading-relaxed">{activeProject.description}</p>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-1.5 md:gap-4">
+                                {activeProject.features.slice(0, 4).map((f, i) => (
+                                    <div key={i} className="bg-white/5 p-1.5 md:p-3 rounded-lg border border-white/10 flex items-start hover:bg-white/10 transition-colors">
+                                        <Check size={12} className="text-emerald-500 mt-0.5 mr-1 md:mt-1 md:mr-2 flex-shrink-0" />
+                                        <span className="text-[10px] md:text-sm text-gray-300 line-clamp-2">{f}</span>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-2 md:gap-4">
-                            {activeProject.features.map((f, i) => (
-                                <div key={i} className="bg-white/5 p-2 md:p-3 rounded-lg border border-white/10 flex items-start hover:bg-white/10 transition-colors">
-                                    <Check size={14} className="text-emerald-500 mt-0.5 mr-1.5 md:mt-1 md:mr-2 flex-shrink-0" />
-                                    <span className="text-xs md:text-sm text-gray-300">{f}</span>
-                                </div>
-                            ))}
-                        </div>
-
-                        <div className="mt-auto pt-3 md:pt-6 border-t border-white/10 space-y-2 md:space-y-3">
+                        {/* Sticky Footer Buttons */}
+                        <div className="flex-shrink-0 pt-2 md:pt-4 pb-8 md:pb-0 border-t border-white/10 space-y-1.5 md:space-y-3 bg-inherit">
                             <div className="flex gap-2 md:gap-4">
-                                <button className="flex-1 bg-emerald-600 hover:bg-emerald-500 py-2 md:py-3 rounded-xl text-sm md:text-base font-bold flex items-center justify-center transition-all shadow-lg hover:shadow-emerald-500/20 active:scale-95">
-                                    Launch <ExternalLink size={16} className="ml-1 md:ml-2" />
+                                <button className="flex-1 bg-emerald-600 hover:bg-emerald-500 py-2 md:py-3 rounded-xl text-xs md:text-base font-bold flex items-center justify-center transition-all shadow-lg hover:shadow-emerald-500/20 active:scale-95">
+                                    Launch <ExternalLink size={14} className="ml-1 md:ml-2" />
                                 </button>
-                                <button className="flex-1 bg-gray-800 hover:bg-gray-700 py-2 md:py-3 rounded-xl text-sm md:text-base font-bold flex items-center justify-center transition-all hover:bg-white/10 active:scale-95">
-                                    Code <Github size={16} className="ml-1 md:ml-2" />
+                                <button className="flex-1 bg-gray-800 hover:bg-gray-700 py-2 md:py-3 rounded-xl text-xs md:text-base font-bold flex items-center justify-center transition-all hover:bg-white/10 active:scale-95">
+                                    Code <Github size={14} className="ml-1 md:ml-2" />
                                 </button>
                             </div>
                             <button
                                 onClick={handleCloseActive}
-                                className="w-full bg-red-600/20 hover:bg-red-600/40 text-red-400 py-2 md:py-2.5 rounded-xl text-sm font-medium flex items-center justify-center transition-all border border-red-500/30 active:scale-95"
+                                className="hidden md:flex w-full bg-red-600/20 hover:bg-red-600/40 text-red-400 py-2 md:py-2.5 rounded-xl text-xs md:text-sm font-medium items-center justify-center transition-all border border-red-500/30 active:scale-95"
                             >
-                                <X size={16} className="mr-1 md:mr-2" /> Close
+                                <X size={14} className="mr-1 md:mr-2" /> Close
                             </button>
                         </div>
                     </div>
