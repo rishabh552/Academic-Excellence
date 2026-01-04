@@ -17,6 +17,7 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
     const [discardPile, setDiscardPile] = useState<Project[]>([]); // Played cards stack
     const [focusedIndex, setFocusedIndex] = useState<number | null>(null); // Index in HAND
     const [activeProject, setActiveProject] = useState<Project | null>(null);
+    const [activeCardIndex, setActiveCardIndex] = useState<number | null>(null); // Track which card is in active slot
     const [isDealing, setIsDealing] = useState(false);
     const [isTransitioning, setIsTransitioning] = useState(false); // Prevent double clicks
     const [isMobile, setIsMobile] = useState(false); // Responsive sizing
@@ -558,112 +559,6 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
         });
     };
 
-    // CLOSE ACTIVE PROJECT - Move card to discard pile (like real card game)
-    const handleCloseActive = () => {
-        if (!activeProject || isTransitioning) return;
-
-        const index = hand.indexOf(activeProject);
-        if (index === -1) return;
-
-        const card = handRefs.current[index];
-        if (!card || !containerRef.current || !discardPileRef.current) return;
-
-        setIsTransitioning(true);
-
-        const discardRect = discardPileRef.current.getBoundingClientRect();
-        const containerRect = containerRef.current.getBoundingClientRect();
-
-        // Target: discard pile position
-        const targetX = discardRect.left - containerRect.left + (discardRect.width / 2) - 75;
-        const targetY = discardRect.top - containerRect.top;
-
-        // Get the played card reference before state changes
-        const playedCard = hand[index];
-
-        // Hide details panel
-        gsap.to(".details-panel", {
-            right: "-50%",
-            bottom: "-50%",
-            duration: 0.4,
-            ease: "power2.in"
-        });
-
-        // Hide active slot
-        if (activeSlotRef.current) {
-            activeSlotRef.current.classList.remove('visible');
-        }
-
-        // FIRST: Immediately restore ALL cards to full visibility and clear any filters
-        // This ensures they are visible before any state changes
-        handRefs.current.forEach((c, i) => {
-            if (c) {
-                gsap.killTweensOf(c); // Kill any running animations
-                gsap.set(c, {
-                    filter: "none",
-                    opacity: 1,
-                    scale: 1,
-                    zIndex: 10 + i
-                });
-            }
-        });
-
-        // Flip the played card back to face-down
-        const tiltInner = card.querySelector('.card-tilt-inner') as HTMLElement;
-        if (tiltInner) {
-            gsap.to(tiltInner, {
-                rotateY: 0,
-                duration: 0.3,
-                ease: "power2.inOut"
-            });
-        }
-
-        // Fly card to discard pile
-        gsap.to(card, {
-            x: targetX,
-            y: targetY,
-            rotation: (Math.random() * 10) - 5,
-            scale: 0.6,
-            opacity: 0,
-            zIndex: 5,
-            duration: 0.5,
-            ease: "power3.in",
-            onComplete: () => {
-                // Update state AFTER animation completes
-                const newHand = hand.filter((_, i) => i !== index);
-                setHand(newHand);
-                setDiscardPile(prev => [...prev, playedCard]);
-                setActiveProject(null);
-                setFocusedIndex(null);
-                setIsTransitioning(false);
-                onActiveProjectChange?.(null);
-
-                // Reposition the remaining cards AFTER state update settles
-                // We need a timeout to let React re-render with new refs
-                setTimeout(() => {
-                    if (!containerRef.current) return;
-                    const rect = containerRef.current.getBoundingClientRect();
-
-                    // newHand.length is the correct count now
-                    handRefs.current.slice(0, newHand.length).forEach((c, i) => {
-                        if (!c) return;
-                        const pos = getHandPosition(i, newHand.length, rect.width, rect.height);
-
-                        // Ensure visibility and animate to position
-                        gsap.set(c, { opacity: 1, filter: "none", scale: 1 });
-                        gsap.to(c, {
-                            x: pos.x,
-                            y: pos.y,
-                            rotation: pos.rotation,
-                            zIndex: 10 + i,
-                            duration: 0.4,
-                            ease: "power2.out"
-                        });
-                    });
-                }, 50);
-            }
-        });
-    };
-
     // FOLD ANIMATION - "Vader's Force Pull" with INSTANT SNAP
     const handleFold = () => {
         if (focusedIndex === null || isTransitioning) return;
@@ -863,7 +758,104 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
         });
     };
 
-    // PLAY ANIMATION (Move to Active Slot) - "Dealer Toss" Physics 
+    // CLOSE ACTIVE PROJECT - Animate card to Discard Pile, then update state
+    const handleCloseActive = () => {
+        if (!activeProject || activeCardIndex === null) return;
+
+        const card = handRefs.current[activeCardIndex];
+        if (!card || !containerRef.current || !discardPileRef.current) {
+            // Fallback: just close panel
+            setActiveProject(null);
+            setActiveCardIndex(null);
+            onActiveProjectChange?.(null);
+            return;
+        }
+
+        setIsTransitioning(true);
+
+        const containerRect = containerRef.current.getBoundingClientRect();
+        const discardRect = discardPileRef.current.getBoundingClientRect();
+
+        // Target: Discard Pile
+        const targetX = discardRect.left - containerRect.left + (discardRect.width / 2) - 130;
+        const targetY = discardRect.top - containerRect.top;
+
+        // IMMEDIATELY restore all other cards to full visibility BEFORE animation
+        handRefs.current.forEach((c, i) => {
+            if (c && i !== activeCardIndex) {
+                gsap.killTweensOf(c);
+                gsap.set(c, {
+                    opacity: 1,
+                    scale: 1,
+                    filter: "none"
+                });
+            }
+        });
+
+        const tl = gsap.timeline({
+            onComplete: () => {
+                const closedIndex = activeCardIndex;
+                const closedProject = activeProject;
+
+                // Hide details panel
+                gsap.to(".details-panel", {
+                    right: "-50%",
+                    bottom: "-50%",
+                    duration: 0.3,
+                    ease: "power2.in"
+                });
+
+                // Hide active slot
+                if (activeSlotRef.current) {
+                    activeSlotRef.current.classList.remove('visible');
+                }
+
+                // Update state: remove from hand, add to discard
+                setHand(prev => prev.filter((_, i) => i !== closedIndex));
+                setDiscardPile(prev => [...prev, closedProject]);
+                setActiveProject(null);
+                setActiveCardIndex(null);
+                setFocusedIndex(null);
+                setIsTransitioning(false);
+                onActiveProjectChange?.(null);
+
+                // Wait for React to update, then reposition
+                setTimeout(() => {
+                    if (!containerRef.current) return;
+                    const newContainerRect = containerRef.current.getBoundingClientRect();
+                    const newTotal = hand.length - 1;
+
+                    handRefs.current.forEach((c, i) => {
+                        if (c && i < newTotal) {
+                            const pos = getHandPosition(i, newTotal, newContainerRect.width, newContainerRect.height);
+                            gsap.to(c, {
+                                x: pos.x,
+                                y: pos.y,
+                                rotation: pos.rotation,
+                                opacity: 1,
+                                scale: 1,
+                                filter: "none",
+                                duration: 0.4,
+                                ease: "power2.out"
+                            });
+                        }
+                    });
+                }, 50);
+            }
+        });
+
+        // Animate card to discard pile
+        tl.to(card, {
+            x: targetX,
+            y: targetY,
+            rotation: -15,
+            scale: 0.5,
+            duration: 0.4,
+            ease: "power3.in"
+        });
+    };
+
+    // PLAY ANIMATION - Premium "Gambit Charge & Throw" to Active Slot
     const handlePlay = () => {
         if (focusedIndex === null || isTransitioning) return;
 
@@ -875,121 +867,295 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
 
         setIsTransitioning(true);
 
-        // Show active slot when playing a card
-        if (activeSlotRef.current) {
-            activeSlotRef.current.classList.add('visible');
-        }
-
         const actions = card.querySelector('.action-buttons') as HTMLElement;
         const tiltInner = card.querySelector('.card-tilt-inner') as HTMLElement;
         const glare = card.querySelector('.card-glare-overlay') as HTMLElement;
 
-        // Kill all existing animations immediately
+        // Kill ALL existing animations on this card
         gsap.killTweensOf([card, tiltInner, actions, glare]);
 
-        const slotRect = activeSlotRef.current.getBoundingClientRect();
         const containerRect = containerRef.current.getBoundingClientRect();
+        const activeSlotRect = activeSlotRef.current.getBoundingClientRect();
+        const cardRect = card.getBoundingClientRect();
 
-        const targetX = slotRect.left - containerRect.left;
-        const targetY = slotRect.top - containerRect.top;
+        // Get current card position (for smooth absolute animation)
+        const startX = cardRect.left - containerRect.left;
+        const startY = cardRect.top - containerRect.top;
 
-        // "Dealer Toss" play sequence
+        // Target: Active Slot (Center of screen)
+        const cardWidth = isMobile ? 165 : 260;
+        const cardHeight = isMobile ? 225 : 360;
+        const targetX = activeSlotRect.left - containerRect.left + (activeSlotRect.width / 2) - (cardWidth / 2);
+        const targetY = activeSlotRect.top - containerRect.top + (activeSlotRect.height / 2) - (cardHeight / 2);
+
+        // --- FX LAYER ---
+        const fxLayer = document.createElement('div');
+        fxLayer.className = 'gambit-fx-layer';
+        fxLayer.style.cssText = 'position:absolute;inset:0;pointer-events:none;overflow:visible;z-index:150;';
+        containerRef.current.appendChild(fxLayer);
+
+        // Particle Emitter - More intense particles during charge
+        const spawnParticle = (x: number, y: number, intense = false) => {
+            const p = document.createElement('div');
+            p.className = 'gambit-particle';
+            fxLayer.appendChild(p);
+
+            const size = intense ? 8 + Math.random() * 6 : 4 + Math.random() * 4;
+            gsap.set(p, {
+                x: x + (Math.random() * 60 - 30),
+                y: y + (Math.random() * 80 - 40),
+                width: size,
+                height: size,
+                opacity: 1
+            });
+
+            const angle = Math.random() * Math.PI * 2;
+            const distance = intense ? 100 + Math.random() * 100 : 50 + Math.random() * 50;
+
+            gsap.to(p, {
+                x: `+=${Math.cos(angle) * distance}`,
+                y: `+=${Math.sin(angle) * distance}`,
+                opacity: 0,
+                scale: 0,
+                duration: intense ? 0.8 : 0.5,
+                ease: "power2.out",
+                onComplete: () => p.remove()
+            });
+        };
+
+        // Shockwave Element
+        const shockwave = document.createElement('div');
+        shockwave.className = 'gambit-shockwave';
+        fxLayer.appendChild(shockwave);
+        gsap.set(shockwave, {
+            x: targetX + cardWidth / 2,
+            y: targetY + cardHeight / 2,
+            scale: 0,
+            opacity: 0
+        });
+
+        // Trail Element - attached to card
+        const trail = document.createElement('div');
+        trail.className = 'gambit-trail';
+        trail.style.cssText = 'position:absolute;left:-100%;top:0;width:200%;height:100%;opacity:0;z-index:-1;';
+        card.appendChild(trail);
+
+        // Cleanup function
+        const cleanup = () => {
+            if (fxLayer.parentNode) fxLayer.remove();
+            if (trail.parentNode) trail.remove();
+            card.classList.remove('gambit-charged', 'gambit-vibrating');
+        };
+
+        // Dim other cards immediately
+        handRefs.current.forEach((c, i) => {
+            if (i !== index && c) {
+                gsap.to(c, {
+                    opacity: 0.4,
+                    scale: 0.85,
+                    filter: "grayscale(60%) brightness(0.5)",
+                    duration: 0.4,
+                    ease: "power2.out"
+                });
+            }
+        });
+
+        // === THE ANIMATION TIMELINE ===
         const tl = gsap.timeline({
             onComplete: () => {
+                cleanup();
+
+                // Set state
                 setActiveProject(project);
-                setFocusedIndex(null); // Clear focus so CSS glare doesn't stick
+                setActiveCardIndex(index);
+                setFocusedIndex(null);
                 setIsTransitioning(false);
                 onActiveProjectChange?.(project);
-                if (actions) gsap.set(actions, { opacity: 0, y: 20 });
-                if (glare) gsap.set(glare, { opacity: 0 }); // Ensure glare is gone
 
-                // Impact "Thud" effect - subtle settle
-                gsap.to(card, { scale: 1, duration: 0.2, ease: "power2.out" });
-
-                // Slide in details panel FAST
+                // Slide in details panel
                 gsap.to(".details-panel", {
                     right: 0,
                     bottom: 0,
                     duration: 0.5,
                     ease: "power3.out"
                 });
-            }
-        });
 
-        // 1. Prepare
-        if (actions) tl.to(actions, { opacity: 0, duration: 0.1 }, 0);
-        if (glare) tl.set(glare, { opacity: 0 }, 0);
-        if (tiltInner) tl.to(tiltInner, { rotateY: 0, rotateX: 0, duration: 0.2 }, 0);
-
-        // 2. "Slingshot" Sequence
-        // Phase A: Pull Back (Anticipation)
-        const randomRot = (Math.random() * 6) - 3;
-
-        tl.to(card, {
-            scale: 0.8, // More compression
-            y: "+=50", // Deeper pull
-            rotation: randomRot * 3,
-            duration: 0.2, // Snappier
-            ease: "back.in(2.5)"
-        }, 0)
-
-            // Phase B: Shoot (Release)
-            .to(card, {
-                x: targetX,
-                y: targetY,
-                rotation: randomRot,
-                scale: 1.05,
-                zIndex: 50,
-                duration: 0.3,
-                ease: "power4.out" // High velocity
-            })
-
-            // Add flight rotation for realism
-            .to(tiltInner, {
-                rotateX: 10, // Slight forward pitch
-                duration: 0.3
-            }, ">-0.3")
-
-            // Phase C: Impact Slam
-            .to(card, {
-                scale: 1.0,
-                duration: 0.1,
-                ease: "power2.in",
-                onStart: () => {
-                    if (tiltInner) gsap.to(tiltInner, { rotateX: 0, duration: 0.1 });
-
-                    // SCREEN SHAKE IMPACT
-                    gsap.to(containerRef.current, {
-                        y: 3, // Initial jolt down
-                        duration: 0.05,
-                        yoyo: true,
-                        repeat: 3,
-                        onComplete: () => { gsap.set(containerRef.current, { y: 0 }); }
-                    });
-
-                    // SHOCKWAVE RIPPLE
-                    const ripple = activeSlotRef.current?.querySelector('.impact-ripple');
-                    if (ripple) {
-                        gsap.fromTo(ripple,
-                            { scale: 0.5, opacity: 0.8, borderColor: "rgba(16, 185, 129, 0.8)" },
-                            { scale: 2.5, opacity: 0, duration: 0.6, ease: "power2.out" }
-                        );
-                    }
+                // Show active slot glow
+                if (activeSlotRef.current) {
+                    activeSlotRef.current.classList.add('visible');
                 }
-            });
 
-        // Hide other cards smoothly but quickly
-        handRefs.current.forEach((c, i) => {
-            if (i !== index && c) {
-                gsap.to(c, {
-                    opacity: 1, // Keep visible! FIX for disappearance
-                    scale: 1,
-                    filter: "grayscale(100%) brightness(0.5)", // Dim them instead of hiding
+                // Final card settle
+                gsap.to(card, {
+                    boxShadow: "0 0 60px rgba(255, 0, 255, 0.4), 0 0 120px rgba(255, 0, 255, 0.2), 0 20px 60px rgba(0,0,0,0.5)",
                     duration: 0.3,
                     ease: "power2.out"
                 });
             }
         });
+
+        // --- PHASE 0: Instant Cleanup (0s) ---
+        if (actions) tl.set(actions, { opacity: 0 }, 0);
+        if (glare) tl.set(glare, { opacity: 0 }, 0);
+        if (tiltInner) {
+            tl.to(tiltInner, { rotateY: 0, rotateX: 0, duration: 0.2, ease: "power2.out" }, 0);
+        }
+
+        // Lock card starting position
+        tl.set(card, { x: startX, y: startY, rotation: 0, zIndex: 200 }, 0);
+
+        // --- PHASE 1: THE CHARGE (0s - 0.8s) ---
+        // Add charged class for CSS glow
+        tl.call(() => card.classList.add('gambit-charged', 'gambit-vibrating'), [], 0);
+
+        // Intense levitation with pulsing scale
+        tl.to(card, {
+            y: startY - 30, // Float up
+            scale: 1.15,
+            duration: 0.4,
+            ease: "power2.out"
+        }, 0);
+
+        // Pulse back slightly
+        tl.to(card, {
+            scale: 1.1,
+            duration: 0.2,
+            ease: "power2.inOut"
+        }, 0.4);
+
+        // More intense pulse
+        tl.to(card, {
+            scale: 1.18,
+            duration: 0.2,
+            ease: "power2.inOut"
+        }, 0.6);
+
+        // Spawn particles during charge
+        tl.call(() => {
+            const rect = card.getBoundingClientRect();
+            const cRect = containerRef.current?.getBoundingClientRect();
+            if (rect && cRect) {
+                for (let i = 0; i < 5; i++) {
+                    setTimeout(() => {
+                        spawnParticle(rect.left - cRect.left + rect.width / 2, rect.top - cRect.top + rect.height / 2);
+                    }, i * 80);
+                }
+            }
+        }, [], 0.1);
+
+        // More particles at peak charge
+        tl.call(() => {
+            const rect = card.getBoundingClientRect();
+            const cRect = containerRef.current?.getBoundingClientRect();
+            if (rect && cRect) {
+                for (let i = 0; i < 8; i++) {
+                    setTimeout(() => {
+                        spawnParticle(rect.left - cRect.left + rect.width / 2, rect.top - cRect.top + rect.height / 2, true);
+                    }, i * 50);
+                }
+            }
+        }, [], 0.5);
+
+        // --- PHASE 2: WIND-UP & THROW (0.8s - 1.3s) ---
+        const throwStart = 0.8;
+
+        // Stop vibrating, start wind-up
+        tl.call(() => card.classList.remove('gambit-vibrating'), [], throwStart);
+
+        // Wind-up: Pull back and rotate
+        tl.to(card, {
+            x: startX + 40,
+            rotation: 15,
+            scale: 1.1,
+            duration: 0.15,
+            ease: "power2.in"
+        }, throwStart);
+
+        // Show trail
+        tl.to(trail, { opacity: 0.8, duration: 0.1 }, throwStart);
+
+        // THE THROW - Fast, dramatic arc
+        tl.to(card, {
+            x: targetX,
+            y: targetY,
+            rotation: -720, // Two full spins
+            scale: 1,
+            duration: 0.4,
+            ease: "power4.in" // Accelerates into throw
+        }, throwStart + 0.15);
+
+        // Trail fades during throw
+        tl.to(trail, {
+            opacity: 0,
+            duration: 0.3,
+            ease: "power2.in"
+        }, throwStart + 0.2);
+
+        // --- PHASE 3: IMPACT (1.35s+) ---
+        const impactTime = throwStart + 0.55;
+
+        // Landing bounce
+        tl.to(card, {
+            scale: 1.08,
+            rotation: 0,
+            duration: 0.1,
+            ease: "power4.out"
+        }, impactTime);
+
+        tl.to(card, {
+            scale: 1.02,
+            duration: 0.15,
+            ease: "elastic.out(1, 0.5)"
+        }, impactTime + 0.1);
+
+        // Shockwave explosion
+        tl.to(shockwave, {
+            opacity: 1,
+            scale: 15,
+            duration: 0.4,
+            ease: "power2.out"
+        }, impactTime);
+
+        tl.to(shockwave, {
+            opacity: 0,
+            borderWidth: 0,
+            duration: 0.3,
+            ease: "power2.in"
+        }, impactTime + 0.15);
+
+        // Screen flash
+        tl.to(containerRef.current, {
+            backgroundColor: "#2a102a",
+            duration: 0.08
+        }, impactTime);
+
+        tl.to(containerRef.current, {
+            backgroundColor: "#0f3822",
+            duration: 0.15,
+            ease: "power2.out"
+        }, impactTime + 0.08);
+
+        // Particle burst at impact
+        tl.call(() => {
+            for (let i = 0; i < 20; i++) {
+                setTimeout(() => {
+                    spawnParticle(targetX + cardWidth / 2, targetY + cardHeight / 2, true);
+                }, i * 20);
+            }
+        }, [], impactTime);
+
+        // Container shake on impact
+        tl.to(containerRef.current, {
+            y: 5,
+            duration: 0.05,
+            ease: "power4.out"
+        }, impactTime);
+
+        tl.to(containerRef.current, {
+            y: 0,
+            duration: 0.2,
+            ease: "elastic.out(1, 0.4)"
+        }, impactTime + 0.05);
     };
 
 
@@ -1198,22 +1364,24 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
             </div >
 
             {/* Discard Pile - Played Cards Stack */}
-            <div
+            < div
                 ref={discardPileRef}
                 className="discard-pile absolute top-[10%] left-[5%] md:top-[15%] md:left-[10%] w-[140px] h-[200px] md:w-[260px] md:h-[360px] perspective-1000 z-20"
             >
                 {/* Simulated Stack Layers based on discard count */}
-                {[...Array(Math.min(5, discardPile.length))].map((_, i) => (
-                    <div
-                        key={i}
-                        className="absolute inset-0 bg-neutral-800 border border-white/10 rounded-2xl shadow-xl pointer-events-none"
-                        style={{
-                            transform: `translate(${i * 2}px, ${-i * 2}px) rotate(${(i * 3) - 6}deg)`,
-                            zIndex: i,
-                            backgroundImage: 'repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.02) 0, rgba(255, 255, 255, 0.02) 2px, transparent 2px, transparent 8px)'
-                        }}
-                    />
-                ))}
+                {
+                    [...Array(Math.min(5, discardPile.length))].map((_, i) => (
+                        <div
+                            key={i}
+                            className="absolute inset-0 bg-neutral-800 border border-white/10 rounded-2xl shadow-xl pointer-events-none"
+                            style={{
+                                transform: `translate(${i * 2}px, ${-i * 2}px) rotate(${(i * 3) - 6}deg)`,
+                                zIndex: i,
+                                backgroundImage: 'repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.02) 0, rgba(255, 255, 255, 0.02) 2px, transparent 2px, transparent 8px)'
+                            }}
+                        />
+                    ))
+                }
 
                 {/* Top Label */}
                 <div
@@ -1226,12 +1394,12 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
                     <div className="text-white/30 font-bold tracking-widest text-xs md:text-lg">PLAYED</div>
                     <div className={`text-3xl md:text-6xl font-black mt-1 md:mt-2 ${discardPile.length > 0 ? 'text-amber-500/30' : 'text-white/10'}`}>{discardPile.length}</div>
                 </div>
-            </div>
+            </div >
 
             {/* Active Slot */}
-            <div ref={activeSlotRef} className="active-slot">
+            < div ref={activeSlotRef} className="active-slot" >
                 <div className="impact-ripple" />
-            </div>
+            </div >
 
             {/* Hand Area */}
             {
