@@ -810,6 +810,12 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
                     activeSlotRef.current.classList.remove('visible');
                 }
 
+                // Clear the ref for the removed card BEFORE state update
+                handRefs.current[closedIndex] = null;
+
+                // Calculate new total before state update (hand.length - 1)
+                const newTotal = hand.length - 1;
+
                 // Update state: remove from hand, add to discard
                 setHand(prev => prev.filter((_, i) => i !== closedIndex));
                 setDiscardPile(prev => [...prev, closedProject]);
@@ -819,28 +825,33 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
                 setIsTransitioning(false);
                 onActiveProjectChange?.(null);
 
-                // Wait for React to update, then reposition
+                // Wait for React to re-render with new hand, then reposition
                 setTimeout(() => {
                     if (!containerRef.current) return;
                     const newContainerRect = containerRef.current.getBoundingClientRect();
-                    const newTotal = hand.length - 1;
 
-                    handRefs.current.forEach((c, i) => {
-                        if (c && i < newTotal) {
-                            const pos = getHandPosition(i, newTotal, newContainerRect.width, newContainerRect.height);
-                            gsap.to(c, {
-                                x: pos.x,
-                                y: pos.y,
-                                rotation: pos.rotation,
-                                opacity: 1,
-                                scale: 1,
-                                filter: "none",
-                                duration: 0.4,
-                                ease: "power2.out"
-                            });
-                        }
+                    // After React re-renders, handRefs will have new assignments
+                    // Filter out null refs and get only valid cards
+                    const validRefs = handRefs.current.filter((c): c is HTMLDivElement => c !== null && c.isConnected);
+
+                    // Reposition each valid card to its new arc position
+                    validRefs.forEach((card, newIndex) => {
+                        const pos = getHandPosition(newIndex, newTotal, newContainerRect.width, newContainerRect.height);
+                        gsap.to(card, {
+                            x: pos.x,
+                            y: pos.y,
+                            rotation: pos.rotation,
+                            opacity: 1,
+                            scale: 1,
+                            filter: "none",
+                            duration: 0.4,
+                            ease: "power2.out"
+                        });
                     });
-                }, 50);
+
+                    // Clean up handRefs array to match new hand length
+                    handRefs.current = validRefs;
+                }, 100);
             }
         });
 
@@ -1406,7 +1417,7 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
                 hand.map((project, index) => (
                     project && (
                         <PokerCard
-                            key={`${project.common}-${index}`}
+                            key={project.common}
                             ref={el => { handRefs.current[index] = el; }}
                             project={project}
                             index={index}
