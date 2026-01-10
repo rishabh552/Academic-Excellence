@@ -32,6 +32,7 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
     const deckRef = useRef<HTMLDivElement>(null);
     const activeSlotRef = useRef<HTMLDivElement>(null);
     const discardPileRef = useRef<HTMLDivElement>(null); // Ref for discard pile positioning
+    const rippleLayerRef = useRef<HTMLDivElement>(null); // Ref for table ripple effect
     const pendingInspectRef = useRef<number | null>(null); // Track pending card to inspect
 
     // Initialize Game
@@ -120,9 +121,34 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
         });
     };
 
-    // Deck shuffle animation - SPLIT & RIFFLE
+    // Deck shuffle animation - SPLIT & RIFFLE with Table Ripple Effect
     const shuffleDeckAnimation = () => {
         if (!deckRef.current || !containerRef.current) return;
+
+        // === TRIGGER PREMIUM TABLE RIPPLE EFFECT ===
+        if (rippleLayerRef.current && containerRef.current) {
+            const layer = rippleLayerRef.current;
+            const container = containerRef.current;
+
+            // Activate ripple layer animation
+            layer.classList.add('active');
+
+            // PERMANENTLY change table color to match ripple (never removed, only resets on page refresh)
+            container.classList.add('table-ripple-active');
+
+            // Reset animations by cloning and replacing children for fresh animation
+            const children = layer.querySelectorAll('.ripple-wave, .ripple-center-glow, .table-color-shift');
+            children.forEach(child => {
+                const clone = child.cloneNode(true) as HTMLElement;
+                child.parentNode?.replaceChild(clone, child);
+            });
+
+            // Remove ripple animation layer after effect completes
+            // NOTE: table-ripple-active class stays on container permanently
+            setTimeout(() => {
+                layer.classList.remove('active');
+            }, 800);
+        }
 
         // Make any remaining cards invisible (they're now "in" the deck)
         handRefs.current.forEach(card => {
@@ -865,8 +891,12 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
         const cardRect = card.getBoundingClientRect();
         const cardCenterX = cardRect.left - containerRect.left + cardRect.width / 2;
         const cardCenterY = cardRect.top - containerRect.top + cardRect.height / 2;
-        const targetCenterX = targetX + 65; // Center of discard pile
-        const targetCenterY = targetY + 90;
+
+        // Use actual discard pile dimensions for accurate targeting
+        const pileWidth = discardRect.width;
+        const pileHeight = discardRect.height;
+        const targetCenterX = targetX + pileWidth / 2;
+        const targetCenterY = targetY + pileHeight / 2;
 
         // Particle arrays for different types
         const coreParticles: HTMLDivElement[] = [];
@@ -915,10 +945,10 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
         };
 
         // === PHASE 1: CHARGE (0.4s) ===
-        // Pulsing gold glow with gathering energy
-        const glowLow = "0 0 30px rgba(255, 215, 0, 0.5), 0 0 60px rgba(255, 215, 0, 0.3)";
-        const glowMid = "0 0 50px rgba(255, 215, 0, 0.7), 0 0 100px rgba(255, 215, 0, 0.5), inset 0 0 15px rgba(255, 215, 0, 0.3)";
-        const glowHigh = "0 0 70px rgba(255, 215, 0, 0.9), 0 0 140px rgba(255, 215, 0, 0.7), inset 0 0 30px rgba(255, 215, 0, 0.5)";
+        // Pulsing magenta glow with gathering energy (Gambit-style)
+        const glowLow = "0 0 30px rgba(255, 0, 255, 0.5), 0 0 60px rgba(255, 0, 255, 0.3)";
+        const glowMid = "0 0 50px rgba(255, 0, 255, 0.7), 0 0 100px rgba(255, 0, 255, 0.5), inset 0 0 15px rgba(255, 0, 255, 0.3)";
+        const glowHigh = "0 0 70px rgba(255, 0, 255, 0.9), 0 0 140px rgba(255, 0, 255, 0.7), inset 0 0 30px rgba(255, 0, 255, 0.5)";
 
         // Add charged class
         tl.call(() => card.classList.add('gold-charged'), [], 0);
@@ -1081,23 +1111,26 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
         // Premium materialization with shockwave and ghost card
         const reformStart = 1.22;
 
-        // Create shockwave
+        // Create shockwave - sized to match discard pile
         const shockwave = document.createElement('div');
         shockwave.className = 'gold-shockwave';
+        shockwave.style.width = `${pileWidth}px`;
+        shockwave.style.height = `${pileHeight}px`;
+        shockwave.style.borderRadius = '16px';
         fxLayer.appendChild(shockwave);
-        gsap.set(shockwave, { x: targetCenterX - 20, y: targetCenterY - 20, scale: 0.5, opacity: 0 });
+        gsap.set(shockwave, { x: targetX, y: targetY, scale: 0.8, opacity: 0 });
 
-        // Create ghost card
+        // Create ghost card - matches discard pile size
         const ghostCard = document.createElement('div');
         ghostCard.className = 'gold-reform-ghost';
-        ghostCard.style.width = `${isMobile ? 82 : 130}px`;
-        ghostCard.style.height = `${isMobile ? 112 : 180}px`;
+        ghostCard.style.width = `${pileWidth}px`;
+        ghostCard.style.height = `${pileHeight}px`;
         fxLayer.appendChild(ghostCard);
         gsap.set(ghostCard, { x: targetX, y: targetY, scale: 0.8, opacity: 0 });
 
-        // Shockwave expands
+        // Shockwave expands from pile size outward
         tl.to(shockwave, { opacity: 1, scale: 1, duration: 0.1, ease: "power2.out" }, reformStart);
-        tl.to(shockwave, { scale: 4, opacity: 0, duration: 0.3, ease: "power2.out" }, reformStart + 0.1);
+        tl.to(shockwave, { scale: 1.5, opacity: 0, duration: 0.3, ease: "power2.out" }, reformStart + 0.1);
 
         // Ghost card materializes
         tl.to(ghostCard, { opacity: 0.8, scale: 1, duration: 0.25, ease: "power2.out" }, reformStart + 0.1);
@@ -1593,6 +1626,17 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
             {/* Table Trim */}
             < div className="table-trim" />
             <div className="table-spotlight" /> {/* New Lighting Layer */}
+
+            {/* Premium Water Ripple Effect Layer (Shuffle Phase) */}
+            <div ref={rippleLayerRef} className="table-ripple-layer">
+                <div className="ripple-center-glow" />
+                <div className="table-color-shift" />
+                <div className="ripple-wave ripple-wave-1" />
+                <div className="ripple-wave ripple-wave-2" />
+                <div className="ripple-wave ripple-wave-3" />
+                <div className="ripple-wave ripple-wave-4" />
+                <div className="ripple-wave ripple-wave-5" />
+            </div>
 
             {/* Visual Deck Stack */}
             <div
