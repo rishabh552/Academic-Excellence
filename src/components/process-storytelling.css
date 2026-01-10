@@ -1,0 +1,632 @@
+/* ===================================================
+   PROCESS PARALLAX FLOW - Anime.js Inspired Design
+   Interconnected sections with central visual anchor
+   =================================================== */
+
+:root {
+    --flow-accent: #6366f1;
+    --flow-accent-glow: rgba(99, 102, 241, 0.5);
+    --flow-secondary: #a855f7;
+    --flow-success: #22c55e;
+    --flow-warning: #f59e0b;
+    --flow-bg-dark: #0a0a0f;
+    --flow-bg-light: #f8fafc;
+    --flow-text: #f1f5f9;
+    --flow-text-muted: #94a3b8;
+}
+
+/* ===== MAIN CONTAINER ===== */
+.process-flow {
+    position: relative;
+    background: var(--flow-bg-dark);
+    overflow-x: hidden;
+}
+
+/* ===== PINNED CENTRAL VISUAL ===== */
+.flow-central-visual {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 10;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+}
+
+.flow-central-visual.visible {
+    opacity: 1;
+}
+
+/* Central Circle/Engine */
+.central-engine {
+    position: relative;
+    width: 300px;
+    height: 300px;
+}
+
+.engine-ring {
+    position: absolute;
+    border-radius: 50%;
+    border: 2px solid;
+    opacity: 0.3;
+}
+
+.engine-ring-1 {
+    inset: 0;
+    border-color: var(--flow-accent);
+    animation: pulse-ring 3s ease-in-out infinite;
+}
+
+.engine-ring-2 {
+    inset: 20px;
+    border-color: var(--flow-secondary);
+    animation: pulse-ring 3s ease-in-out infinite 0.5s;
+}
+
+.engine-ring-3 {
+    inset: 40px;
+    border-color: var(--flow-accent);
+    animation: pulse-ring 3s ease-in-out infinite 1s;
+}
+
+.engine-core {
+    position: absolute;
+    inset: 60px;
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--flow-accent) 0%, var(--flow-secondary) 100%);
+    opacity: 0.15;
+    filter: blur(20px);
+}
+
+.engine-center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--flow-accent), var(--flow-secondary));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 60px var(--flow-accent-glow);
+}
+
+.engine-icon {
+    color: white;
+    width: 36px;
+    height: 36px;
+}
+
+.engine-step-number {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 32px;
+    font-weight: 900;
+    color: white;
+}
+
+@keyframes pulse-ring {
+
+    0%,
+    100% {
+        transform: scale(1);
+        opacity: 0.3;
+    }
+
+    50% {
+        transform: scale(1.05);
+        opacity: 0.5;
+    }
+}
+
+/* ===== CIRCULAR PROGRESS RING ===== */
+.progress-ring {
+    position: absolute;
+    width: 340px;
+    height: 340px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+}
+
+.progress-ring-bg {
+    stroke: rgba(255, 255, 255, 0.08);
+}
+
+.progress-ring-fill {
+    stroke: url(#progress-gradient);
+    stroke: var(--flow-accent);
+    stroke-linecap: round;
+    filter: drop-shadow(0 0 8px var(--flow-accent-glow));
+    transition: stroke-dashoffset 0.3s ease-out;
+}
+
+/* Step indicator dots on the ring */
+.progress-dot {
+    fill: rgba(255, 255, 255, 0.2);
+    transition: all 0.3s ease;
+}
+
+.progress-dot.active {
+    fill: var(--flow-accent);
+    filter: drop-shadow(0 0 10px var(--flow-accent-glow));
+    r: 8;
+}
+
+.progress-dot.completed {
+    fill: var(--flow-success);
+}
+
+/* Step label below the engine */
+.progress-step-label {
+    position: absolute;
+    bottom: -50px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+    font-family: inherit;
+}
+
+.step-current {
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--flow-text);
+}
+
+.step-divider {
+    font-size: 18px;
+    color: var(--flow-text-muted);
+    margin: 0 2px;
+}
+
+.step-total {
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--flow-text-muted);
+}
+
+/* ===== SVG CONNECTORS ===== */
+.flow-connectors {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 5;
+}
+
+.connector-line {
+    stroke: var(--flow-accent);
+    stroke-width: 2;
+    fill: none;
+    opacity: 0.4;
+    stroke-dasharray: 1000;
+    stroke-dashoffset: 1000;
+}
+
+.connector-line.active {
+    stroke-dashoffset: 0;
+    transition: stroke-dashoffset 1s ease-out;
+}
+
+/* ===== FLOW SECTION (Full Height Pinned) ===== */
+.flow-section {
+    min-height: 100vh;
+    display: flex;
+    position: relative;
+}
+
+/* Hero Section */
+.flow-hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 2rem;
+    position: relative;
+    z-index: 20;
+}
+
+.flow-hero-badge {
+    display: inline-block;
+    padding: 10px 24px;
+    background: rgba(99, 102, 241, 0.1);
+    border: 1px solid rgba(99, 102, 241, 0.25);
+    border-radius: 50px;
+    color: var(--flow-accent);
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 24px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+.flow-hero-title {
+    font-size: clamp(3rem, 10vw, 6rem);
+    font-weight: 900;
+    background: linear-gradient(135deg, #fff 0%, #94a3b8 50%, var(--flow-accent) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    margin-bottom: 24px;
+    line-height: 1.05;
+}
+
+.flow-hero-subtitle {
+    font-size: clamp(1.1rem, 2.5vw, 1.4rem);
+    color: var(--flow-text-muted);
+    max-width: 650px;
+    line-height: 1.8;
+    margin-bottom: 48px;
+}
+
+.flow-scroll-indicator {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    color: var(--flow-text-muted);
+    font-size: 13px;
+    letter-spacing: 1px;
+}
+
+.scroll-line {
+    width: 1px;
+    height: 60px;
+    background: linear-gradient(to bottom, var(--flow-accent), transparent);
+    animation: scroll-pulse 2s ease-in-out infinite;
+}
+
+@keyframes scroll-pulse {
+
+    0%,
+    100% {
+        opacity: 0.3;
+        transform: scaleY(1);
+    }
+
+    50% {
+        opacity: 1;
+        transform: scaleY(1.2);
+    }
+}
+
+/* ===== PINNED JOURNEY CONTAINER ===== */
+.flow-journey {
+    position: relative;
+}
+
+.flow-journey-pin {
+    position: relative;
+    width: 100%;
+}
+
+/* Step Content Panels (Appear around central engine) */
+.flow-step {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    padding: 4rem 2rem;
+    position: relative;
+}
+
+/* Alternating panel positions */
+.flow-step-panel {
+    max-width: 450px;
+    background: rgba(15, 15, 25, 0.85);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 24px;
+    padding: 2.5rem;
+    position: relative;
+    z-index: 30;
+    opacity: 0;
+    transform: translateY(60px);
+}
+
+.flow-step:nth-child(odd) .flow-step-panel {
+    margin-left: 8%;
+    margin-right: auto;
+}
+
+.flow-step:nth-child(even) .flow-step-panel {
+    margin-left: auto;
+    margin-right: 8%;
+}
+
+/* Step Number Tag */
+.step-tag {
+    position: absolute;
+    top: -16px;
+    left: 24px;
+    padding: 8px 16px;
+    background: linear-gradient(135deg, var(--flow-accent), var(--flow-secondary));
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    color: white;
+    letter-spacing: 1px;
+    box-shadow: 0 4px 20px var(--flow-accent-glow);
+}
+
+.step-tag.completed {
+    background: linear-gradient(135deg, var(--flow-success), #16a34a);
+}
+
+.step-tag.active {
+    background: linear-gradient(135deg, var(--flow-warning), #d97706);
+    animation: glow-pulse 2s ease-in-out infinite;
+}
+
+@keyframes glow-pulse {
+
+    0%,
+    100% {
+        box-shadow: 0 4px 20px rgba(245, 158, 11, 0.4);
+    }
+
+    50% {
+        box-shadow: 0 4px 40px rgba(245, 158, 11, 0.8);
+    }
+}
+
+.step-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--flow-text);
+    margin-bottom: 16px;
+    margin-top: 8px;
+}
+
+.step-description {
+    font-size: 1rem;
+    color: var(--flow-text-muted);
+    line-height: 1.75;
+    margin-bottom: 24px;
+}
+
+.step-features {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.step-feature {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    font-size: 14px;
+    color: var(--flow-text-muted);
+    transition: all 0.3s ease;
+}
+
+.step-feature:hover {
+    background: rgba(99, 102, 241, 0.1);
+    border-color: rgba(99, 102, 241, 0.2);
+}
+
+.step-feature-icon {
+    flex-shrink: 0;
+    width: 18px;
+    height: 18px;
+    color: var(--flow-accent);
+}
+
+/* ===== PROGRESS TIMELINE ===== */
+.flow-timeline {
+    position: fixed;
+    right: 40px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+}
+
+.flow-timeline.visible {
+    opacity: 1;
+}
+
+.timeline-track {
+    width: 3px;
+    height: 200px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 2px;
+    position: relative;
+    overflow: hidden;
+}
+
+.timeline-progress {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 0%;
+    background: linear-gradient(to bottom, var(--flow-accent), var(--flow-secondary));
+    border-radius: 2px;
+    transition: height 0.3s ease-out;
+}
+
+.timeline-dots {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
+    padding: 4px 0;
+}
+
+.timeline-dot {
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    border: 2px solid transparent;
+    transition: all 0.3s ease;
+}
+
+.timeline-dot.active {
+    background: var(--flow-accent);
+    border-color: var(--flow-accent);
+    box-shadow: 0 0 20px var(--flow-accent-glow);
+    transform: scale(1.3);
+}
+
+.timeline-dot.completed {
+    background: var(--flow-success);
+    border-color: var(--flow-success);
+}
+
+.timeline-label {
+    margin-top: 16px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--flow-text-muted);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+/* ===== CTA SECTION ===== */
+.flow-cta {
+    min-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 4rem 2rem;
+    position: relative;
+    z-index: 40;
+    background: linear-gradient(to bottom, transparent, rgba(99, 102, 241, 0.05));
+}
+
+.cta-title {
+    font-size: clamp(2rem, 6vw, 3.5rem);
+    font-weight: 800;
+    color: var(--flow-text);
+    margin-bottom: 20px;
+}
+
+.cta-subtitle {
+    font-size: 1.2rem;
+    color: var(--flow-text-muted);
+    max-width: 500px;
+    margin-bottom: 40px;
+}
+
+.cta-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    padding: 18px 40px;
+    background: linear-gradient(135deg, var(--flow-accent), var(--flow-secondary));
+    border: none;
+    border-radius: 16px;
+    color: white;
+    font-size: 1.125rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.4s ease;
+    box-shadow: 0 10px 40px var(--flow-accent-glow);
+}
+
+.cta-button:hover {
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 0 20px 60px var(--flow-accent-glow);
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 1024px) {
+    .flow-central-visual {
+        transform: translate(-50%, -50%) scale(0.7);
+    }
+
+    .flow-step-panel {
+        max-width: 90%;
+        margin: 0 auto !important;
+    }
+
+    .flow-timeline {
+        right: 16px;
+    }
+
+    .timeline-track {
+        height: 150px;
+    }
+}
+
+@media (max-width: 768px) {
+    .flow-central-visual {
+        display: none;
+    }
+
+    .flow-step {
+        padding: 2rem 1rem;
+    }
+
+    .flow-step-panel {
+        padding: 1.5rem;
+        max-width: 100%;
+    }
+
+    .flow-timeline {
+        display: none;
+    }
+
+    /* Show mobile progress bar instead */
+    .mobile-progress {
+        display: flex !important;
+    }
+}
+
+.mobile-progress {
+    display: none;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    z-index: 100;
+}
+
+.mobile-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--flow-accent), var(--flow-secondary));
+    width: 0%;
+    transition: width 0.2s ease-out;
+}
+
+/* ===== REDUCED MOTION ===== */
+@media (prefers-reduced-motion: reduce) {
+
+    .engine-ring-1,
+    .engine-ring-2,
+    .engine-ring-3,
+    .scroll-line,
+    .step-tag.active {
+        animation: none;
+    }
+}
