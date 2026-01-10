@@ -1,6 +1,10 @@
 import { useState, useRef, useEffect } from 'react';
 import gsap from 'gsap';
+import { MotionPathPlugin } from 'gsap/MotionPathPlugin';
 import { PokerCard, Project } from './poker-card';
+
+// Register GSAP plugins
+gsap.registerPlugin(MotionPathPlugin);
 import { cn } from '@/lib/utils';
 import './casino-portfolio.css';
 import { Check, Github, ExternalLink, X } from 'lucide-react';
@@ -855,15 +859,267 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
             }
         });
 
-        // Animate card to discard pile
+        // --- ENHANCED GOLDEN DUST DISSOLUTION ANIMATION ---
+        // Phase timings: Charge 0.4s, Dissolution 0.4s, Stream 0.4s, Reformation 0.6s
+
+        const cardRect = card.getBoundingClientRect();
+        const cardCenterX = cardRect.left - containerRect.left + cardRect.width / 2;
+        const cardCenterY = cardRect.top - containerRect.top + cardRect.height / 2;
+        const targetCenterX = targetX + 65; // Center of discard pile
+        const targetCenterY = targetY + 90;
+
+        // Particle arrays for different types
+        const coreParticles: HTMLDivElement[] = [];
+        const sparkParticles: HTMLDivElement[] = [];
+        const emberParticles: HTMLDivElement[] = [];
+
+        // FX Layer for impact effects
+        const fxLayer = document.createElement('div');
+        fxLayer.style.cssText = 'position:absolute;inset:0;pointer-events:none;overflow:visible;z-index:200;';
+        containerRef.current.appendChild(fxLayer);
+
+        // Helper: Spawn particles of different types at grid position
+        const spawnParticle = (type: 'core' | 'spark' | 'ember', x: number, y: number) => {
+            if (!containerRef.current) return null;
+            const p = document.createElement('div');
+            p.className = `gold-particle gold-particle-${type}`;
+            containerRef.current.appendChild(p);
+
+            gsap.set(p, {
+                x: x,
+                y: y,
+                opacity: 0,
+                scale: type === 'ember' ? 0.3 : 0.5
+            });
+
+            if (type === 'core') coreParticles.push(p);
+            else if (type === 'spark') sparkParticles.push(p);
+            else emberParticles.push(p);
+
+            return p;
+        };
+
+        // Helper: Spawn impact burst at target
+        const spawnImpactBurst = (x: number, y: number) => {
+            const burst = document.createElement('div');
+            burst.className = 'gold-impact-burst';
+            fxLayer.appendChild(burst);
+            gsap.set(burst, { x: x - 10, y: y - 10, scale: 0.5, opacity: 1 });
+            gsap.to(burst, {
+                scale: 2,
+                opacity: 0,
+                duration: 0.25,
+                ease: "power2.out",
+                onComplete: () => burst.remove()
+            });
+        };
+
+        // === PHASE 1: CHARGE (0.4s) ===
+        // Pulsing gold glow with gathering energy
+        const glowLow = "0 0 30px rgba(255, 215, 0, 0.5), 0 0 60px rgba(255, 215, 0, 0.3)";
+        const glowMid = "0 0 50px rgba(255, 215, 0, 0.7), 0 0 100px rgba(255, 215, 0, 0.5), inset 0 0 15px rgba(255, 215, 0, 0.3)";
+        const glowHigh = "0 0 70px rgba(255, 215, 0, 0.9), 0 0 140px rgba(255, 215, 0, 0.7), inset 0 0 30px rgba(255, 215, 0, 0.5)";
+
+        // Add charged class
+        tl.call(() => card.classList.add('gold-charged'), [], 0);
+
+        // Pulse 1: Build up
+        tl.to(card, { scale: 1.04, boxShadow: glowLow, duration: 0.1, ease: "power2.out" }, 0);
+        tl.to(card, { scale: 1.06, boxShadow: glowMid, duration: 0.1, ease: "power2.out" }, 0.1);
+
+        // Pulse 2: Intensify
+        tl.to(card, { scale: 1.04, boxShadow: glowLow, duration: 0.08, ease: "power2.in" }, 0.2);
+        tl.to(card, { scale: 1.08, boxShadow: glowMid, duration: 0.08, ease: "power2.out" }, 0.28);
+
+        // Pulse 3: Peak charge with shake
+        tl.to(card, { scale: 1.12, boxShadow: glowHigh, filter: "brightness(1.2) saturate(1.4)", duration: 0.04, ease: "power4.out" }, 0.36);
+
+        // Shake during final charge
+        tl.to(card, { x: "+=4", duration: 0.02 }, 0.36)
+            .to(card, { x: "-=8", duration: 0.02 }, 0.38)
+            .to(card, { x: "+=4", duration: 0.02 }, 0.40);
+
+        // === PHASE 2: DISSOLUTION (0.4s) ===
+        // Grid-based particle cascade from center outward
+        const gridSize = 4;
+        const cellWidth = cardRect.width / gridSize;
+        const cellHeight = cardRect.height / gridSize;
+        const dissolutionStart = 0.42;
+
+        // Spawn particles in grid pattern with radial delay
+        tl.call(() => {
+            for (let row = 0; row < gridSize; row++) {
+                for (let col = 0; col < gridSize; col++) {
+                    // Calculate cell center
+                    const cellX = cardCenterX - cardRect.width / 2 + col * cellWidth + cellWidth / 2;
+                    const cellY = cardCenterY - cardRect.height / 2 + row * cellHeight + cellHeight / 2;
+
+                    // Distance from center for cascade timing
+                    const distFromCenter = Math.sqrt(Math.pow(col - 1.5, 2) + Math.pow(row - 1.5, 2));
+                    const cellDelay = distFromCenter * 0.04; // Radial cascade
+
+                    // Spawn 2 core particles per cell
+                    for (let i = 0; i < 2; i++) {
+                        const offsetX = (Math.random() - 0.5) * cellWidth * 0.8;
+                        const offsetY = (Math.random() - 0.5) * cellHeight * 0.8;
+                        setTimeout(() => spawnParticle('core', cellX + offsetX, cellY + offsetY), cellDelay * 1000);
+                    }
+
+                    // Spawn 1 spark per cell
+                    setTimeout(() => spawnParticle('spark', cellX, cellY), (cellDelay + 0.02) * 1000);
+
+                    // Spawn embers at corners only
+                    if ((row === 0 || row === gridSize - 1) && (col === 0 || col === gridSize - 1)) {
+                        setTimeout(() => spawnParticle('ember', cellX, cellY), cellDelay * 1000);
+                    }
+                }
+            }
+        }, [], dissolutionStart);
+
+        // Card dissolves as particles spawn
         tl.to(card, {
-            x: targetX,
-            y: targetY,
-            rotation: -15,
-            scale: 0.5,
-            duration: 0.4,
-            ease: "power3.in"
-        });
+            opacity: 0,
+            scale: 0.85,
+            filter: "brightness(1.5) blur(2px)",
+            duration: 0.35,
+            ease: "power3.in",
+            onComplete: () => {
+                card.classList.remove('gold-charged');
+                gsap.set(card, { x: -9999, y: -9999, opacity: 0, filter: "none" });
+            }
+        }, dissolutionStart + 0.05);
+
+        // Make particles visible with burst effect
+        tl.call(() => {
+            [...coreParticles, ...sparkParticles, ...emberParticles].forEach((p, i) => {
+                gsap.to(p, {
+                    opacity: 1,
+                    scale: 1,
+                    duration: 0.15,
+                    delay: i * 0.005,
+                    ease: "back.out(2)"
+                });
+            });
+        }, [], dissolutionStart + 0.1);
+
+        // === PHASE 3: STREAM (0.4s) ===
+        // Particles spiral toward discard pile with physics
+        const streamStart = 0.82;
+
+        tl.call(() => {
+            // Core particles: Fast, tight spiral
+            coreParticles.forEach((p, i) => {
+                const startX = gsap.getProperty(p, "x") as number;
+                const startY = gsap.getProperty(p, "y") as number;
+                const delay = i * 0.008;
+
+                // Calculate spiral midpoint
+                const angle = (i / coreParticles.length) * Math.PI * 2;
+                const spiralRadius = 40 + Math.random() * 30;
+                const midX = (startX + targetCenterX) / 2 + Math.cos(angle) * spiralRadius;
+                const midY = Math.min(startY, targetCenterY) - 60 - Math.random() * 40;
+
+                gsap.to(p, {
+                    motionPath: {
+                        path: [
+                            { x: startX, y: startY },
+                            { x: midX, y: midY },
+                            { x: targetCenterX + (Math.random() - 0.5) * 20, y: targetCenterY }
+                        ],
+                        curviness: 1.3
+                    },
+                    rotation: 360 + Math.random() * 180,
+                    scale: 0.4,
+                    duration: 0.32 + Math.random() * 0.08,
+                    delay: delay,
+                    ease: "power2.in",
+                    onComplete: () => {
+                        spawnImpactBurst(targetCenterX, targetCenterY);
+                        p.remove();
+                    }
+                });
+            });
+
+            // Spark particles: Fastest, erratic paths
+            sparkParticles.forEach((p, i) => {
+                gsap.to(p, {
+                    x: targetCenterX + (Math.random() - 0.5) * 30,
+                    y: targetCenterY + (Math.random() - 0.5) * 30,
+                    opacity: 0,
+                    duration: 0.25 + Math.random() * 0.1,
+                    delay: i * 0.01,
+                    ease: "power3.in",
+                    onComplete: () => p.remove()
+                });
+            });
+
+            // Ember particles: Slowest, graceful arcs
+            emberParticles.forEach((p, i) => {
+                const startX = gsap.getProperty(p, "x") as number;
+                const startY = gsap.getProperty(p, "y") as number;
+
+                gsap.to(p, {
+                    motionPath: {
+                        path: [
+                            { x: startX, y: startY },
+                            { x: (startX + targetCenterX) / 2, y: startY - 80 },
+                            { x: targetCenterX, y: targetCenterY }
+                        ],
+                        curviness: 2
+                    },
+                    scale: 0.5,
+                    opacity: 0.6,
+                    duration: 0.45,
+                    delay: i * 0.05,
+                    ease: "power1.inOut",
+                    onComplete: () => p.remove()
+                });
+            });
+        }, [], streamStart);
+
+        // === PHASE 4: REFORMATION (0.6s) ===
+        // Premium materialization with shockwave and ghost card
+        const reformStart = 1.22;
+
+        // Create shockwave
+        const shockwave = document.createElement('div');
+        shockwave.className = 'gold-shockwave';
+        fxLayer.appendChild(shockwave);
+        gsap.set(shockwave, { x: targetCenterX - 20, y: targetCenterY - 20, scale: 0.5, opacity: 0 });
+
+        // Create ghost card
+        const ghostCard = document.createElement('div');
+        ghostCard.className = 'gold-reform-ghost';
+        ghostCard.style.width = `${isMobile ? 82 : 130}px`;
+        ghostCard.style.height = `${isMobile ? 112 : 180}px`;
+        fxLayer.appendChild(ghostCard);
+        gsap.set(ghostCard, { x: targetX, y: targetY, scale: 0.8, opacity: 0 });
+
+        // Shockwave expands
+        tl.to(shockwave, { opacity: 1, scale: 1, duration: 0.1, ease: "power2.out" }, reformStart);
+        tl.to(shockwave, { scale: 4, opacity: 0, duration: 0.3, ease: "power2.out" }, reformStart + 0.1);
+
+        // Ghost card materializes
+        tl.to(ghostCard, { opacity: 0.8, scale: 1, duration: 0.25, ease: "power2.out" }, reformStart + 0.1);
+        tl.to(ghostCard, { opacity: 0, duration: 0.2, ease: "power2.in" }, reformStart + 0.35);
+
+        // Discard pile glow and "thud" bounce
+        tl.call(() => {
+            if (discardPileRef.current) {
+                discardPileRef.current.classList.add('gold-reformation-glow');
+            }
+        }, [], reformStart + 0.15);
+
+        tl.to(discardPileRef.current, { scale: 1.06, duration: 0.08, ease: "power4.out" }, reformStart + 0.2);
+        tl.to(discardPileRef.current, { scale: 1, duration: 0.25, ease: "elastic.out(1, 0.4)" }, reformStart + 0.28);
+
+        // Cleanup
+        tl.call(() => {
+            if (discardPileRef.current) {
+                setTimeout(() => discardPileRef.current?.classList.remove('gold-reformation-glow'), 400);
+            }
+            if (fxLayer.parentNode) fxLayer.remove();
+        }, [], reformStart + 0.55);
     };
 
     // PLAY ANIMATION - Premium "Gambit Charge & Throw" to Active Slot
@@ -1332,6 +1588,7 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
             className="casino-table-container"
             ref={containerRef}
             onMouseMove={handleGlobalMouseMove}
+            data-swipeable="true"
         >
             {/* Table Trim */}
             < div className="table-trim" />
@@ -1342,6 +1599,7 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
                 ref={deckRef}
                 className="deck-stack absolute top-[10%] right-[5%] md:top-[15%] md:right-[10%] w-[140px] h-[200px] md:w-[260px] md:h-[360px] perspective-1000 z-30 cursor-pointer"
                 onClick={handleDraw}
+                data-no-swipe="true"
             >
                 {/* Simulated Stack Layers */}
                 {[...Array(5)].map((_, i) => (
@@ -1434,7 +1692,7 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
             }
 
             {/* Details Panel */}
-            <div className="details-panel">
+            <div className="details-panel" data-no-swipe="true">
                 {activeProject && (
                     <div className="text-white h-full flex flex-col relative">
                         {/* Top close button for quick access on mobile */}
