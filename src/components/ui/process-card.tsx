@@ -115,17 +115,13 @@ export function ProcessCard({
                     {details && details.length > 0 && (
                         <ul className="space-y-2 mt-4">
                             {details.map((detail, idx) => (
-                                <motion.li
+                                <li
                                     key={idx}
-                                    initial={{ opacity: 0, x: -10 }}
-                                    whileInView={{ opacity: 1, x: 0 }}
-                                    viewport={{ once: true }}
-                                    transition={{ delay: delay + 0.1 * idx }}
                                     className="flex items-start space-x-2 text-sm text-muted-foreground"
                                 >
                                     <span className="w-1.5 h-1.5 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 mt-1.5 flex-shrink-0" />
                                     <span>{detail}</span>
-                                </motion.li>
+                                </li>
                             ))}
                         </ul>
                     )}
