@@ -255,12 +255,18 @@
 .flow-hero-title {
     font-size: clamp(3rem, 10vw, 6rem);
     font-weight: 900;
+    color: #fff;
+    margin-bottom: 24px;
+    line-height: 1.05;
+    will-change: opacity, transform;
+}
+
+/* Gradient effect on hover - doesn't block LCP */
+.flow-hero-title:hover {
     background: linear-gradient(135deg, #fff 0%, #94a3b8 50%, var(--flow-accent) 100%);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
-    margin-bottom: 24px;
-    line-height: 1.05;
 }
 
 .flow-hero-subtitle {
@@ -305,6 +311,8 @@
 /* ===== PINNED JOURNEY CONTAINER ===== */
 .flow-journey {
     position: relative;
+    content-visibility: auto;
+    contain-intrinsic-size: auto 6000px;
 }
 
 .flow-journey-pin {
@@ -324,8 +332,7 @@
 /* Alternating panel positions */
 .flow-step-panel {
     max-width: 450px;
-    background: rgba(15, 15, 25, 0.85);
-    backdrop-filter: blur(20px);
+    background: rgba(15, 15, 25, 0.9);
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 24px;
     padding: 2.5rem;
@@ -333,6 +340,7 @@
     z-index: 30;
     opacity: 0;
     transform: translateY(60px);
+    will-change: opacity, transform;
 }
 
 .flow-step:nth-child(odd) .flow-step-panel {
@@ -601,15 +609,89 @@
     }
 }
 
+/* ===== HOW IT WORKS QUICK STRIP ===== */
+.how-it-works-strip {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 40px;
+    padding: 0 16px;
+}
+
+.how-it-works-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.how-it-works-item:hover {
+    background: rgba(99, 102, 241, 0.15);
+    border-color: var(--flow-accent);
+    transform: translateY(-4px);
+}
+
+.how-it-works-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+}
+
+.how-it-works-icon svg {
+    width: 20px;
+    height: 20px;
+}
+
+.how-it-works-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--flow-text-muted);
+    white-space: nowrap;
+}
+
+/* ===== ENHANCED MOBILE PROGRESS ===== */
 .mobile-progress {
     display: none;
     position: fixed;
-    bottom: 0;
+    top: 0;
     left: 0;
     right: 0;
+    background: rgba(10, 10, 15, 0.95);
+    backdrop-filter: blur(10px);
+    z-index: 100;
+    padding: 8px 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.mobile-progress-content {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.mobile-step-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--flow-text);
+    text-align: center;
+}
+
+.mobile-progress-track {
     height: 4px;
     background: rgba(255, 255, 255, 0.1);
-    z-index: 100;
+    border-radius: 2px;
+    overflow: hidden;
 }
 
 .mobile-progress-fill {
@@ -617,6 +699,150 @@
     background: linear-gradient(90deg, var(--flow-accent), var(--flow-secondary));
     width: 0%;
     transition: width 0.2s ease-out;
+    border-radius: 2px;
+}
+
+/* ===== BACK TO TOP BUTTON ===== */
+.back-to-top-btn {
+    display: none;
+    position: fixed;
+    bottom: 80px;
+    right: 16px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: rgba(99, 102, 241, 0.9);
+    border: none;
+    color: white;
+    cursor: pointer;
+    z-index: 99;
+    box-shadow: 0 4px 20px rgba(99, 102, 241, 0.4);
+    transition: all 0.3s ease;
+    align-items: center;
+    justify-content: center;
+}
+
+.back-to-top-btn:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 30px rgba(99, 102, 241, 0.6);
+}
+
+/* ===== STICKY CTA ===== */
+.sticky-cta {
+    position: fixed;
+    bottom: 32px;
+    right: 24px;
+    z-index: 90;
+    opacity: 0;
+    transform: translateY(20px);
+    pointer-events: none;
+    transition: all 0.4s ease;
+}
+
+.sticky-cta.visible {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+.sticky-cta-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 24px;
+    background: linear-gradient(135deg, var(--flow-accent), var(--flow-secondary));
+    border: none;
+    border-radius: 12px;
+    color: white;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 8px 32px rgba(99, 102, 241, 0.4);
+    transition: all 0.3s ease;
+}
+
+.sticky-cta-button:hover {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 12px 40px rgba(99, 102, 241, 0.5);
+}
+
+/* ===== IMPROVED TYPOGRAPHY ===== */
+.step-description {
+    font-size: 1.125rem;
+    color: #cbd5e1;
+    line-height: 1.75;
+    margin-bottom: 24px;
+    letter-spacing: 0.01em;
+}
+
+.step-feature span {
+    color: #e2e8f0;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+    .mobile-progress {
+        display: block !important;
+    }
+
+    .back-to-top-btn {
+        display: flex;
+    }
+
+    .sticky-cta {
+        bottom: 70px;
+        right: 16px;
+    }
+
+    .sticky-cta-button {
+        padding: 12px 20px;
+        font-size: 13px;
+    }
+
+    .how-it-works-strip {
+        gap: 8px;
+        padding: 0 8px;
+    }
+
+    .how-it-works-item {
+        padding: 8px 12px;
+    }
+
+    .how-it-works-icon {
+        width: 32px;
+        height: 32px;
+    }
+
+    .how-it-works-icon svg {
+        width: 16px;
+        height: 16px;
+    }
+
+    .how-it-works-label {
+        font-size: 10px;
+    }
+
+    .flow-step-panel {
+        backdrop-filter: blur(10px);
+    }
+
+    /* Add padding for fixed mobile header */
+    .flow-hero {
+        padding-top: 70px;
+    }
+}
+
+/* ===== ANIMATION GATING - Only animate when visible ===== */
+.engine-ring-1,
+.engine-ring-2,
+.engine-ring-3 {
+    animation-play-state: paused;
+}
+
+.flow-central-visual.visible .engine-ring-1,
+.flow-central-visual.visible .engine-ring-2,
+.flow-central-visual.visible .engine-ring-3 {
+    animation-play-state: running;
 }
 
 /* ===== REDUCED MOTION ===== */
@@ -628,5 +854,20 @@
     .scroll-line,
     .step-tag.active {
         animation: none;
+    }
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+
+    .sticky-cta,
+    .back-to-top-btn,
+    .how-it-works-item {
+        transition: none;
     }
 }

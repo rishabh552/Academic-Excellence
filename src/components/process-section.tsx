@@ -13,7 +13,8 @@ import {
     Rocket,
     Check,
     ArrowRight,
-    Sparkles
+    Sparkles,
+    ChevronUp
 } from "lucide-react";
 import "./process-storytelling.css";
 
@@ -34,7 +35,7 @@ const steps: ProcessStep[] = [
     {
         id: 1,
         title: "Submit Your Requirements",
-        description: "Share your project vision with us. We analyze every detail and provide a transparent quote within hours.",
+        description: "Share your project vision with us. Get a detailed quote within 24 hours—no hidden fees, no surprises.",
         icon: <Send />,
         details: [
             "Simple project request form",
@@ -48,7 +49,7 @@ const steps: ProcessStep[] = [
     {
         id: 2,
         title: "Project Planning & Design",
-        description: "Our architects craft a comprehensive blueprint—from system design to pixel-perfect mockups.",
+        description: "Receive your project blueprint in 2-3 days: technical specs, wireframes, and a milestone timeline you can track.",
         icon: <FileText />,
         details: [
             "Technical specifications",
@@ -62,7 +63,7 @@ const steps: ProcessStep[] = [
     {
         id: 3,
         title: "Expert Development",
-        description: "Watch your project come alive as our developers build with cutting-edge technologies and best practices.",
+        description: "Watch your project come alive with weekly progress demos. Comment on drafts in real-time as we build.",
         icon: <Code2 />,
         details: [
             "Clean, documented code",
@@ -76,7 +77,7 @@ const steps: ProcessStep[] = [
     {
         id: 4,
         title: "Quality Assurance",
-        description: "Rigorous testing ensures your project is bulletproof—performant, secure, and bug-free.",
+        description: "We test everything before you see it. Expect a detailed QA report with every milestone delivery.",
         icon: <TestTube />,
         details: [
             "Unit & integration tests",
@@ -90,7 +91,7 @@ const steps: ProcessStep[] = [
     {
         id: 5,
         title: "Review & Refinement",
-        description: "Your feedback shapes the final product. Unlimited revisions until you're completely satisfied.",
+        description: "Your feedback shapes the final product. Request changes anytime—unlimited revisions included.",
         icon: <CheckCircle2 />,
         details: [
             "Project walkthrough",
@@ -104,7 +105,7 @@ const steps: ProcessStep[] = [
     {
         id: 6,
         title: "Delivery & Support",
-        description: "Receive everything—source code, documentation, deployment help, and ongoing support.",
+        description: "Handoff includes source code, documentation, and a video walkthrough. 30 days of free support included.",
         icon: <Rocket />,
         details: [
             "Complete source code",
@@ -131,335 +132,394 @@ export function ProcessSection() {
     const [currentStep, setCurrentStep] = useState(0);
     const [currentIcon, setCurrentIcon] = useState<React.ReactNode>(steps[0].icon);
     const [currentColor, setCurrentColor] = useState(steps[0].color);
+    const [showStickyCta, setShowStickyCta] = useState(false);
+    const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+
+    // Check for reduced motion preference
+    useEffect(() => {
+        const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+        setPrefersReducedMotion(mediaQuery.matches);
+        const handler = (e: MediaQueryListEvent) => setPrefersReducedMotion(e.matches);
+        mediaQuery.addEventListener('change', handler);
+        return () => mediaQuery.removeEventListener('change', handler);
+    }, []);
 
     useEffect(() => {
-        const ctx = gsap.context(() => {
-            // ===== HERO ANIMATION =====
-            // Set initial visible state
-            gsap.set(".flow-hero-badge, .flow-hero-title, .flow-hero-subtitle, .flow-scroll-indicator", {
-                opacity: 1,
-                y: 0
-            });
+        let ctx: gsap.Context | null = null;
+        let idleCallbackId: number | null = null;
 
-            // Initial entrance animation (runs once on load)
-            gsap.from(".flow-hero-badge", {
-                opacity: 0,
-                y: 30,
-                duration: 0.8,
-                delay: 0.2
-            });
-            gsap.from(".flow-hero-title", {
-                opacity: 0,
-                y: 40,
-                duration: 1,
-                delay: 0.4
-            });
-            gsap.from(".flow-hero-subtitle", {
-                opacity: 0,
-                y: 30,
-                duration: 0.8,
-                delay: 0.6
-            });
-            gsap.from(".flow-scroll-indicator", {
-                opacity: 0,
-                duration: 0.6,
-                delay: 1
-            });
-
-            // Hero fade out/in based on scroll position
-            ScrollTrigger.create({
-                trigger: heroRef.current,
-                start: "top top",
-                end: "bottom 20%",
-                onLeave: () => {
-                    gsap.to(".flow-hero-badge, .flow-hero-title, .flow-hero-subtitle, .flow-scroll-indicator", {
+        // Defer GSAP initialization to allow LCP to complete first
+        const initGSAP = () => {
+            ctx = gsap.context(() => {
+                // ===== HERO ANIMATION =====
+                // Hero is visible by default - animations enhance rather than block LCP
+                // Only animate if reduced motion is not preferred
+                if (!prefersReducedMotion) {
+                    // Initial entrance animation - shorter delays for faster perceived load
+                    gsap.from(".flow-hero-badge", {
                         opacity: 0,
-                        y: -30,
-                        duration: 0.4,
-                        stagger: 0.05
-                    });
-                },
-                onEnterBack: () => {
-                    gsap.to(".flow-hero-badge, .flow-hero-title, .flow-hero-subtitle, .flow-scroll-indicator", {
-                        opacity: 1,
-                        y: 0,
+                        y: 20,
                         duration: 0.5,
-                        stagger: 0.05
+                        delay: 0.05
                     });
-                }
-            });
+                    gsap.from(".flow-hero-title", {
+                        opacity: 0,
+                        y: 30,
+                        duration: 0.6,
+                        delay: 0.1
+                    });
+                    gsap.from(".flow-hero-subtitle", {
+                        opacity: 0,
+                        y: 20,
+                        duration: 0.5,
+                        delay: 0.15
+                    });
+                    gsap.from(".how-it-works-strip", {
+                        opacity: 0,
+                        y: 15,
+                        duration: 0.4,
+                        delay: 0.2
+                    });
+                    gsap.from(".flow-scroll-indicator", {
+                        opacity: 0,
+                        duration: 0.4,
+                        delay: 0.25
+                    });
 
-            // ===== CENTRAL VISUAL VISIBILITY =====
-            ScrollTrigger.create({
-                trigger: journeyRef.current,
-                start: "top 80%",
-                end: "bottom 20%",
-                onEnter: () => {
-                    centralVisualRef.current?.classList.add("visible");
-                },
-                onLeave: () => {
-                    centralVisualRef.current?.classList.remove("visible");
-                },
-                onEnterBack: () => {
-                    centralVisualRef.current?.classList.add("visible");
-                },
-                onLeaveBack: () => {
-                    centralVisualRef.current?.classList.remove("visible");
-                }
-            });
-
-            // ===== MAIN JOURNEY SCROLL PROGRESS =====
-            ScrollTrigger.create({
-                trigger: journeyRef.current,
-                start: "top top",
-                end: "bottom bottom",
-                onUpdate: (self) => {
-                    const progress = self.progress;
-
-                    // Update circular progress ring (SVG strokeDashoffset)
-                    // Circle circumference = 2 * PI * r = 2 * 3.14159 * 160 = 1005.3
-                    if (progressRingRef.current) {
-                        const circumference = 1005.3;
-                        const offset = circumference * (1 - progress);
-                        progressRingRef.current.style.strokeDashoffset = String(offset);
-                    }
-
-                    // Update mobile progress
-                    if (mobileProgressRef.current) {
-                        mobileProgressRef.current.style.width = `${progress * 100}%`;
-                    }
-
-                    // Calculate current step (1-6)
-                    const stepIndex = Math.min(5, Math.floor(progress * 6));
-                    if (stepIndex !== currentStep) {
-                        setCurrentStep(stepIndex);
-                        setCurrentIcon(steps[stepIndex].icon);
-                        setCurrentColor(steps[stepIndex].color);
-
-                        // Update progress ring color
-                        if (progressRingRef.current) {
-                            progressRingRef.current.style.stroke = steps[stepIndex].color;
-                        }
-
-                        // Update mobile progress color
-                        if (mobileProgressRef.current) {
-                            mobileProgressRef.current.style.background = `linear-gradient(90deg, ${steps[stepIndex].color}, ${steps[Math.min(5, stepIndex + 1)].color})`;
-                        }
-
-                        // Animate engine icon change
-                        if (engineIconRef.current) {
-                            gsap.to(engineIconRef.current, {
-                                scale: 0.8,
+                    // Hero fade out/in based on scroll position
+                    ScrollTrigger.create({
+                        trigger: heroRef.current,
+                        start: "top top",
+                        end: "bottom 20%",
+                        onLeave: () => {
+                            gsap.to(".flow-hero-badge, .flow-hero-title, .flow-hero-subtitle, .flow-scroll-indicator", {
                                 opacity: 0,
-                                duration: 0.15,
-                                onComplete: () => {
-                                    gsap.to(engineIconRef.current, {
-                                        scale: 1,
-                                        opacity: 1,
-                                        duration: 0.3,
-                                        ease: "back.out(2)"
-                                    });
-                                }
+                                y: -30,
+                                duration: 0.4,
+                                stagger: 0.05
+                            });
+                        },
+                        onEnterBack: () => {
+                            gsap.to(".flow-hero-badge, .flow-hero-title, .flow-hero-subtitle, .flow-scroll-indicator", {
+                                opacity: 1,
+                                y: 0,
+                                duration: 0.5,
+                                stagger: 0.05
                             });
                         }
+                    });
 
-                        // Update timeline dots
-                        document.querySelectorAll(".timeline-dot").forEach((dot, i) => {
-                            dot.classList.remove("active", "completed");
-                            if (i < stepIndex) {
-                                dot.classList.add("completed");
-                            } else if (i === stepIndex) {
-                                dot.classList.add("active");
+                    // ===== CENTRAL VISUAL VISIBILITY =====
+                    ScrollTrigger.create({
+                        trigger: journeyRef.current,
+                        start: "top 80%",
+                        end: "bottom 20%",
+                        onEnter: () => {
+                            centralVisualRef.current?.classList.add("visible");
+                        },
+                        onLeave: () => {
+                            centralVisualRef.current?.classList.remove("visible");
+                        },
+                        onEnterBack: () => {
+                            centralVisualRef.current?.classList.add("visible");
+                        },
+                        onLeaveBack: () => {
+                            centralVisualRef.current?.classList.remove("visible");
+                        }
+                    });
+
+                    // ===== MAIN JOURNEY SCROLL PROGRESS =====
+                    ScrollTrigger.create({
+                        trigger: journeyRef.current,
+                        start: "top top",
+                        end: "bottom bottom",
+                        onUpdate: (self) => {
+                            const progress = self.progress;
+
+                            // Update circular progress ring (SVG strokeDashoffset)
+                            // Circle circumference = 2 * PI * r = 2 * 3.14159 * 160 = 1005.3
+                            if (progressRingRef.current) {
+                                const circumference = 1005.3;
+                                const offset = circumference * (1 - progress);
+                                progressRingRef.current.style.strokeDashoffset = String(offset);
+                            }
+
+                            // Update mobile progress
+                            if (mobileProgressRef.current) {
+                                mobileProgressRef.current.style.width = `${progress * 100}%`;
+                            }
+
+                            // Calculate current step (1-6)
+                            const stepIndex = Math.min(5, Math.floor(progress * 6));
+                            if (stepIndex !== currentStep) {
+                                setCurrentStep(stepIndex);
+                                setCurrentIcon(steps[stepIndex].icon);
+                                setCurrentColor(steps[stepIndex].color);
+
+                                // Update progress ring color
+                                if (progressRingRef.current) {
+                                    progressRingRef.current.style.stroke = steps[stepIndex].color;
+                                }
+
+                                // Update mobile progress color
+                                if (mobileProgressRef.current) {
+                                    mobileProgressRef.current.style.background = `linear-gradient(90deg, ${steps[stepIndex].color}, ${steps[Math.min(5, stepIndex + 1)].color})`;
+                                }
+
+                                // Animate engine icon change
+                                if (engineIconRef.current) {
+                                    gsap.to(engineIconRef.current, {
+                                        scale: 0.8,
+                                        opacity: 0,
+                                        duration: 0.15,
+                                        onComplete: () => {
+                                            gsap.to(engineIconRef.current, {
+                                                scale: 1,
+                                                opacity: 1,
+                                                duration: 0.3,
+                                                ease: "back.out(2)"
+                                            });
+                                        }
+                                    });
+                                }
+
+                                // Update timeline dots
+                                document.querySelectorAll(".timeline-dot").forEach((dot, i) => {
+                                    dot.classList.remove("active", "completed");
+                                    if (i < stepIndex) {
+                                        dot.classList.add("completed");
+                                    } else if (i === stepIndex) {
+                                        dot.classList.add("active");
+                                    }
+                                });
+                            }
+                        }
+                    });
+
+                    // ===== STEP PANELS - PROPER ENTRANCE/EXIT WITH REVERSE =====
+                    stepRefs.current.forEach((stepEl) => {
+                        if (!stepEl) return;
+
+                        const panel = stepEl.querySelector(".flow-step-panel");
+                        const features = stepEl.querySelectorAll(".step-feature");
+
+                        // Set initial states
+                        gsap.set(panel, { opacity: 0, y: 60 });
+                        gsap.set(features, { opacity: 0, x: -20 });
+
+                        // Panel entrance - appears when step enters viewport
+                        ScrollTrigger.create({
+                            trigger: stepEl,
+                            start: "top 75%",
+                            end: "bottom 25%",
+                            onEnter: () => {
+                                gsap.to(panel, {
+                                    opacity: 1,
+                                    y: 0,
+                                    duration: 0.8,
+                                    ease: "power2.out"
+                                });
+                                gsap.to(features, {
+                                    opacity: 1,
+                                    x: 0,
+                                    stagger: 0.1,
+                                    duration: 0.5,
+                                    delay: 0.3,
+                                    ease: "power2.out"
+                                });
+                            },
+                            onLeave: () => {
+                                gsap.to(panel, {
+                                    opacity: 0,
+                                    y: -40,
+                                    duration: 0.6,
+                                    ease: "power2.in"
+                                });
+                            },
+                            onEnterBack: () => {
+                                gsap.to(panel, {
+                                    opacity: 1,
+                                    y: 0,
+                                    duration: 0.6,
+                                    ease: "power2.out"
+                                });
+                                gsap.to(features, {
+                                    opacity: 1,
+                                    x: 0,
+                                    stagger: 0.05,
+                                    duration: 0.4,
+                                    ease: "power2.out"
+                                });
+                            },
+                            onLeaveBack: () => {
+                                gsap.to(panel, {
+                                    opacity: 0,
+                                    y: 60,
+                                    duration: 0.5,
+                                    ease: "power2.in"
+                                });
+                                gsap.to(features, {
+                                    opacity: 0,
+                                    x: -20,
+                                    duration: 0.3
+                                });
                             }
                         });
+                    });
+
+                    // ===== CENTRAL ENGINE ROTATION - 2 FULL ROTATIONS =====
+                    gsap.to(".central-engine", {
+                        scrollTrigger: {
+                            trigger: journeyRef.current,
+                            start: "top top",
+                            end: "bottom bottom",
+                            scrub: 1
+                        },
+                        rotation: 720,
+                        ease: "none"
+                    });
+
+                    // Engine rings scale with scroll
+                    gsap.to(".engine-ring-1", {
+                        scrollTrigger: {
+                            trigger: journeyRef.current,
+                            start: "top top",
+                            end: "bottom bottom",
+                            scrub: 1
+                        },
+                        scale: 1.4,
+                        opacity: 0.6,
+                        rotation: 360
+                    });
+
+                    gsap.to(".engine-ring-2", {
+                        scrollTrigger: {
+                            trigger: journeyRef.current,
+                            start: "top top",
+                            end: "bottom bottom",
+                            scrub: 1.5
+                        },
+                        scale: 1.3,
+                        opacity: 0.5,
+                        rotation: -360
+                    });
+
+                    gsap.to(".engine-ring-3", {
+                        scrollTrigger: {
+                            trigger: journeyRef.current,
+                            start: "top top",
+                            end: "bottom bottom",
+                            scrub: 2
+                        },
+                        scale: 1.2,
+                        rotation: 180
+                    });
+
+                    // ===== HIDE CENTRAL ENGINE AT CTA =====
+                    ScrollTrigger.create({
+                        trigger: ctaRef.current,
+                        start: "top 60%",
+                        end: "top 30%",
+                        onEnter: () => {
+                            gsap.to(centralVisualRef.current, {
+                                opacity: 0,
+                                scale: 0.8,
+                                duration: 0.5,
+                                ease: "power2.out"
+                            });
+                        },
+                        onLeaveBack: () => {
+                            gsap.to(centralVisualRef.current, {
+                                opacity: 1,
+                                scale: 1,
+                                duration: 0.5,
+                                ease: "power2.out"
+                            });
+                        }
+                    });
+
+                    // ===== CTA SECTION - Ensure button is visible =====
+                    // Set initial states explicitly
+                    gsap.set(".cta-title", { opacity: 0, y: 40 });
+                    gsap.set(".cta-subtitle", { opacity: 0, y: 30 });
+                    gsap.set(".cta-button", { opacity: 0, scale: 0.9 });
+
+                    ScrollTrigger.create({
+                        trigger: ctaRef.current,
+                        start: "top 80%",
+                        onEnter: () => {
+                            gsap.to(".cta-title", {
+                                opacity: 1,
+                                y: 0,
+                                duration: 0.8,
+                                ease: "power2.out"
+                            });
+                            gsap.to(".cta-subtitle", {
+                                opacity: 1,
+                                y: 0,
+                                duration: 0.6,
+                                delay: 0.2,
+                                ease: "power2.out"
+                            });
+                            gsap.to(".cta-button", {
+                                opacity: 1,
+                                scale: 1,
+                                duration: 0.6,
+                                delay: 0.4,
+                                ease: "back.out(2)"
+                            });
+                        },
+                        onLeaveBack: () => {
+                            gsap.to(".cta-title", { opacity: 0, y: 40, duration: 0.4 });
+                            gsap.to(".cta-subtitle", { opacity: 0, y: 30, duration: 0.3 });
+                            gsap.to(".cta-button", { opacity: 0, scale: 0.9, duration: 0.3 });
+                        }
+                    });
+
+                } // End of if (!prefersReducedMotion)
+
+                // ===== SCROLL PROGRESS (Always runs, even with reduced motion) =====
+                // Show/hide sticky CTA based on scroll position using scroll event for reliability
+                const handleScroll = () => {
+                    const scrollY = window.scrollY;
+                    const heroHeight = heroRef.current?.offsetHeight || 600;
+                    const ctaTop = ctaRef.current?.getBoundingClientRect().top || Infinity;
+
+                    // Show CTA after scrolling past hero, hide when near final CTA
+                    if (scrollY > heroHeight && ctaTop > window.innerHeight * 0.8) {
+                        setShowStickyCta(true);
+                    } else {
+                        setShowStickyCta(false);
                     }
+                };
+
+                window.addEventListener('scroll', handleScroll);
+                handleScroll(); // Check initial state
+
+            }, containerRef);
+        };
+
+        // Use requestIdleCallback to defer GSAP initialization until after first paint
+        // This allows LCP to complete before heavy animation setup runs
+        if ('requestIdleCallback' in window) {
+            idleCallbackId = window.requestIdleCallback(initGSAP, { timeout: 100 });
+        } else {
+            // Fallback for Safari - use setTimeout
+            idleCallbackId = setTimeout(initGSAP, 50) as unknown as number;
+        }
+
+        return () => {
+            if (idleCallbackId) {
+                if ('cancelIdleCallback' in window) {
+                    window.cancelIdleCallback(idleCallbackId);
+                } else {
+                    clearTimeout(idleCallbackId);
                 }
-            });
-
-            // ===== STEP PANELS - PROPER ENTRANCE/EXIT WITH REVERSE =====
-            stepRefs.current.forEach((stepEl) => {
-                if (!stepEl) return;
-
-                const panel = stepEl.querySelector(".flow-step-panel");
-                const features = stepEl.querySelectorAll(".step-feature");
-
-                // Set initial states
-                gsap.set(panel, { opacity: 0, y: 60 });
-                gsap.set(features, { opacity: 0, x: -20 });
-
-                // Panel entrance - appears when step enters viewport
-                ScrollTrigger.create({
-                    trigger: stepEl,
-                    start: "top 75%",
-                    end: "bottom 25%",
-                    onEnter: () => {
-                        gsap.to(panel, {
-                            opacity: 1,
-                            y: 0,
-                            duration: 0.8,
-                            ease: "power2.out"
-                        });
-                        gsap.to(features, {
-                            opacity: 1,
-                            x: 0,
-                            stagger: 0.1,
-                            duration: 0.5,
-                            delay: 0.3,
-                            ease: "power2.out"
-                        });
-                    },
-                    onLeave: () => {
-                        gsap.to(panel, {
-                            opacity: 0,
-                            y: -40,
-                            duration: 0.6,
-                            ease: "power2.in"
-                        });
-                    },
-                    onEnterBack: () => {
-                        gsap.to(panel, {
-                            opacity: 1,
-                            y: 0,
-                            duration: 0.6,
-                            ease: "power2.out"
-                        });
-                        gsap.to(features, {
-                            opacity: 1,
-                            x: 0,
-                            stagger: 0.05,
-                            duration: 0.4,
-                            ease: "power2.out"
-                        });
-                    },
-                    onLeaveBack: () => {
-                        gsap.to(panel, {
-                            opacity: 0,
-                            y: 60,
-                            duration: 0.5,
-                            ease: "power2.in"
-                        });
-                        gsap.to(features, {
-                            opacity: 0,
-                            x: -20,
-                            duration: 0.3
-                        });
-                    }
-                });
-            });
-
-            // ===== CENTRAL ENGINE ROTATION - 2 FULL ROTATIONS =====
-            gsap.to(".central-engine", {
-                scrollTrigger: {
-                    trigger: journeyRef.current,
-                    start: "top top",
-                    end: "bottom bottom",
-                    scrub: 1
-                },
-                rotation: 720,
-                ease: "none"
-            });
-
-            // Engine rings scale with scroll
-            gsap.to(".engine-ring-1", {
-                scrollTrigger: {
-                    trigger: journeyRef.current,
-                    start: "top top",
-                    end: "bottom bottom",
-                    scrub: 1
-                },
-                scale: 1.4,
-                opacity: 0.6,
-                rotation: 360
-            });
-
-            gsap.to(".engine-ring-2", {
-                scrollTrigger: {
-                    trigger: journeyRef.current,
-                    start: "top top",
-                    end: "bottom bottom",
-                    scrub: 1.5
-                },
-                scale: 1.3,
-                opacity: 0.5,
-                rotation: -360
-            });
-
-            gsap.to(".engine-ring-3", {
-                scrollTrigger: {
-                    trigger: journeyRef.current,
-                    start: "top top",
-                    end: "bottom bottom",
-                    scrub: 2
-                },
-                scale: 1.2,
-                rotation: 180
-            });
-
-            // ===== HIDE CENTRAL ENGINE AT CTA =====
-            ScrollTrigger.create({
-                trigger: ctaRef.current,
-                start: "top 60%",
-                end: "top 30%",
-                onEnter: () => {
-                    gsap.to(centralVisualRef.current, {
-                        opacity: 0,
-                        scale: 0.8,
-                        duration: 0.5,
-                        ease: "power2.out"
-                    });
-                },
-                onLeaveBack: () => {
-                    gsap.to(centralVisualRef.current, {
-                        opacity: 1,
-                        scale: 1,
-                        duration: 0.5,
-                        ease: "power2.out"
-                    });
-                }
-            });
-
-            // ===== CTA SECTION - Ensure button is visible =====
-            // Set initial states explicitly
-            gsap.set(".cta-title", { opacity: 0, y: 40 });
-            gsap.set(".cta-subtitle", { opacity: 0, y: 30 });
-            gsap.set(".cta-button", { opacity: 0, scale: 0.9 });
-
-            ScrollTrigger.create({
-                trigger: ctaRef.current,
-                start: "top 80%",
-                onEnter: () => {
-                    gsap.to(".cta-title", {
-                        opacity: 1,
-                        y: 0,
-                        duration: 0.8,
-                        ease: "power2.out"
-                    });
-                    gsap.to(".cta-subtitle", {
-                        opacity: 1,
-                        y: 0,
-                        duration: 0.6,
-                        delay: 0.2,
-                        ease: "power2.out"
-                    });
-                    gsap.to(".cta-button", {
-                        opacity: 1,
-                        scale: 1,
-                        duration: 0.6,
-                        delay: 0.4,
-                        ease: "back.out(2)"
-                    });
-                },
-                onLeaveBack: () => {
-                    gsap.to(".cta-title", { opacity: 0, y: 40, duration: 0.4 });
-                    gsap.to(".cta-subtitle", { opacity: 0, y: 30, duration: 0.3 });
-                    gsap.to(".cta-button", { opacity: 0, scale: 0.9, duration: 0.3 });
-                }
-            });
-
-        }, containerRef);
-
-        return () => ctx.revert();
-    }, [currentStep]);
+            }
+            if (ctx) ctx.revert();
+            window.removeEventListener('scroll', () => { });
+        };
+    }, [currentStep, prefersReducedMotion]);
 
     return (
         <div className="process-flow" ref={containerRef}>
@@ -526,10 +586,32 @@ export function ProcessSection() {
                 </div>
             </div>
 
-            {/* MOBILE PROGRESS BAR */}
+            {/* MOBILE PROGRESS BAR - Enhanced with step label */}
             <div className="mobile-progress">
-                <div className="mobile-progress-fill" ref={mobileProgressRef} />
+                <div className="mobile-progress-content">
+                    <span className="mobile-step-label">Step {currentStep + 1} of 6: {steps[currentStep].title.split(' ')[0]}</span>
+                    <div className="mobile-progress-track">
+                        <div className="mobile-progress-fill" ref={mobileProgressRef} />
+                    </div>
+                </div>
             </div>
+
+            {/* BACK TO TOP BUTTON (Mobile) */}
+            <button
+                className="back-to-top-btn"
+                onClick={() => window.scrollTo({ top: 0, behavior: prefersReducedMotion ? 'auto' : 'smooth' })}
+                aria-label="Back to top"
+            >
+                <ChevronUp size={20} />
+            </button>
+
+            {/* STICKY CTA */}
+            <Link to="/contact" className={`sticky-cta ${showStickyCta ? 'visible' : ''}`}>
+                <button className="sticky-cta-button">
+                    Start Your Project
+                    <ArrowRight size={16} />
+                </button>
+            </Link>
 
             {/* HERO SECTION */}
             <section className="flow-hero" ref={heroRef}>
@@ -542,6 +624,26 @@ export function ProcessSection() {
                     From your first idea to a fully deployed solution—follow our seamless
                     6-step process that transforms concepts into reality.
                 </p>
+
+                {/* HOW IT WORKS - Quick Strip */}
+                <div className="how-it-works-strip">
+                    {steps.map((step, i) => (
+                        <button
+                            key={step.id}
+                            className="how-it-works-item"
+                            onClick={() => {
+                                const el = stepRefs.current[i];
+                                el?.scrollIntoView({ behavior: prefersReducedMotion ? 'auto' : 'smooth' });
+                            }}
+                        >
+                            <div className="how-it-works-icon" style={{ background: step.color }}>
+                                {step.icon}
+                            </div>
+                            <span className="how-it-works-label">{i + 1}. {step.title.split(' ')[0]}</span>
+                        </button>
+                    ))}
+                </div>
+
                 <div className="flow-scroll-indicator">
                     <span>Scroll to begin</span>
                     <div className="scroll-line" />
