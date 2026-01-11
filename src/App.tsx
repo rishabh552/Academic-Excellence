@@ -35,7 +35,7 @@ function Footer() {
         <div className="flex flex-col items-center text-center">
           {/* Copyright */}
           <p className="text-xs text-slate-400 dark:text-slate-600">
-            © 2025 ProjectCraft
+            © 2025 aqro
           </p>
         </div>
       </div>

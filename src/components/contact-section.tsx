@@ -98,7 +98,7 @@ export function ContactSection() {
                 {
                   icon: <Mail className="w-6 h-6 text-brand-primary" />,
                   title: "Email Us",
-                  value: "contact@projectcraft.com",
+                  value: "contact@aqro.com",
                 },
                 {
                   icon: <Phone className="w-6 h-6 text-brand-secondary" />,
