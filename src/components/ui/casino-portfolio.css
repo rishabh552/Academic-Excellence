@@ -1002,3 +1002,62 @@
         opacity: 0;
     }
 }
+
+/* Action Buttons - Ensure clickability */
+.action-buttons {
+    position: relative;
+    z-index: 10;
+    pointer-events: auto;
+}
+
+.action-buttons button {
+    pointer-events: auto;
+    cursor: pointer;
+}
+
+/* Show action buttons when card is focused/flipped */
+.poker-card[data-focused="true"] .action-buttons,
+.poker-card.focused .action-buttons {
+    opacity: 1;
+    transition: opacity 0.3s ease 0.2s;
+}
+
+/* Enable pointer events on card-front when focused so buttons work */
+.poker-card[data-focused="true"] .card-front,
+.poker-card.focused .card-front {
+    pointer-events: auto;
+}
+
+/* Disable pointer events on card-back when focused - prevents blocking front face buttons */
+.poker-card[data-focused="true"] .card-back,
+.poker-card.focused .card-back {
+    pointer-events: none;
+}
+
+/* Also disable the tilt-inner from capturing events, let them pass to children */
+.poker-card[data-focused="true"] .card-tilt-inner,
+.poker-card.focused .card-tilt-inner {
+    pointer-events: none;
+}
+
+/* Re-enable on front face content */
+.poker-card[data-focused="true"] .card-front-content,
+.poker-card.focused .card-front-content {
+    pointer-events: auto;
+}
+
+/* Ensure buttons are always clickable with high z-index */
+.poker-card[data-focused="true"] .action-buttons,
+.poker-card.focused .action-buttons {
+    position: relative;
+    z-index: 100;
+    pointer-events: auto;
+}
+
+.poker-card[data-focused="true"] .action-buttons button,
+.poker-card.focused .action-buttons button {
+    pointer-events: auto;
+    cursor: pointer;
+    position: relative;
+    z-index: 101;
+}

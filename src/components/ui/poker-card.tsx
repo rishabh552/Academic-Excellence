@@ -187,10 +187,11 @@ export const PokerCard = forwardRef<HTMLDivElement, PokerCardProps>(({
                         </div>
 
                         {/* Action Buttons - Larger touch targets for mobile */}
-                        <div className="mt-auto grid grid-cols-2 gap-2 md:gap-3 opacity-0 action-buttons">
+                        <div className="mt-auto grid grid-cols-2 gap-2 md:gap-3 opacity-0 action-buttons relative z-10" style={{ pointerEvents: 'auto' }}>
                             <button
                                 onClick={(e) => { e.stopPropagation(); onFold?.(); }}
-                                className="bg-white/5 hover:bg-white/10 active:bg-white/20 text-white text-xs md:text-sm py-2.5 md:py-2.5 px-3 md:px-4 rounded-lg border border-white/10 flex items-center justify-center transition-all min-h-[44px]"
+                                className="bg-white/5 hover:bg-white/10 active:bg-white/20 text-white text-xs md:text-sm py-2.5 md:py-2.5 px-3 md:px-4 rounded-lg border border-white/10 flex items-center justify-center transition-all min-h-[44px] cursor-pointer"
+                                style={{ pointerEvents: 'auto' }}
                             >
                                 <RefreshCw size={14} className="mr-1.5" />
                                 {isWildCard ? "Pass" : "Fold"}
@@ -198,11 +199,12 @@ export const PokerCard = forwardRef<HTMLDivElement, PokerCardProps>(({
                             <button
                                 onClick={(e) => { e.stopPropagation(); onPlay?.(); }}
                                 className={cn(
-                                    "text-white text-xs md:text-sm py-2.5 md:py-2.5 px-3 md:px-4 rounded-lg flex items-center justify-center transition-all shadow-lg transform hover:scale-105 active:scale-95 min-h-[44px]",
+                                    "text-white text-xs md:text-sm py-2.5 md:py-2.5 px-3 md:px-4 rounded-lg flex items-center justify-center transition-all shadow-lg transform hover:scale-105 active:scale-95 min-h-[44px] cursor-pointer",
                                     isWildCard
                                         ? "bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 shadow-fuchsia-900/40"
                                         : "bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-400 shadow-emerald-900/40"
                                 )}
+                                style={{ pointerEvents: 'auto' }}
                             >
                                 {isWildCard ? <code className="mr-1.5 font-bold">&gt;_</code> : <Eye size={14} className="mr-1.5" />}
                                 {isWildCard ? "INITIATE" : "Play"}
