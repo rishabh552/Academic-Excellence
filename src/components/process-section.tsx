@@ -13,7 +13,6 @@ import {
     Rocket,
     Check,
     ArrowRight,
-    Sparkles,
     ChevronUp
 } from "lucide-react";
 import { ShineBorder } from "./ui/shine-border";
@@ -59,7 +58,7 @@ const steps: ProcessStep[] = [
             "Milestone breakdown"
         ],
         status: "completed",
-        color: "#8b5cf6", // Violet
+        color: "#990F82", // Magenta
     },
     {
         id: 3,
@@ -133,7 +132,6 @@ export function ProcessSection() {
     const [currentStep, setCurrentStep] = useState(0);
     const [currentIcon, setCurrentIcon] = useState<React.ReactNode>(steps[0].icon);
     const [currentColor, setCurrentColor] = useState(steps[0].color);
-    const [showStickyCta, setShowStickyCta] = useState(false);
     const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
 
     // Check for reduced motion preference
@@ -479,24 +477,6 @@ export function ProcessSection() {
 
                 } // End of if (!prefersReducedMotion)
 
-                // ===== SCROLL PROGRESS (Always runs, even with reduced motion) =====
-                // Show/hide sticky CTA based on scroll position using scroll event for reliability
-                const handleScroll = () => {
-                    const scrollY = window.scrollY;
-                    const heroHeight = heroRef.current?.offsetHeight || 600;
-                    const ctaTop = ctaRef.current?.getBoundingClientRect().top || Infinity;
-
-                    // Show CTA after scrolling past hero, hide when near final CTA
-                    if (scrollY > heroHeight && ctaTop > window.innerHeight * 0.8) {
-                        setShowStickyCta(true);
-                    } else {
-                        setShowStickyCta(false);
-                    }
-                };
-
-                window.addEventListener('scroll', handleScroll);
-                handleScroll(); // Check initial state
-
             }, containerRef);
         };
 
@@ -597,14 +577,6 @@ export function ProcessSection() {
             >
                 <ChevronUp size={20} />
             </button>
-
-            {/* STICKY CTA */}
-            <Link to="/contact" className={`sticky-cta ${showStickyCta ? 'visible' : ''}`}>
-                <button className="sticky-cta-button">
-                    Start Your Project
-                    <ArrowRight size={16} />
-                </button>
-            </Link>
 
             {/* HERO SECTION */}
             <section className="flow-hero" ref={heroRef}>
