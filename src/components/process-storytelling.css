@@ -586,12 +586,74 @@
 }
 
 @media (max-width: 768px) {
+
+    /* Show scaled-down engine at CENTER on mobile - like desktop */
     .flow-central-visual {
-        display: none;
+        display: block;
+        top: 50%;
+        bottom: auto;
+        left: 50%;
+        transform: translate(-50%, -50%) scale(0.45);
+        opacity: 0.7;
+        pointer-events: none;
+        z-index: 5;
+        /* Behind step panels (z-index: 30) */
+    }
+
+    .flow-central-visual.visible {
+        opacity: 0.9;
+    }
+
+    /* Simplify ring animations for mobile performance */
+    .central-engine {
+        width: 200px;
+        height: 200px;
+    }
+
+    .engine-ring-1,
+    .engine-ring-2,
+    .engine-ring-3 {
+        animation: none;
+    }
+
+    .engine-center {
+        width: 60px;
+        height: 60px;
+    }
+
+    .engine-icon {
+        width: 28px;
+        height: 28px;
+    }
+
+    .engine-icon svg {
+        width: 24px;
+        height: 24px;
+    }
+
+    /* Progress ring adjustments for mobile */
+    .progress-ring {
+        width: 220px;
+        height: 220px;
+    }
+
+    .progress-ring-bg,
+    .progress-ring-fill {
+        stroke-width: 3;
+    }
+
+    .progress-dot {
+        r: 4;
+    }
+
+    .progress-dot.active {
+        r: 6;
     }
 
     .flow-step {
         padding: 2rem 1rem;
+        padding-bottom: 180px;
+        /* Space for bottom engine */
     }
 
     .flow-step-panel {
@@ -789,8 +851,12 @@
         display: flex;
     }
 
+    .back-to-top-btn {
+        bottom: 80px;
+    }
+
     .sticky-cta {
-        bottom: 70px;
+        bottom: 80px;
         right: 16px;
     }
 
