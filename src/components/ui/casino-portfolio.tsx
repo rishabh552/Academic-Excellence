@@ -1,12 +1,14 @@
 import { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import gsap from 'gsap';
 import { MotionPathPlugin } from 'gsap/MotionPathPlugin';
-import { PokerCard, Project } from './poker-card';
+import { PokerCard, Project, WILD_CARD_PROJECT } from './poker-card';
 
 // Register GSAP plugins
 gsap.registerPlugin(MotionPathPlugin);
 import { cn } from '@/lib/utils';
 import './casino-portfolio.css';
+import './dealer-chip.css';
 import { Check, Github, ExternalLink, X } from 'lucide-react';
 
 interface CasinoPortfolioProps {
@@ -25,6 +27,7 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
     const [isDealing, setIsDealing] = useState(false);
     const [isTransitioning, setIsTransitioning] = useState(false); // Prevent double clicks
     const [isMobile, setIsMobile] = useState(false); // Responsive sizing
+    const navigate = useNavigate();
 
     // REFS
     const containerRef = useRef<HTMLDivElement>(null);
@@ -37,11 +40,13 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
 
     // Initialize Game
     useEffect(() => {
+        const gameItems = [...items];
+
         // Start with no cards in hand, all in deck
         // But for the initial "Deal", we want to move 5 from deck to hand
-        const initialHandSize = Math.min(5, items.length);
-        const initialHand = items.slice(0, initialHandSize);
-        const remainingDeck = items.slice(initialHandSize);
+        const initialHandSize = Math.min(5, gameItems.length);
+        const initialHand = gameItems.slice(0, initialHandSize);
+        const remainingDeck = gameItems.slice(initialHandSize);
 
         setHand(initialHand);
         setDeck(remainingDeck);
@@ -790,7 +795,8 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
 
     // CLOSE ACTIVE PROJECT - Animate card to Discard Pile, then update state
     const handleCloseActive = () => {
-        if (!activeProject || activeCardIndex === null) return;
+        // CRITICAL: Guard against multiple clicks during animation
+        if (!activeProject || activeCardIndex === null || isTransitioning) return;
 
         const card = handRefs.current[activeCardIndex];
         if (!card || !containerRef.current || !discardPileRef.current) {
@@ -801,13 +807,15 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
             return;
         }
 
+        // Set transitioning IMMEDIATELY to prevent any more clicks
         setIsTransitioning(true);
 
         const containerRect = containerRef.current.getBoundingClientRect();
         const discardRect = discardPileRef.current.getBoundingClientRect();
 
-        // Target: Discard Pile
-        const targetX = discardRect.left - containerRect.left + (discardRect.width / 2) - 130;
+        // Target: Position card at discard pile (top-left aligned, like a stack)
+        // The actual discardRect gives us the exact position of the pile visual
+        const targetX = discardRect.left - containerRect.left;
         const targetY = discardRect.top - containerRect.top;
 
         // IMMEDIATELY restore all other cards to full visibility BEFORE animation
@@ -1155,6 +1163,47 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
         }, [], reformStart + 0.55);
     };
 
+
+    // CUSTOM PROJECT WIZARD TRIGGER
+    const handleCustomProject = () => {
+        // First, fold the current card back if one is focused
+        if (focusedIndex !== null) {
+            const card = handRefs.current[focusedIndex];
+            if (card && containerRef.current) {
+                const containerRect = containerRef.current.getBoundingClientRect();
+                const pos = getHandPosition(focusedIndex, hand.length, containerRect.width, containerRect.height);
+
+                // Quick fold back animation
+                const tiltInner = card.querySelector('.card-tilt-inner') as HTMLElement;
+                const actions = card.querySelector('.action-buttons') as HTMLElement;
+
+                if (actions) gsap.set(actions, { opacity: 0 });
+                if (tiltInner) gsap.to(tiltInner, { rotateY: 0, duration: 0.3, ease: "power2.out" });
+
+                gsap.to(card, {
+                    x: pos.x,
+                    y: pos.y,
+                    rotation: pos.rotation,
+                    scale: 1,
+                    zIndex: 10 + focusedIndex,
+                    duration: 0.3,
+                    ease: "power2.out"
+                });
+
+                // Restore other cards
+                handRefs.current.forEach((c, i) => {
+                    if (i !== focusedIndex && c) {
+                        gsap.to(c, { opacity: 1, scale: 1, filter: "none", duration: 0.2 });
+                    }
+                });
+            }
+        }
+
+        setFocusedIndex(null);
+        // Navigate to existing project wizard
+        navigate('/start-project');
+    };
+
     // PLAY ANIMATION - Premium "Gambit Charge & Throw" to Active Slot
     const handlePlay = () => {
         if (focusedIndex === null || isTransitioning) return;
@@ -1164,6 +1213,12 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
         const project = hand[index];
 
         if (!card || !containerRef.current || !activeSlotRef.current) return;
+
+        // Custom Project / Wild Card Logic
+        if (project.type === 'wildcard') {
+            handleCustomProject();
+            return;
+        }
 
         setIsTransitioning(true);
 
@@ -1470,9 +1525,23 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
         // Check if hand is full (max 5 cards)
         if (hand.length >= 5) return;
 
-        // Draw top card from deck
-        const newCard = deck[0];
-        const newDeck = deck.slice(1);
+        // CUSTOM PROJECT LOGIC: 
+        // Wild Card appears ONLY after one card has been discarded and user picks from deck.
+        const hasWildCard = [...hand, ...discardPile, ...deck].some(p => p.type === 'wildcard');
+
+        let newCard: Project;
+        let newDeck: Project[];
+
+        if (!hasWildCard && discardPile.length > 0) {
+            // Inject Wild Card without consuming a real project
+            newCard = WILD_CARD_PROJECT;
+            newDeck = deck;
+        } else {
+            // Normal Draw
+            newCard = deck[0];
+            newDeck = deck.slice(1);
+        }
+
         const newHand = [...hand, newCard];
 
         setDeck(newDeck);
@@ -1790,6 +1859,17 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
                         </div>
                     </div>
                 )}
+            </div>
+
+            {/* DEALER CHIP (Persistent Custom Project CTA) */}
+            <div className="dealer-chip" onClick={handleCustomProject} title="Start Custom Project">
+                <div className="dealer-chip-inner">
+                    <div className="dealer-chip-label">VIP<br />DEAL</div>
+                </div>
+                <div className="dealer-chip-tooltip">
+                    <span className="tooltip-title">Custom Project</span>
+                    <span className="tooltip-desc">Build something unique</span>
+                </div>
             </div>
         </div >
     );
