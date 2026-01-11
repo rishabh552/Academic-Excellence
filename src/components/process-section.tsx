@@ -16,6 +16,7 @@ import {
     Sparkles,
     ChevronUp
 } from "lucide-react";
+import { ShineBorder } from "./ui/shine-border";
 import "./process-storytelling.css";
 
 // Register GSAP plugin
@@ -156,12 +157,6 @@ export function ProcessSection() {
                 // Only animate if reduced motion is not preferred
                 if (!prefersReducedMotion) {
                     // Initial entrance animation - shorter delays for faster perceived load
-                    gsap.from(".flow-hero-badge", {
-                        opacity: 0,
-                        y: 20,
-                        duration: 0.5,
-                        delay: 0.05
-                    });
                     gsap.from(".flow-hero-title", {
                         opacity: 0,
                         y: 30,
@@ -192,7 +187,7 @@ export function ProcessSection() {
                         start: "top top",
                         end: "bottom 20%",
                         onLeave: () => {
-                            gsap.to(".flow-hero-badge, .flow-hero-title, .flow-hero-subtitle, .flow-scroll-indicator", {
+                            gsap.to(".flow-hero-title, .flow-hero-subtitle, .flow-scroll-indicator", {
                                 opacity: 0,
                                 y: -30,
                                 duration: 0.4,
@@ -200,7 +195,7 @@ export function ProcessSection() {
                             });
                         },
                         onEnterBack: () => {
-                            gsap.to(".flow-hero-badge, .flow-hero-title, .flow-hero-subtitle, .flow-scroll-indicator", {
+                            gsap.to(".flow-hero-title, .flow-hero-subtitle, .flow-scroll-indicator", {
                                 opacity: 1,
                                 y: 0,
                                 duration: 0.5,
@@ -210,20 +205,43 @@ export function ProcessSection() {
                     });
 
                     // ===== CENTRAL VISUAL VISIBILITY =====
+                    // Set initial state (hidden)
+                    gsap.set(centralVisualRef.current, { opacity: 0 });
+
                     ScrollTrigger.create({
                         trigger: journeyRef.current,
                         start: "top 80%",
                         end: "bottom 20%",
                         onEnter: () => {
+                            gsap.to(centralVisualRef.current, {
+                                opacity: 1,
+                                duration: 0.5,
+                                ease: "power1.out"
+                            });
                             centralVisualRef.current?.classList.add("visible");
                         },
                         onLeave: () => {
+                            gsap.to(centralVisualRef.current, {
+                                opacity: 0,
+                                duration: 0.4,
+                                ease: "power1.in"
+                            });
                             centralVisualRef.current?.classList.remove("visible");
                         },
                         onEnterBack: () => {
+                            gsap.to(centralVisualRef.current, {
+                                opacity: 1,
+                                duration: 0.5,
+                                ease: "power1.out"
+                            });
                             centralVisualRef.current?.classList.add("visible");
                         },
                         onLeaveBack: () => {
+                            gsap.to(centralVisualRef.current, {
+                                opacity: 0,
+                                duration: 0.4,
+                                ease: "power1.in"
+                            });
                             centralVisualRef.current?.classList.remove("visible");
                         }
                     });
@@ -264,23 +282,6 @@ export function ProcessSection() {
                                 // Update mobile progress color
                                 if (mobileProgressRef.current) {
                                     mobileProgressRef.current.style.background = `linear-gradient(90deg, ${steps[stepIndex].color}, ${steps[Math.min(5, stepIndex + 1)].color})`;
-                                }
-
-                                // Animate engine icon change
-                                if (engineIconRef.current) {
-                                    gsap.to(engineIconRef.current, {
-                                        scale: 0.8,
-                                        opacity: 0,
-                                        duration: 0.15,
-                                        onComplete: () => {
-                                            gsap.to(engineIconRef.current, {
-                                                scale: 1,
-                                                opacity: 1,
-                                                duration: 0.3,
-                                                ease: "back.out(2)"
-                                            });
-                                        }
-                                    });
                                 }
 
                                 // Update timeline dots
@@ -586,15 +587,7 @@ export function ProcessSection() {
                 </div>
             </div>
 
-            {/* MOBILE PROGRESS BAR - Enhanced with step label */}
-            <div className="mobile-progress">
-                <div className="mobile-progress-content">
-                    <span className="mobile-step-label">Step {currentStep + 1} of 6: {steps[currentStep].title.split(' ')[0]}</span>
-                    <div className="mobile-progress-track">
-                        <div className="mobile-progress-fill" ref={mobileProgressRef} />
-                    </div>
-                </div>
-            </div>
+
 
             {/* BACK TO TOP BUTTON (Mobile) */}
             <button
@@ -615,10 +608,6 @@ export function ProcessSection() {
 
             {/* HERO SECTION */}
             <section className="flow-hero" ref={heroRef}>
-                <span className="flow-hero-badge">
-                    <Sparkles size={14} style={{ marginRight: 8, display: 'inline' }} />
-                    Our Process
-                </span>
                 <h1 className="flow-hero-title">The Journey</h1>
                 <p className="flow-hero-subtitle">
                     From your first idea to a fully deployed solution—follow our seamless
@@ -658,39 +647,40 @@ export function ProcessSection() {
                         className="flow-step"
                         ref={el => { stepRefs.current[index] = el as HTMLDivElement; }}
                     >
-                        <div
-                            className="flow-step-panel"
-                            style={{
-                                borderColor: `${step.color}25`,
-                                boxShadow: `0 0 40px ${step.color}10`
-                            }}
+                        <ShineBorder
+                            borderRadius={16}
+                            borderWidth={2}
+                            duration={10}
+                            color={[step.color, `${step.color}80`, step.color]}
+                            className="flow-step-panel !bg-[rgba(15,17,26,0.95)] !p-0"
                         >
-                            <span
-                                className="step-tag"
-                                style={{ background: step.color }}
+                            <div
+                                className="step-panel-content"
+                                style={{
+                                    padding: '40px 32px 32px 32px',
+                                    width: '100%'
+                                }}
                             >
-                                {step.status === 'completed' ? '✓ ' : ''}
-                                Step {step.id}
-                            </span>
-                            <h2 className="step-title">{step.title}</h2>
-                            <p className="step-description">{step.description}</p>
-                            <div className="step-features">
-                                {step.details.map((detail, i) => (
-                                    <div
-                                        key={i}
-                                        className="step-feature"
-                                        style={{ borderColor: `${step.color}15` }}
-                                    >
-                                        <Check
-                                            className="step-feature-icon"
-                                            size={18}
-                                            style={{ color: step.color }}
-                                        />
-                                        <span>{detail}</span>
-                                    </div>
-                                ))}
+                                <h2 className="step-title" style={{ marginTop: 0 }}>{step.title}</h2>
+                                <p className="step-description">{step.description}</p>
+                                <div className="step-features">
+                                    {step.details.map((detail, i) => (
+                                        <div
+                                            key={i}
+                                            className="step-feature"
+                                            style={{ borderColor: `${step.color}15` }}
+                                        >
+                                            <Check
+                                                className="step-feature-icon"
+                                                size={18}
+                                                style={{ color: step.color }}
+                                            />
+                                            <span>{detail}</span>
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
-                        </div>
+                        </ShineBorder>
                     </section>
                 ))}
             </div>

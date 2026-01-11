@@ -104,6 +104,22 @@ export default {
           "0%": { opacity: "0", transform: "translateY(20px)" },
           "100%": { opacity: "1", transform: "translateY(0)" },
         },
+        "border-beam": {
+          "100%": {
+            "offset-distance": "100%",
+          },
+        },
+        "shine-pulse": {
+          "0%": {
+            "background-position": "0% 0%",
+          },
+          "50%": {
+            "background-position": "100% 100%",
+          },
+          to: {
+            "background-position": "0% 0%",
+          },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -112,6 +128,7 @@ export default {
         "pulse-glow": "pulse-glow 2s ease-in-out infinite",
         "fade-in": "fade-in 0.8s ease-out 0.15s forwards",
         "fade-up": "fade-up 0.8s ease-out 0.3s forwards",
+        "border-beam": "border-beam calc(var(--duration)*1s) infinite linear",
       },
     },
   },

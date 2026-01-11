@@ -2,7 +2,7 @@ import { ProcessSection } from "@/components/process-section";
 
 export function Process() {
     return (
-        <div className="relative font-sans-secondary min-h-screen bg-[#0a0a0f]">
+        <div className="relative font-sans-secondary min-h-screen bg-[#0a0a0f]" data-swipeable="true">
             <ProcessSection />
         </div>
     );

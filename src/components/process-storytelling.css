@@ -19,7 +19,7 @@
 .process-flow {
     position: relative;
     background: var(--flow-bg-dark);
-    overflow-x: hidden;
+    /* Note: overflow-x: hidden removed to allow horizontal swipe gestures on mobile */
 }
 
 /* ===== PINNED CENTRAL VISUAL ===== */
@@ -255,18 +255,13 @@
 .flow-hero-title {
     font-size: clamp(3rem, 10vw, 6rem);
     font-weight: 900;
-    color: #fff;
-    margin-bottom: 24px;
-    line-height: 1.05;
-    will-change: opacity, transform;
-}
-
-/* Gradient effect on hover - doesn't block LCP */
-.flow-hero-title:hover {
     background: linear-gradient(135deg, #fff 0%, #94a3b8 50%, var(--flow-accent) 100%);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
+    margin-bottom: 24px;
+    line-height: 1.05;
+    will-change: opacity, transform;
 }
 
 .flow-hero-subtitle {
