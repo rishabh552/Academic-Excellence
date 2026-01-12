@@ -20,7 +20,8 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
     // STATE MACHINE
     const [deck, setDeck] = useState<Project[]>([]);
     const [hand, setHand] = useState<Project[]>([]);
-    const [discardPile, setDiscardPile] = useState<Project[]>([]); // Played cards stack
+    const [interestedPile, setInterestedPile] = useState<Project[]>([]); // Played cards (interested)
+    const [rejectedPile, setRejectedPile] = useState<Project[]>([]); // Folded cards (rejected)
     const [focusedIndex, setFocusedIndex] = useState<number | null>(null); // Index in HAND
     const [activeProject, setActiveProject] = useState<Project | null>(null);
     const [activeCardIndex, setActiveCardIndex] = useState<number | null>(null); // Track which card is in active slot
@@ -34,7 +35,8 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
     const handRefs = useRef<(HTMLDivElement | null)[]>([]);
     const deckRef = useRef<HTMLDivElement>(null);
     const activeSlotRef = useRef<HTMLDivElement>(null);
-    const discardPileRef = useRef<HTMLDivElement>(null); // Ref for discard pile positioning
+    const interestedPileRef = useRef<HTMLDivElement>(null); // Ref for interested pile
+    const rejectedPileRef = useRef<HTMLDivElement>(null); // Ref for rejected pile
     const rippleLayerRef = useRef<HTMLDivElement>(null); // Ref for table ripple effect
     const pendingInspectRef = useRef<number | null>(null); // Track pending card to inspect
 
@@ -50,7 +52,8 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
 
         setHand(initialHand);
         setDeck(remainingDeck);
-        setDiscardPile([]); // Reset discard pile on init
+        setInterestedPile([]); // Reset interested pile on init
+        setRejectedPile([]); // Reset rejected pile on init
 
         // Trigger deal animation on mount
         dealCards(initialHandSize);
@@ -75,16 +78,17 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
 
     // Auto-shuffle and deal when hand is empty and no active project
     useEffect(() => {
-        // Check if hand is empty and there are cards in discardPile or deck to reshuffle
+        // Check if hand is empty and there are cards in piles or deck to reshuffle
         // Also ensure we're not in the middle of any animation
-        if (hand.length === 0 && !isDealing && !activeProject && !isTransitioning && (discardPile.length > 0 || deck.length > 0)) {
+        const totalDiscarded = interestedPile.length + rejectedPile.length;
+        if (hand.length === 0 && !isDealing && !activeProject && !isTransitioning && (totalDiscarded > 0 || deck.length > 0)) {
             // Small delay to ensure all animations are complete
             const timer = setTimeout(() => {
                 performShuffleAnimation();
             }, 300);
             return () => clearTimeout(timer);
         }
-    }, [hand.length, isDealing, activeProject, isTransitioning, discardPile.length, deck.length]);
+    }, [hand.length, isDealing, activeProject, isTransitioning, interestedPile.length, rejectedPile.length, deck.length]);
 
     // Visual shuffle animation
     const performShuffleAnimation = () => {
@@ -258,8 +262,8 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
 
     // Deal new shuffled hand
     const dealNewHand = () => {
-        // Shuffle all cards (combining deck and discard pile - hand should be empty)
-        const allCards = [...deck, ...discardPile];
+        // Shuffle all cards (combining deck and both piles - hand should be empty)
+        const allCards = [...deck, ...interestedPile, ...rejectedPile];
         const shuffled = shuffleArray(allCards);
 
         // Deal new hand from shuffled cards
@@ -267,8 +271,9 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
         const newHand = shuffled.slice(0, newHandSize);
         const newDeck = shuffled.slice(newHandSize);
 
-        // Reset state - clear discard pile after shuffling
-        setDiscardPile([]);
+        // Reset state - clear both piles after shuffling
+        setInterestedPile([]);
+        setRejectedPile([]);
         setHand(newHand);
         setDeck(newDeck);
 
@@ -594,201 +599,453 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
         });
     };
 
-    // FOLD ANIMATION - "Vader's Force Pull" with INSTANT SNAP
+    // FOLD ANIMATION - "Vader's Force Pull" to REJECTED PILE
     const handleFold = () => {
         if (focusedIndex === null || isTransitioning) return;
 
         const index = focusedIndex;
         const card = handRefs.current[index];
-        if (!card || !containerRef.current) return;
+        const foldedProject = hand[index];
+
+        if (!card || !containerRef.current || !rejectedPileRef.current) return;
 
         setIsTransitioning(true);
 
         const containerRect = containerRef.current.getBoundingClientRect();
-        const pos = getHandPosition(index, hand.length, containerRect.width, containerRect.height);
+        const cardRect = card.getBoundingClientRect();
+        const rejectedRect = rejectedPileRef.current.getBoundingClientRect();
+
+        // Get CURRENT card position (where it is now, focused/inspected)
+        const startX = cardRect.left - containerRect.left;
+        const startY = cardRect.top - containerRect.top;
+
+        // Target: Rejected pile position (smaller pile)
+        const targetX = rejectedRect.left - containerRect.left;
+        const targetY = rejectedRect.top - containerRect.top;
+        const targetScale = isMobile ? 0.4 : 0.5;
 
         // Get elements
         const actions = card.querySelector('.action-buttons') as HTMLElement;
         const tiltInner = card.querySelector('.card-tilt-inner') as HTMLElement;
         const glare = card.querySelector('.card-glare-overlay') as HTMLElement;
 
-        // --- FX LAYER SETUP ---
+        // --- SITH FX LAYER SETUP ---
         const fxLayer = document.createElement('div');
         fxLayer.className = 'sith-fx-layer';
-        fxLayer.style.cssText = 'position:absolute;inset:0;pointer-events:none;overflow:visible;';
+        fxLayer.style.cssText = 'position:absolute;inset:0;pointer-events:none;overflow:visible;z-index:400;';
         containerRef.current.appendChild(fxLayer);
 
-        // Responsive FX offsets
-        const fxOffsetX = isMobile ? 10 : 20;
-        const fxOffsetY = isMobile ? 5 : 10;
-        const impactY = isMobile ? 180 : 300;
+        // Calculate pile center for plasma positioning
+        const pileCenterX = targetX + (rejectedRect.width / 2);
+        const pileCenterY = targetY + (rejectedRect.height / 2);
 
-        // 1. Dark Shadow
-        const shadow = document.createElement('div');
-        shadow.className = 'sith-shadow';
-        fxLayer.appendChild(shadow);
-        gsap.set(shadow, { x: pos.x - fxOffsetX, y: pos.y - fxOffsetY });
-
-        // 2. Red Plasma
+        // 1. Red Plasma - POSITIONED AT REJECTED PILE (the attractor/magnet)
+        // Size matches the pile dimensions
         const plasma = document.createElement('div');
         plasma.className = 'sith-plasma';
         fxLayer.appendChild(plasma);
-        gsap.set(plasma, { x: pos.x - (fxOffsetX / 2), y: pos.y - fxOffsetY });
+        // Set plasma size to match pile and position it exactly on pile
+        gsap.set(plasma, {
+            x: targetX,
+            y: targetY,
+            width: rejectedRect.width,
+            height: rejectedRect.height,
+            opacity: 0,
+            scale: 0.5
+        });
 
-        // 3. Impact ripple
+        // 2. Dark Shadow - stays at card for dark aura effect
+        const shadow = document.createElement('div');
+        shadow.className = 'sith-shadow';
+        fxLayer.appendChild(shadow);
+        const fxOffsetX = isMobile ? 10 : 20;
+        const fxOffsetY = isMobile ? 5 : 10;
+        gsap.set(shadow, { x: startX - fxOffsetX, y: startY - fxOffsetY, opacity: 0 });
+
+        // 3. Impact ripple - CENTERED at rejected pile (ground shadow effect)
         const impact = document.createElement('div');
         impact.className = 'sith-impact';
         fxLayer.appendChild(impact);
-        gsap.set(impact, { x: pos.x - (fxOffsetX / 2), y: pos.y + impactY });
-
-        // Disable CSS transitions
-        const originalTransition = card.style.transition;
-        card.style.transition = 'none';
-        if (tiltInner) tiltInner.style.transition = 'none';
+        // Impact is 400x120 on desktop, 180x50 on mobile - center it under the pile
+        const impactWidth = isMobile ? 180 : 400;
+        const impactHeight = isMobile ? 50 : 120;
+        const impactX = targetX + (rejectedRect.width / 2) - (impactWidth / 2);
+        const impactY = targetY + rejectedRect.height - (impactHeight / 3); // Positioned at pile's "floor"
+        gsap.set(impact, { x: impactX, y: impactY, opacity: 0, scale: 0.3, transformOrigin: 'center center' });
 
         // Kill existing tweens
         gsap.killTweensOf([card, tiltInner, actions, glare]);
 
+        // LOCK starting position and ensure card is visible with high z-index
+        gsap.set(card, {
+            x: startX,
+            y: startY,
+            opacity: 1,
+            zIndex: 500,
+            rotation: 0
+        });
+
         const tl = gsap.timeline({
             onComplete: () => {
+                // Clear the ref for removed card
+                handRefs.current[index] = null;
+                const newTotal = hand.length - 1;
+
+                // STATE UPDATES: Remove from hand, add to rejected pile
+                setHand(prev => prev.filter((_, i) => i !== index));
+                setRejectedPile(prev => [...prev, foldedProject]);
                 setFocusedIndex(null);
                 setIsTransitioning(false);
-                if (actions) gsap.set(actions, { opacity: 0, y: 20 });
 
                 // Cleanup FX
-                if (fxLayer.parentNode) fxLayer.parentNode.removeChild(fxLayer);
+                if (fxLayer.parentNode) fxLayer.remove();
 
-                // Clean reset - INSTANT
-                if (tiltInner) {
-                    gsap.set(tiltInner, { rotateX: 0, rotateY: 0, rotateZ: 0, x: 0, y: 0 });
-                    tiltInner.style.transition = '';
-                }
-                gsap.set(card, {
-                    scaleX: 1, scaleY: 1,
-                    x: pos.x, y: pos.y,
-                    rotation: pos.rotation,
-                    zIndex: 10 + index
-                });
-                card.style.transition = originalTransition;
-                card.style.boxShadow = '';
-                card.style.filter = '';
+                // Reposition remaining cards in hand
+                setTimeout(() => {
+                    if (!containerRef.current) return;
+                    const newContainerRect = containerRef.current.getBoundingClientRect();
+                    const validRefs = handRefs.current.filter((c): c is HTMLDivElement => c !== null && c.isConnected);
+
+                    validRefs.forEach((c, newIndex) => {
+                        const pos = getHandPosition(newIndex, newTotal, newContainerRect.width, newContainerRect.height);
+                        gsap.to(c, {
+                            x: pos.x,
+                            y: pos.y,
+                            rotation: pos.rotation,
+                            opacity: 1,
+                            scale: 1,
+                            filter: "none",
+                            duration: 0.4,
+                            ease: "power2.out"
+                        });
+                    });
+                    handRefs.current = validRefs;
+                }, 100);
             }
         });
 
-        // 1. Instant cleanup
+        // Phase 1: Hide buttons, flip back (0-0.2s)
         if (actions) tl.set(actions, { opacity: 0 }, 0);
         if (glare) tl.set(glare, { opacity: 0 }, 0);
 
+        if (tiltInner) {
+            tl.to(tiltInner, { rotateY: 0, rotateX: 0, duration: 0.2, ease: "power2.out" }, 0);
+        }
 
-        // 2. THE GRIP - Longer with red hue (0.5s)
-        const gripDuration = 0.5;
-
-        // FX: Shadow fades in
-        tl.to(shadow, { opacity: 0.95, scale: 1.15, duration: 0.3, ease: "power2.out" }, 0);
-
-        // FX: Red plasma intensifies
-        tl.to(plasma, { opacity: 0.85, scale: 1.1, duration: 0.25, ease: "power2.out" }, 0.05);
-
-        // Card Levitate with INTENSE RED glow
-        tl.to(card, {
-            scale: 1.08,
-            boxShadow: "0 0 50px rgba(255, 0, 0, 0.7), 0 0 100px rgba(255, 50, 50, 0.4)",
-            filter: "brightness(0.8) saturate(1.3)",
-            duration: 0.25,
+        // === PLASMA AT PILE - The attractor/magnet effect ===
+        // Plasma appears at rejected pile, pulsing to indicate "pulling"
+        tl.to(plasma, {
+            opacity: 0.6,
+            scale: 0.8,
+            duration: 0.2,
             ease: "power2.out"
         }, 0);
 
-        // Shake effect - longer
+        // Plasma pulses - grows as it's "pulling"
+        tl.to(plasma, {
+            opacity: 0.9,
+            scale: 1.2,
+            duration: 0.15,
+            ease: "power2.out"
+        }, 0.2);
+
+        tl.to(plasma, {
+            opacity: 0.7,
+            scale: 1.0,
+            duration: 0.1,
+            ease: "power2.in"
+        }, 0.35);
+
+        // Intensify as card approaches
+        tl.to(plasma, {
+            opacity: 1,
+            scale: 1.4,
+            duration: 0.25,
+            ease: "power2.out"
+        }, 0.45);
+
+        // Phase 2: THE GRIP - Card gets red glow (being pulled) with shake (0-0.5s)
+        // Dark shadow aura at card
+        tl.to(shadow, { opacity: 0.7, scale: 1.1, duration: 0.25, ease: "power2.out" }, 0);
+        tl.to(shadow, { opacity: 0, duration: 0.2 }, 0.4); // Shadow fades as card leaves
+
+        // Card Levitate with RED GLOW (indicating being pulled)
+        tl.to(card, {
+            scale: 1.1,
+            y: startY - 15,
+            boxShadow: "0 0 50px rgba(255, 0, 0, 0.7), 0 0 80px rgba(255, 50, 50, 0.4)",
+            filter: "brightness(0.85) saturate(1.2)",
+            duration: 0.3,
+            ease: "power2.out"
+        }, 0);
+
+        // Shake effect - card resisting the pull
         if (tiltInner) {
-            tl.to(tiltInner, { x: 5, rotateZ: 3, duration: 0.06 }, 0)
-                .to(tiltInner, { x: -5, rotateZ: -3, duration: 0.06 })
-                .to(tiltInner, { x: 4, rotateZ: 2, duration: 0.06 })
-                .to(tiltInner, { x: -4, rotateZ: -2, duration: 0.06 })
+            tl.to(tiltInner, { x: 4, rotateZ: 2, duration: 0.05 }, 0.1)
+                .to(tiltInner, { x: -4, rotateZ: -2, duration: 0.05 })
                 .to(tiltInner, { x: 3, rotateZ: 1, duration: 0.05 })
                 .to(tiltInner, { x: -3, rotateZ: -1, duration: 0.05 })
                 .to(tiltInner, { x: 0, rotateZ: 0, duration: 0.04 });
         }
 
-        // 3. THE PULL - Visible red-tinted movement (0.25s)
-        const pullStart = gripDuration;
-        const pullDuration = 0.25;
-
-        // Intensify red glow during pull
+        // Intensify red glow before pull - card about to be yanked
         tl.to(card, {
-            boxShadow: "0 0 80px rgba(255, 0, 0, 0.9), 0 0 150px rgba(255, 50, 50, 0.6), inset 0 0 20px rgba(255, 0, 0, 0.3)",
-            filter: "brightness(1.1) saturate(1.5) hue-rotate(-10deg)",
-            scaleX: 0.85,
-            scaleY: 1.15,
+            boxShadow: "0 0 70px rgba(255, 0, 0, 0.85), 0 0 100px rgba(255, 50, 50, 0.5)",
+            filter: "brightness(1.0) saturate(1.4)",
+            scale: 0.95,
+            duration: 0.12,
+            ease: "power2.in"
+        }, 0.35);
+
+        // Phase 3: THE PULL - Card flies to pile with progressive shrinking (0.5s-1.0s)
+        const cardCenterOffsetX = cardRect.width / 2;
+
+        // Calculate midpoint for arc trajectory
+        const midX = (startX + targetX) / 2;
+        const midY = Math.min(startY, targetY) - 50; // Arc upward
+
+        // Card FOLLOWS plasma with progressive shrinking
+        // Phase 3a: Initial pull with slight shrink
+        tl.to(card, {
+            x: midX - cardCenterOffsetX / 2,
+            y: midY,
+            scale: 0.85,  // Start shrinking
+            rotation: Math.random() * 15 - 7.5,
+            boxShadow: "0 0 60px rgba(255, 0, 0, 0.7), 0 0 100px rgba(255, 50, 50, 0.4)",
+            filter: "brightness(0.85) saturate(1.3)",
+            duration: 0.2,
+            ease: "power2.out"
+        }, 0.52);
+
+        // Phase 3b: Accelerate toward pile with more shrinking
+        tl.to(card, {
+            x: targetX,
+            y: targetY,
+            scale: targetScale * 0.9,  // Continue shrinking
+            rotation: Math.random() * 10 - 5,
+            boxShadow: "0 0 50px rgba(255, 0, 0, 0.6)",
+            filter: "brightness(0.8) saturate(1.2)",
+            duration: 0.25,
+            ease: "power3.in"
+        }, 0.72);
+
+        // Phase 3c: Final shrink to target scale
+        tl.to(card, {
+            scale: targetScale,
+            duration: 0.08,
+            ease: "power2.in"
+        }, 0.95);
+
+        // === Phase 4: IMPACT - EARTHQUAKE EFFECT (0.97s+) ===
+
+        // Card final fade
+        tl.to(card, {
+            opacity: 0,
+            scale: targetScale * 0.8,
             duration: 0.1,
             ease: "power2.in"
-        }, pullStart - 0.1);
+        }, 0.97);
 
-        // Card flies to position with red trail effect
-        tl.to(card, {
-            x: pos.x,
-            y: pos.y,
-            rotation: pos.rotation,
-            scaleX: 0.9,
-            scaleY: 1.1,
-            duration: pullDuration,
-            ease: "power3.in"
-        }, pullStart);
-
-        // FX: Plasma follows the card
+        // Plasma implodes at pile (it's already positioned there - just shrink and fade)
         tl.to(plasma, {
-            x: pos.x - 10,
-            y: pos.y - 10,
-            scale: 1.3,
+            scale: 2.0,  // Brief flash expansion
             opacity: 1,
-            duration: pullDuration,
-            ease: "power3.in"
-        }, pullStart);
+            duration: 0.05,
+            ease: "power4.out"
+        }, 0.95);
 
-        // Flip back during pull
-        if (tiltInner) {
-            tl.to(tiltInner, { rotateY: 0, rotateX: 0, duration: 0.2, ease: "power3.out" }, pullStart);
-        }
+        tl.to(plasma, {
+            scale: 0.2,
+            opacity: 0,
+            duration: 0.15,
+            ease: "power4.in"
+        }, 1.0);
 
-        // 4. IMPACT - Card snaps to final position
-        const impactTime = pullStart + pullDuration;
+        // === IMPACT RIPPLE - Multi-layered shockwave ===
+        // Create second ripple for layered effect
+        const impact2 = document.createElement('div');
+        impact2.className = 'sith-impact';
+        fxLayer.appendChild(impact2);
+        gsap.set(impact2, {
+            x: impactX,
+            y: impactY,
+            opacity: 0,
+            scale: 0.5,
+            transformOrigin: 'center center'
+        });
 
-        // Instant reset scale and effects
-        tl.set(card, {
+        // Ripple 1: Fast inner burst
+        tl.to(impact, {
+            opacity: 1,
+            scale: 1.2,
+            duration: 0.06,
+            ease: "power4.out"
+        }, 0.97);
+
+        // Ripple 2: Delayed outer wave
+        tl.to(impact2, {
+            opacity: 0.7,
+            scale: 1,
+            duration: 0.08,
+            ease: "power4.out"
+        }, 1.0);
+
+        // Expand both ripples outward
+        tl.to(impact, {
+            opacity: 0.6,
+            scale: 2.2,
+            duration: 0.2,
+            ease: "power2.out"
+        }, 1.03);
+
+        tl.to(impact2, {
+            opacity: 0.4,
+            scale: 2.8,
+            duration: 0.25,
+            ease: "power2.out"
+        }, 1.08);
+
+        // Final fade out
+        tl.to([impact, impact2], {
+            opacity: 0,
+            scale: 3.5,
+            duration: 0.3,
+            ease: "power2.out"
+        }, 1.2);
+
+        // === EARTHQUAKE EFFECT on Container ===
+        // Dramatic screen shake on impact
+        tl.to(containerRef.current, {
+            x: 8,
+            duration: 0.03,
+            ease: "power2.out"
+        }, 0.97);
+        tl.to(containerRef.current, {
+            x: -12,
+            y: 4,
+            duration: 0.04,
+            ease: "power2.inOut"
+        }, 1.0);
+        tl.to(containerRef.current, {
+            x: 10,
+            y: -3,
+            duration: 0.04,
+            ease: "power2.inOut"
+        }, 1.04);
+        tl.to(containerRef.current, {
+            x: -6,
+            y: 2,
+            duration: 0.04,
+            ease: "power2.inOut"
+        }, 1.08);
+        tl.to(containerRef.current, {
+            x: 4,
+            y: -1,
+            duration: 0.03,
+            ease: "power2.inOut"
+        }, 1.12);
+        tl.to(containerRef.current, {
+            x: 0,
+            y: 0,
+            duration: 0.1,
+            ease: "power2.out"
+        }, 1.15);
+
+        // === SITH SPARKS on impact ===
+        const sparkCount = isMobile ? 8 : 14;
+
+        tl.call(() => {
+            for (let i = 0; i < sparkCount; i++) {
+                const spark = document.createElement('div');
+                spark.className = 'sith-spark';
+                fxLayer.appendChild(spark);
+
+                const angle = (i / sparkCount) * Math.PI * 2 + (Math.random() * 0.4 - 0.2);
+                const distance = 50 + Math.random() * 80;
+                const duration = 0.25 + Math.random() * 0.2;
+
+                gsap.set(spark, {
+                    x: pileCenterX - 1.5,
+                    y: pileCenterY - 5,
+                    opacity: 1,
+                    scale: 0.8 + Math.random() * 0.4,
+                    rotation: (angle * 180 / Math.PI) + 90
+                });
+
+                gsap.to(spark, {
+                    x: pileCenterX + Math.cos(angle) * distance,
+                    y: pileCenterY + Math.sin(angle) * distance,
+                    opacity: 0,
+                    scale: 0.2,
+                    duration: duration,
+                    ease: "power2.out",
+                    onComplete: () => spark.remove()
+                });
+            }
+
+            // Extra debris particles
+            for (let i = 0; i < (isMobile ? 4 : 8); i++) {
+                const debris = document.createElement('div');
+                debris.className = 'sith-spark';
+                debris.style.background = 'rgba(255, 100, 50, 0.9)';
+                debris.style.width = '3px';
+                debris.style.height = '3px';
+                fxLayer.appendChild(debris);
+
+                const angle = Math.random() * Math.PI * 2;
+                const distance = 30 + Math.random() * 50;
+
+                gsap.set(debris, {
+                    x: pileCenterX,
+                    y: pileCenterY,
+                    opacity: 1
+                });
+
+                gsap.to(debris, {
+                    x: pileCenterX + Math.cos(angle) * distance,
+                    y: pileCenterY + Math.sin(angle) * distance - 20, // Slight upward arc
+                    opacity: 0,
+                    duration: 0.35,
+                    ease: "power2.out",
+                    onComplete: () => debris.remove()
+                });
+            }
+        }, [], 0.97);
+
+        // Rejected pile pulse + Sith aura - DRAMATIC IMPACT
+        tl.to(rejectedPileRef.current, {
+            scale: 1.18,
+            boxShadow: "0 0 70px rgba(255, 0, 0, 0.8), 0 0 120px rgba(255, 30, 30, 0.5)",
+            duration: 0.08,
+            ease: "power4.out"
+        }, 0.97);
+
+        // Bounce back with oscillation
+        tl.to(rejectedPileRef.current, {
+            scale: 0.95,
+            boxShadow: "0 0 40px rgba(255, 0, 0, 0.4)",
+            duration: 0.1,
+            ease: "power2.in"
+        }, 1.05);
+
+        tl.to(rejectedPileRef.current, {
+            scale: 1.05,
+            boxShadow: "0 0 25px rgba(255, 0, 0, 0.3)",
+            duration: 0.12,
+            ease: "power2.out"
+        }, 1.15);
+
+        tl.to(rejectedPileRef.current, {
             scale: 1,
             boxShadow: "none",
-            filter: "none",
-            zIndex: 10 + index
-        }, impactTime);
+            duration: 0.25,
+            ease: "elastic.out(1, 0.4)"
+        }, 1.27);
 
-        // FX: Remove shadow/plasma
-        tl.to([shadow, plasma], { opacity: 0, duration: 0.05 }, impactTime);
-
-
-        // FX: Red impact ripple - BIGGER
-        tl.to(impact, { opacity: 1, scaleX: 2, scaleY: 1.5, duration: 0.1, ease: "power2.out" }, impactTime)
-            .to(impact, { opacity: 0, scaleX: 3, scaleY: 2, duration: 0.35, ease: "power2.in" }, impactTime + 0.1);
-
-
-        // Quick squash-stretch landing + SITH AURA
-        tl.to(card, { scaleX: 1.04, scaleY: 0.96, duration: 0.05, onStart: () => card.classList.add('card-sith') }, impactTime)
-            .to(card, { scale: 1, duration: 0.08, ease: "elastic.out(1, 0.7)" });
-
-        // Remove Sith Aura after 0.5s
-        tl.call(() => {
-            card.classList.remove('card-sith');
-            card.style.boxShadow = '';
-            card.style.border = '';
-            card.style.filter = '';
-        }, [], impactTime + 0.5);
-
-        // Container thud - HEAVY recoil
-        tl.to(containerRef.current, { y: 12, duration: 0.05, ease: "power4.out" }, impactTime)
-            .to(containerRef.current, { y: 0, duration: 0.25, ease: "elastic.out(1, 0.3)" }, impactTime + 0.05);
-
-        // Restore others immediately
+        // Restore other cards visibility
         handRefs.current.forEach((c, i) => {
             if (i !== index && c) {
-                gsap.to(c, { opacity: 1, scale: 1, filter: "none", duration: 0.15 });
+                gsap.to(c, { opacity: 1, scale: 1, filter: "none", duration: 0.25 });
             }
         });
     };
@@ -799,7 +1056,7 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
         if (!activeProject || activeCardIndex === null || isTransitioning) return;
 
         const card = handRefs.current[activeCardIndex];
-        if (!card || !containerRef.current || !discardPileRef.current) {
+        if (!card || !containerRef.current || !interestedPileRef.current) {
             // Fallback: just close panel
             setActiveProject(null);
             setActiveCardIndex(null);
@@ -811,12 +1068,11 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
         setIsTransitioning(true);
 
         const containerRect = containerRef.current.getBoundingClientRect();
-        const discardRect = discardPileRef.current.getBoundingClientRect();
+        const interestedRect = interestedPileRef.current.getBoundingClientRect();
 
-        // Target: Position card at discard pile (top-left aligned, like a stack)
-        // The actual discardRect gives us the exact position of the pile visual
-        const targetX = discardRect.left - containerRect.left;
-        const targetY = discardRect.top - containerRect.top;
+        // Target: Position card at interested pile (top-left, smaller pile)
+        const targetX = interestedRect.left - containerRect.left;
+        const targetY = interestedRect.top - containerRect.top;
 
         // IMMEDIATELY restore all other cards to full visibility BEFORE animation
         handRefs.current.forEach((c, i) => {
@@ -854,9 +1110,9 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
                 // Calculate new total before state update (hand.length - 1)
                 const newTotal = hand.length - 1;
 
-                // Update state: remove from hand, add to discard
+                // Update state: remove from hand, add to interested pile
                 setHand(prev => prev.filter((_, i) => i !== closedIndex));
-                setDiscardPile(prev => [...prev, closedProject]);
+                setInterestedPile(prev => [...prev, closedProject]);
                 setActiveProject(null);
                 setActiveCardIndex(null);
                 setFocusedIndex(null);
@@ -900,9 +1156,9 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
         const cardCenterX = cardRect.left - containerRect.left + cardRect.width / 2;
         const cardCenterY = cardRect.top - containerRect.top + cardRect.height / 2;
 
-        // Use actual discard pile dimensions for accurate targeting
-        const pileWidth = discardRect.width;
-        const pileHeight = discardRect.height;
+        // Use actual interested pile dimensions for accurate targeting
+        const pileWidth = interestedRect.width;
+        const pileHeight = interestedRect.height;
         const targetCenterX = targetX + pileWidth / 2;
         const targetCenterY = targetY + pileHeight / 2;
 
@@ -1144,20 +1400,20 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
         tl.to(ghostCard, { opacity: 0.8, scale: 1, duration: 0.25, ease: "power2.out" }, reformStart + 0.1);
         tl.to(ghostCard, { opacity: 0, duration: 0.2, ease: "power2.in" }, reformStart + 0.35);
 
-        // Discard pile glow and "thud" bounce
+        // Interested pile glow and "thud" bounce
         tl.call(() => {
-            if (discardPileRef.current) {
-                discardPileRef.current.classList.add('gold-reformation-glow');
+            if (interestedPileRef.current) {
+                interestedPileRef.current.classList.add('gold-reformation-glow');
             }
         }, [], reformStart + 0.15);
 
-        tl.to(discardPileRef.current, { scale: 1.06, duration: 0.08, ease: "power4.out" }, reformStart + 0.2);
-        tl.to(discardPileRef.current, { scale: 1, duration: 0.25, ease: "elastic.out(1, 0.4)" }, reformStart + 0.28);
+        tl.to(interestedPileRef.current, { scale: 1.06, duration: 0.08, ease: "power4.out" }, reformStart + 0.2);
+        tl.to(interestedPileRef.current, { scale: 1, duration: 0.25, ease: "elastic.out(1, 0.4)" }, reformStart + 0.28);
 
         // Cleanup
         tl.call(() => {
-            if (discardPileRef.current) {
-                setTimeout(() => discardPileRef.current?.classList.remove('gold-reformation-glow'), 400);
+            if (interestedPileRef.current) {
+                setTimeout(() => interestedPileRef.current?.classList.remove('gold-reformation-glow'), 400);
             }
             if (fxLayer.parentNode) fxLayer.remove();
         }, [], reformStart + 0.55);
@@ -1527,12 +1783,13 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
 
         // CUSTOM PROJECT LOGIC: 
         // Wild Card appears ONLY after one card has been discarded and user picks from deck.
-        const hasWildCard = [...hand, ...discardPile, ...deck].some(p => p.type === 'wildcard');
+        const totalDiscarded = interestedPile.length + rejectedPile.length;
+        const hasWildCard = [...hand, ...interestedPile, ...rejectedPile, ...deck].some(p => p.type === 'wildcard');
 
         let newCard: Project;
         let newDeck: Project[];
 
-        if (!hasWildCard && discardPile.length > 0) {
+        if (!hasWildCard && totalDiscarded > 0) {
             // Inject Wild Card without consuming a real project
             newCard = WILD_CARD_PROJECT;
             newDeck = deck;
@@ -1745,38 +2002,61 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
                 </div>
             </div >
 
-            {/* Discard Pile - Played Cards Stack */}
-            < div
-                ref={discardPileRef}
-                className="discard-pile absolute top-[10%] left-[5%] md:top-[15%] md:left-[10%] w-[140px] h-[200px] md:w-[260px] md:h-[360px] perspective-1000 z-20"
+            {/* INTERESTED PILE - Played Cards (Top-Left) */}
+            <div
+                ref={interestedPileRef}
+                className="absolute top-[8%] left-[5%] md:top-[15%] md:left-[10%] w-[70px] h-[95px] md:w-[130px] md:h-[180px] z-20"
             >
-                {/* Simulated Stack Layers based on discard count */}
-                {
-                    [...Array(Math.min(5, discardPile.length))].map((_, i) => (
-                        <div
-                            key={i}
-                            className="absolute inset-0 bg-neutral-800 border border-white/10 rounded-2xl shadow-xl pointer-events-none"
-                            style={{
-                                transform: `translate(${i * 2}px, ${-i * 2}px) rotate(${(i * 3) - 6}deg)`,
-                                zIndex: i,
-                                backgroundImage: 'repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.02) 0, rgba(255, 255, 255, 0.02) 2px, transparent 2px, transparent 8px)'
-                            }}
-                        />
-                    ))
-                }
-
-                {/* Top Label */}
+                {/* Stack layers */}
+                {[...Array(Math.min(5, interestedPile.length))].map((_, i) => (
+                    <div
+                        key={i}
+                        className="absolute inset-0 bg-emerald-900/50 border border-emerald-500/30 rounded-xl shadow-lg pointer-events-none"
+                        style={{
+                            transform: `translate(${i}px, ${-i}px) rotate(${(i * 2) - 2}deg)`,
+                            zIndex: i
+                        }}
+                    />
+                ))}
                 <div
-                    className={`absolute inset-0 border-2 border-dashed ${discardPile.length > 0 ? 'border-amber-500/30 bg-amber-500/5' : 'border-white/10'} rounded-2xl flex flex-col items-center justify-center transition-colors`}
+                    className={`absolute inset-0 border-2 border-dashed ${interestedPile.length > 0 ? 'border-emerald-500/40 bg-emerald-500/10' : 'border-white/10'} rounded-xl flex flex-col items-center justify-center transition-colors`}
                     style={{
-                        transform: discardPile.length > 0 ? `translate(${Math.min(5, discardPile.length) * 2}px, ${-Math.min(5, discardPile.length) * 2}px)` : 'none',
+                        transform: interestedPile.length > 0 ? `translate(${Math.min(5, interestedPile.length)}px, ${-Math.min(5, interestedPile.length)}px)` : 'none',
                         zIndex: 10
                     }}
                 >
-                    <div className="text-white/30 font-bold tracking-widest text-xs md:text-lg">PLAYED</div>
-                    <div className={`text-3xl md:text-6xl font-black mt-1 md:mt-2 ${discardPile.length > 0 ? 'text-amber-500/30' : 'text-white/10'}`}>{discardPile.length}</div>
+                    <div className="text-emerald-400/60 font-bold tracking-widest text-[8px] md:text-xs">INTERESTED</div>
+                    <div className={`text-lg md:text-3xl font-black mt-0.5 md:mt-1 ${interestedPile.length > 0 ? 'text-emerald-400/40' : 'text-white/10'}`}>{interestedPile.length}</div>
                 </div>
-            </div >
+            </div>
+
+            {/* REJECTED PILE - Folded Cards (Below Interested) */}
+            <div
+                ref={rejectedPileRef}
+                className="absolute top-[35%] left-[5%] md:top-[50%] md:left-[10%] w-[70px] h-[95px] md:w-[130px] md:h-[180px] z-20"
+            >
+                {/* Stack layers */}
+                {[...Array(Math.min(5, rejectedPile.length))].map((_, i) => (
+                    <div
+                        key={i}
+                        className="absolute inset-0 bg-neutral-800/80 border border-red-500/20 rounded-xl shadow-lg pointer-events-none"
+                        style={{
+                            transform: `translate(${i}px, ${-i}px) rotate(${(i * 2) - 2}deg)`,
+                            zIndex: i
+                        }}
+                    />
+                ))}
+                <div
+                    className={`absolute inset-0 border-2 border-dashed ${rejectedPile.length > 0 ? 'border-red-500/30 bg-red-500/5' : 'border-white/10'} rounded-xl flex flex-col items-center justify-center transition-colors`}
+                    style={{
+                        transform: rejectedPile.length > 0 ? `translate(${Math.min(5, rejectedPile.length)}px, ${-Math.min(5, rejectedPile.length)}px)` : 'none',
+                        zIndex: 10
+                    }}
+                >
+                    <div className="text-red-400/60 font-bold tracking-widest text-[8px] md:text-xs">REJECTED</div>
+                    <div className={`text-lg md:text-3xl font-black mt-0.5 md:mt-1 ${rejectedPile.length > 0 ? 'text-red-400/30' : 'text-white/10'}`}>{rejectedPile.length}</div>
+                </div>
+            </div>
 
             {/* Active Slot */}
             < div ref={activeSlotRef} className="active-slot" >
