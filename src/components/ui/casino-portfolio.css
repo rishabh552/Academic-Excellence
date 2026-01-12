@@ -32,6 +32,34 @@
         radial-gradient(circle at 50% 50%, rgba(16, 185, 129, 0.05) 0%, rgba(6, 182, 212, 0.03) 20%, #05140b 100%);
 }
 
+/* ============================================
+   BRAND COLOR SCHEMES - Dark Blue & Premium Red
+   ============================================ */
+
+/* DARK BLUE TABLE - First Shuffle */
+.casino-table-container.table-ripple-blue {
+    background-color: #0a1628;
+    /* Deep navy blue base */
+    background-image:
+        /* Noise Texture */
+        url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.12'/%3E%3C/svg%3E"),
+        /* Gradient Vignette - with dark blue tint */
+        radial-gradient(circle at 50% 50%, rgba(30, 64, 175, 0.08) 0%, rgba(59, 130, 246, 0.04) 25%, #050a14 100%);
+    transition: background-color 0.6s ease, background-image 0.6s ease;
+}
+
+/* PREMIUM RED TABLE - Second Shuffle */
+.casino-table-container.table-ripple-red {
+    background-color: #1a0a0a;
+    /* Deep crimson base */
+    background-image:
+        /* Noise Texture */
+        url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.12'/%3E%3C/svg%3E"),
+        /* Gradient Vignette - with premium red tint */
+        radial-gradient(circle at 50% 50%, rgba(185, 28, 28, 0.08) 0%, rgba(239, 68, 68, 0.04) 25%, #0a0505 100%);
+    transition: background-color 0.6s ease, background-image 0.6s ease;
+}
+
 /* Global Spotlight follower */
 .table-spotlight {
     position: absolute;
@@ -620,7 +648,7 @@
     animation: gambit-vibrate 0.1s infinite;
 }
 
-/* --- MAGENTA DISSOLUTION FX (Gambit-style) --- */
+/* --- BLUE DISSOLUTION FX (for Interested/Play) --- */
 
 /* Base Particle Styles */
 .gold-particle {
@@ -631,40 +659,40 @@
     will-change: transform, opacity;
 }
 
-/* Core Dust - Main visible particles (bright, medium size) */
+/* Core Dust - Blue particles */
 .gold-particle-core {
     width: 6px;
     height: 6px;
-    background: radial-gradient(circle, #fff 0%, #ff00ff 40%, #cc00cc 100%);
+    background: radial-gradient(circle, #fff 0%, #3b82f6 40%, #1e40af 100%);
     box-shadow:
-        0 0 6px #ff00ff,
-        0 0 12px rgba(255, 0, 255, 0.8),
-        0 0 20px rgba(255, 0, 255, 0.4);
+        0 0 6px #3b82f6,
+        0 0 12px rgba(59, 130, 246, 0.8),
+        0 0 20px rgba(59, 130, 246, 0.4);
 }
 
-/* Spark Trail - Tiny fast particles */
+/* Spark Trail - Blue fast particles */
 .gold-particle-spark {
     width: 3px;
     height: 3px;
     background: #fff;
-    box-shadow: 0 0 4px #ff00ff, 0 0 8px rgba(255, 0, 255, 0.6);
+    box-shadow: 0 0 4px #3b82f6, 0 0 8px rgba(59, 130, 246, 0.6);
 }
 
-/* Ember Glow - Large soft background particles */
+/* Ember Glow - Blue soft background */
 .gold-particle-ember {
     width: 14px;
     height: 14px;
-    background: radial-gradient(circle, rgba(255, 0, 255, 0.7) 0%, rgba(200, 0, 200, 0.3) 40%, transparent 70%);
+    background: radial-gradient(circle, rgba(59, 130, 246, 0.7) 0%, rgba(30, 64, 175, 0.3) 40%, transparent 70%);
     filter: blur(3px);
-    box-shadow: 0 0 15px rgba(255, 0, 255, 0.5);
+    box-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
 }
 
-/* Particle trail streaks */
+/* Blue trail streaks */
 .gold-particle-trail {
     position: absolute;
     width: 2px;
     height: 25px;
-    background: linear-gradient(to bottom, rgba(255, 0, 255, 0.9), rgba(255, 0, 255, 0.3), transparent);
+    background: linear-gradient(to bottom, rgba(59, 130, 246, 0.9), rgba(59, 130, 246, 0.3), transparent);
     border-radius: 2px;
     transform-origin: top center;
     filter: blur(1px);
@@ -672,75 +700,75 @@
     z-index: 199;
 }
 
-/* Charged Magenta Glow for card before dissolution */
+/* Blue charged glow for card before dissolution */
 .gold-charged {
     box-shadow:
-        0 0 30px rgba(255, 0, 255, 0.7),
-        0 0 60px rgba(255, 0, 255, 0.5),
-        0 0 100px rgba(255, 0, 255, 0.3),
-        inset 0 0 25px rgba(255, 0, 255, 0.4) !important;
-    border: 1px solid rgba(255, 85, 255, 0.6) !important;
+        0 0 30px rgba(59, 130, 246, 0.7),
+        0 0 60px rgba(59, 130, 246, 0.5),
+        0 0 100px rgba(59, 130, 246, 0.3),
+        inset 0 0 25px rgba(59, 130, 246, 0.4) !important;
+    border: 1px solid rgba(96, 165, 250, 0.6) !important;
     filter: brightness(1.15) saturate(1.3);
 }
 
-/* Impact burst when particles collide with discard pile */
+/* Blue impact burst when particles collide with discard pile */
 .gold-impact-burst {
     position: absolute;
     width: 20px;
     height: 20px;
     border-radius: 50%;
-    background: radial-gradient(circle, rgba(255, 255, 255, 0.9) 0%, rgba(255, 0, 255, 0.8) 30%, transparent 70%);
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.9) 0%, rgba(59, 130, 246, 0.8) 30%, transparent 70%);
     pointer-events: none;
     z-index: 201;
     will-change: transform, opacity;
 }
 
-/* Shockwave ring on discard pile - sized dynamically to match pile */
+/* Blue shockwave ring on discard pile */
 .gold-shockwave {
     position: absolute;
     /* Width/height set by JS to match pile dimensions */
-    border: 3px solid rgba(255, 0, 255, 0.9);
+    border: 3px solid rgba(59, 130, 246, 0.9);
     background: transparent;
-    box-shadow: 0 0 30px rgba(255, 0, 255, 0.7), 0 0 60px rgba(255, 0, 255, 0.4), inset 0 0 20px rgba(255, 0, 255, 0.2);
+    box-shadow: 0 0 30px rgba(59, 130, 246, 0.7), 0 0 60px rgba(59, 130, 246, 0.4), inset 0 0 20px rgba(59, 130, 246, 0.2);
     pointer-events: none;
     z-index: 202;
     will-change: transform, opacity;
 }
 
-/* Ghost card reformation effect */
+/* Blue ghost card reformation effect */
 .gold-reform-ghost {
     position: absolute;
     opacity: 0;
-    background: linear-gradient(135deg, rgba(255, 0, 255, 0.15), rgba(255, 255, 255, 0.08));
-    border: 2px solid rgba(255, 0, 255, 0.5);
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(255, 255, 255, 0.08));
+    border: 2px solid rgba(59, 130, 246, 0.5);
     border-radius: 12px;
     backdrop-filter: blur(4px);
     pointer-events: none;
     z-index: 198;
-    box-shadow: 0 0 30px rgba(255, 0, 255, 0.4);
+    box-shadow: 0 0 30px rgba(59, 130, 246, 0.4);
 }
 
-/* Reformation glow on discard pile */
+/* Blue reformation glow on discard pile */
 .gold-reformation-glow {
     box-shadow:
-        0 0 50px rgba(255, 0, 255, 0.9),
-        0 0 100px rgba(255, 0, 255, 0.6),
-        0 0 150px rgba(255, 0, 255, 0.3);
-    animation: magenta-pulse 0.6s ease-out;
+        0 0 50px rgba(59, 130, 246, 0.9),
+        0 0 100px rgba(59, 130, 246, 0.6),
+        0 0 150px rgba(59, 130, 246, 0.3);
+    animation: blue-pulse 0.6s ease-out;
 }
 
-@keyframes magenta-pulse {
+@keyframes blue-pulse {
     0% {
         box-shadow:
-            0 0 80px rgba(255, 0, 255, 1),
-            0 0 150px rgba(255, 0, 255, 0.8),
-            0 0 200px rgba(255, 0, 255, 0.5);
+            0 0 80px rgba(59, 130, 246, 1),
+            0 0 150px rgba(59, 130, 246, 0.8),
+            0 0 200px rgba(59, 130, 246, 0.5);
     }
 
     100% {
         box-shadow:
-            0 0 20px rgba(255, 0, 255, 0.4),
-            0 0 40px rgba(255, 0, 255, 0.2);
+            0 0 20px rgba(59, 130, 246, 0.4),
+            0 0 40px rgba(59, 130, 246, 0.2);
     }
 }
 
@@ -828,6 +856,24 @@
     animation: center-pulse 0.4s ease-out;
 }
 
+/* Dark Blue ripple center glow */
+.ripple-blue .ripple-center-glow {
+    background: radial-gradient(circle,
+            rgba(59, 130, 246, 0.7) 0%,
+            rgba(30, 64, 175, 0.5) 30%,
+            rgba(59, 130, 246, 0.2) 60%,
+            transparent 100%);
+}
+
+/* Premium Red ripple center glow */
+.ripple-red .ripple-center-glow {
+    background: radial-gradient(circle,
+            rgba(239, 68, 68, 0.7) 0%,
+            rgba(185, 28, 28, 0.5) 30%,
+            rgba(239, 68, 68, 0.2) 60%,
+            transparent 100%);
+}
+
 @keyframes center-pulse {
     0% {
         transform: translate(-50%, -50%) scale(0.3);
@@ -909,6 +955,82 @@
     animation: ripple-expand 0.5s ease-out 0.2s forwards;
 }
 
+/* ============================================
+   DARK BLUE RIPPLE WAVES - First Shuffle
+   ============================================ */
+
+.ripple-blue .ripple-wave-1 {
+    border-color: rgba(59, 130, 246, 0.9);
+    box-shadow:
+        0 0 30px rgba(59, 130, 246, 0.7),
+        0 0 60px rgba(59, 130, 246, 0.4),
+        inset 0 0 20px rgba(59, 130, 246, 0.3);
+}
+
+.ripple-blue .ripple-wave-2 {
+    border-color: rgba(30, 64, 175, 0.8);
+    box-shadow:
+        0 0 25px rgba(30, 64, 175, 0.6),
+        0 0 50px rgba(30, 64, 175, 0.3);
+}
+
+.ripple-blue .ripple-wave-3 {
+    border-color: rgba(59, 130, 246, 0.6);
+    box-shadow:
+        0 0 20px rgba(59, 130, 246, 0.5),
+        0 0 40px rgba(59, 130, 246, 0.25);
+}
+
+.ripple-blue .ripple-wave-4 {
+    border-color: rgba(96, 165, 250, 0.5);
+    box-shadow:
+        0 0 15px rgba(96, 165, 250, 0.4),
+        0 0 30px rgba(96, 165, 250, 0.2);
+}
+
+.ripple-blue .ripple-wave-5 {
+    border-color: rgba(59, 130, 246, 0.4);
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+}
+
+/* ============================================
+   PREMIUM RED RIPPLE WAVES - Second Shuffle
+   ============================================ */
+
+.ripple-red .ripple-wave-1 {
+    border-color: rgba(239, 68, 68, 0.9);
+    box-shadow:
+        0 0 30px rgba(239, 68, 68, 0.7),
+        0 0 60px rgba(239, 68, 68, 0.4),
+        inset 0 0 20px rgba(239, 68, 68, 0.3);
+}
+
+.ripple-red .ripple-wave-2 {
+    border-color: rgba(185, 28, 28, 0.8);
+    box-shadow:
+        0 0 25px rgba(185, 28, 28, 0.6),
+        0 0 50px rgba(185, 28, 28, 0.3);
+}
+
+.ripple-red .ripple-wave-3 {
+    border-color: rgba(239, 68, 68, 0.6);
+    box-shadow:
+        0 0 20px rgba(239, 68, 68, 0.5),
+        0 0 40px rgba(239, 68, 68, 0.25);
+}
+
+.ripple-red .ripple-wave-4 {
+    border-color: rgba(248, 113, 113, 0.5);
+    box-shadow:
+        0 0 15px rgba(248, 113, 113, 0.4),
+        0 0 30px rgba(248, 113, 113, 0.2);
+}
+
+.ripple-red .ripple-wave-5 {
+    border-color: rgba(239, 68, 68, 0.4);
+    box-shadow: 0 0 20px rgba(239, 68, 68, 0.3);
+}
+
 @keyframes ripple-expand {
     0% {
         transform: translate(-50%, -50%) scale(0);
@@ -937,6 +1059,24 @@
             rgba(16, 185, 129, 0.05) 50%,
             transparent 70%);
     animation: color-wave 1.8s ease-out forwards;
+}
+
+/* Dark Blue color shift */
+.ripple-blue .table-color-shift {
+    background: radial-gradient(ellipse at 50% 50%,
+            rgba(59, 130, 246, 0.2) 0%,
+            rgba(30, 64, 175, 0.12) 30%,
+            rgba(59, 130, 246, 0.06) 50%,
+            transparent 70%);
+}
+
+/* Premium Red color shift */
+.ripple-red .table-color-shift {
+    background: radial-gradient(ellipse at 50% 50%,
+            rgba(239, 68, 68, 0.2) 0%,
+            rgba(185, 28, 28, 0.12) 30%,
+            rgba(239, 68, 68, 0.06) 50%,
+            transparent 70%);
 }
 
 @keyframes color-wave {
@@ -971,6 +1111,16 @@
     opacity: 0;
 }
 
+/* Dark Blue shimmer */
+.ripple-blue .ripple-shimmer {
+    box-shadow: 0 0 6px rgba(59, 130, 246, 0.9), 0 0 12px rgba(30, 64, 175, 0.7);
+}
+
+/* Premium Red shimmer */
+.ripple-red .ripple-shimmer {
+    box-shadow: 0 0 6px rgba(239, 68, 68, 0.9), 0 0 12px rgba(185, 28, 28, 0.7);
+}
+
 /* Luxury accent lines radiating from center */
 .ripple-ray {
     position: absolute;
@@ -985,6 +1135,22 @@
     transform-origin: top center;
     opacity: 0;
     filter: blur(1px);
+}
+
+/* Dark Blue rays */
+.ripple-blue .ripple-ray {
+    background: linear-gradient(to bottom,
+            rgba(59, 130, 246, 0.9),
+            rgba(30, 64, 175, 0.6),
+            transparent);
+}
+
+/* Premium Red rays */
+.ripple-red .ripple-ray {
+    background: linear-gradient(to bottom,
+            rgba(239, 68, 68, 0.9),
+            rgba(185, 28, 28, 0.6),
+            transparent);
 }
 
 @keyframes ray-expand {

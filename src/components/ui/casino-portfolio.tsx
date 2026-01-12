@@ -28,6 +28,7 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
     const [isDealing, setIsDealing] = useState(false);
     const [isTransitioning, setIsTransitioning] = useState(false); // Prevent double clicks
     const [isMobile, setIsMobile] = useState(false); // Responsive sizing
+    const [shuffleCount, setShuffleCount] = useState(0); // Track shuffle number for color alternation
     const navigate = useNavigate();
 
     // REFS
@@ -134,16 +135,33 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
     const shuffleDeckAnimation = () => {
         if (!deckRef.current || !containerRef.current) return;
 
+        // Increment shuffle count for color alternation
+        const newShuffleCount = shuffleCount + 1;
+        setShuffleCount(newShuffleCount);
+
+        // Determine which color scheme to use:
+        // Odd shuffles (1, 3, 5...) = Dark Blue
+        // Even shuffles (2, 4, 6...) = Premium Red
+        const isBluePhase = newShuffleCount % 2 === 1;
+
         // === TRIGGER PREMIUM TABLE RIPPLE EFFECT ===
         if (rippleLayerRef.current && containerRef.current) {
             const layer = rippleLayerRef.current;
             const container = containerRef.current;
 
-            // Activate ripple layer animation
-            layer.classList.add('active');
+            // Remove previous color classes
+            container.classList.remove('table-ripple-blue', 'table-ripple-red', 'table-ripple-active');
+            layer.classList.remove('ripple-blue', 'ripple-red');
 
-            // PERMANENTLY change table color to match ripple (never removed, only resets on page refresh)
-            container.classList.add('table-ripple-active');
+            // Activate ripple layer animation with appropriate color
+            layer.classList.add('active');
+            if (isBluePhase) {
+                container.classList.add('table-ripple-blue');
+                layer.classList.add('ripple-blue');
+            } else {
+                container.classList.add('table-ripple-red');
+                layer.classList.add('ripple-red');
+            }
 
             // Reset animations by cloning and replacing children for fresh animation
             const children = layer.querySelectorAll('.ripple-wave, .ripple-center-glow, .table-color-shift');
@@ -153,7 +171,7 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
             });
 
             // Remove ripple animation layer after effect completes
-            // NOTE: table-ripple-active class stays on container permanently
+            // NOTE: table color class stays on container permanently
             setTimeout(() => {
                 layer.classList.remove('active');
             }, 800);
@@ -2002,59 +2020,67 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
                 </div>
             </div >
 
-            {/* INTERESTED PILE - Played Cards (Top-Left) */}
+            {/* INTERESTED PILE - Premium Glass Blue */}
             <div
                 ref={interestedPileRef}
                 className="absolute top-[8%] left-[5%] md:top-[15%] md:left-[10%] w-[70px] h-[95px] md:w-[130px] md:h-[180px] z-20"
             >
-                {/* Stack layers */}
+                {/* Glass stack layers */}
                 {[...Array(Math.min(5, interestedPile.length))].map((_, i) => (
                     <div
                         key={i}
-                        className="absolute inset-0 bg-emerald-900/50 border border-emerald-500/30 rounded-xl shadow-lg pointer-events-none"
+                        className="absolute inset-0 bg-blue-950/30 border border-blue-500/20 rounded-xl backdrop-blur-sm pointer-events-none"
                         style={{
                             transform: `translate(${i}px, ${-i}px) rotate(${(i * 2) - 2}deg)`,
                             zIndex: i
                         }}
                     />
                 ))}
+                {/* Top glass panel */}
                 <div
-                    className={`absolute inset-0 border-2 border-dashed ${interestedPile.length > 0 ? 'border-emerald-500/40 bg-emerald-500/10' : 'border-white/10'} rounded-xl flex flex-col items-center justify-center transition-colors`}
+                    className={`absolute inset-0 rounded-xl flex flex-col items-center justify-center transition-all duration-300
+                        ${interestedPile.length > 0
+                            ? 'bg-blue-950/40 border border-blue-500/40 backdrop-blur-md shadow-[0_0_30px_rgba(59,130,246,0.4)]'
+                            : 'border-2 border-dashed border-white/10 bg-white/5'}`}
                     style={{
                         transform: interestedPile.length > 0 ? `translate(${Math.min(5, interestedPile.length)}px, ${-Math.min(5, interestedPile.length)}px)` : 'none',
                         zIndex: 10
                     }}
                 >
-                    <div className="text-emerald-400/60 font-bold tracking-widest text-[8px] md:text-xs">INTERESTED</div>
-                    <div className={`text-lg md:text-3xl font-black mt-0.5 md:mt-1 ${interestedPile.length > 0 ? 'text-emerald-400/40' : 'text-white/10'}`}>{interestedPile.length}</div>
+                    <div className="text-blue-400/80 font-bold tracking-widest text-[8px] md:text-xs">SAVED</div>
+                    <div className={`text-lg md:text-3xl font-black mt-0.5 md:mt-1 ${interestedPile.length > 0 ? 'text-blue-400/60' : 'text-white/10'}`}>{interestedPile.length}</div>
                 </div>
             </div>
 
-            {/* REJECTED PILE - Folded Cards (Below Interested) */}
+            {/* REJECTED PILE - Premium Glass Red */}
             <div
                 ref={rejectedPileRef}
                 className="absolute top-[35%] left-[5%] md:top-[50%] md:left-[10%] w-[70px] h-[95px] md:w-[130px] md:h-[180px] z-20"
             >
-                {/* Stack layers */}
+                {/* Glass stack layers */}
                 {[...Array(Math.min(5, rejectedPile.length))].map((_, i) => (
                     <div
                         key={i}
-                        className="absolute inset-0 bg-neutral-800/80 border border-red-500/20 rounded-xl shadow-lg pointer-events-none"
+                        className="absolute inset-0 bg-red-950/30 border border-red-500/20 rounded-xl backdrop-blur-sm pointer-events-none"
                         style={{
                             transform: `translate(${i}px, ${-i}px) rotate(${(i * 2) - 2}deg)`,
                             zIndex: i
                         }}
                     />
                 ))}
+                {/* Top glass panel */}
                 <div
-                    className={`absolute inset-0 border-2 border-dashed ${rejectedPile.length > 0 ? 'border-red-500/30 bg-red-500/5' : 'border-white/10'} rounded-xl flex flex-col items-center justify-center transition-colors`}
+                    className={`absolute inset-0 rounded-xl flex flex-col items-center justify-center transition-all duration-300
+                        ${rejectedPile.length > 0
+                            ? 'bg-red-950/40 border border-red-500/40 backdrop-blur-md shadow-[0_0_30px_rgba(239,68,68,0.4)]'
+                            : 'border-2 border-dashed border-white/10 bg-white/5'}`}
                     style={{
                         transform: rejectedPile.length > 0 ? `translate(${Math.min(5, rejectedPile.length)}px, ${-Math.min(5, rejectedPile.length)}px)` : 'none',
                         zIndex: 10
                     }}
                 >
-                    <div className="text-red-400/60 font-bold tracking-widest text-[8px] md:text-xs">REJECTED</div>
-                    <div className={`text-lg md:text-3xl font-black mt-0.5 md:mt-1 ${rejectedPile.length > 0 ? 'text-red-400/30' : 'text-white/10'}`}>{rejectedPile.length}</div>
+                    <div className="text-red-400/80 font-bold tracking-widest text-[8px] md:text-xs">SKIPPED</div>
+                    <div className={`text-lg md:text-3xl font-black mt-0.5 md:mt-1 ${rejectedPile.length > 0 ? 'text-red-400/60' : 'text-white/10'}`}>{rejectedPile.length}</div>
                 </div>
             </div>
 
