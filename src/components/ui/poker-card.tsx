@@ -158,27 +158,27 @@ export const PokerCard = forwardRef<HTMLDivElement, PokerCardProps>(({
 
                 {/* FRONT FACE = Details (Shown when inspected) */}
                 <div className={cn("card-face card-front", isWildCard && "wild-card-variant")}>
-                    <div className="card-front-content p-2 md:p-6 overflow-hidden flex flex-col h-full">
-                        <div className="flex justify-between items-start mb-1.5 md:mb-4 border-b border-white/10 pb-1 md:pb-2 flex-shrink-0">
-                            <h3 className={cn("text-xs md:text-lg font-bold text-white leading-tight line-clamp-1", isWildCard && "wild-card-title")}>
+                    <div className="card-front-content p-2 md:p-4 lg:p-6 overflow-hidden flex flex-col h-full">
+                        <div className="flex justify-between items-start mb-1.5 md:mb-2 lg:mb-4 border-b border-white/10 pb-1 lg:pb-2 flex-shrink-0">
+                            <h3 className={cn("text-xs md:text-base lg:text-lg font-bold text-white leading-tight line-clamp-1", isWildCard && "wild-card-title")}>
                                 {project.common}
                             </h3>
-                            <div className="w-4 h-4 md:w-6 md:h-6 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0 ml-1">
-                                <span className={cn("text-[8px] md:text-xs", isWildCard ? "text-rose-500" : "text-emerald-400")}>
+                            <div className="w-4 h-4 md:w-5 md:h-5 lg:w-6 lg:h-6 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0 ml-1">
+                                <span className={cn("text-[8px] md:text-[10px] lg:text-xs", isWildCard ? "text-rose-500" : "text-emerald-400")}>
                                     {isWildCard ? "★" : "♥"}
                                 </span>
                             </div>
                         </div>
 
-                        <p className="text-[10px] md:text-sm text-gray-300 mb-1.5 md:mb-4 leading-snug font-light line-clamp-4 md:line-clamp-none flex-shrink-0">
+                        <p className="text-[10px] md:text-xs lg:text-sm text-gray-300 mb-1.5 md:mb-3 lg:mb-4 leading-snug font-light line-clamp-4 md:line-clamp-none flex-shrink-0">
                             {project.description}
                         </p>
 
-                        <div className="space-y-0.5 md:space-y-2 mb-2 md:mb-6 flex-shrink-0">
+                        <div className="space-y-0.5 md:space-y-1 lg:space-y-2 mb-2 md:mb-3 lg:mb-6 flex-shrink-0">
                             {project.features.slice(0, 2).map((f, i) => (
-                                <div key={i} className="flex items-center text-[9px] md:text-xs text-gray-400">
+                                <div key={i} className="flex items-center text-[9px] md:text-[10px] lg:text-xs text-gray-400">
                                     <span className={cn(
-                                        "w-1 h-1 md:w-1.5 md:h-1.5 rounded-full mr-1 md:mr-2 shadow-[0_0_8px_rgba(16,185,129,0.5)] flex-shrink-0",
+                                        "w-1 h-1 md:w-1 lg:w-1.5 lg:h-1.5 rounded-full mr-1 md:mr-2 shadow-[0_0_8px_rgba(16,185,129,0.5)] flex-shrink-0",
                                         isWildCard ? "bg-rose-500 shadow-rose-500/50" : "bg-emerald-500"
                                     )} />
                                     <span className="truncate">{f}</span>
@@ -187,10 +187,10 @@ export const PokerCard = forwardRef<HTMLDivElement, PokerCardProps>(({
                         </div>
 
                         {/* Action Buttons - Larger touch targets for mobile */}
-                        <div className="mt-auto grid grid-cols-2 gap-2 md:gap-3 opacity-0 action-buttons relative z-10" style={{ pointerEvents: 'auto' }}>
+                        <div className="mt-auto grid grid-cols-2 gap-2 lg:gap-3 opacity-0 action-buttons relative z-10" style={{ pointerEvents: 'auto' }}>
                             <button
                                 onClick={(e) => { e.stopPropagation(); onFold?.(); }}
-                                className="bg-white/5 hover:bg-white/10 active:bg-white/20 text-white text-xs md:text-sm py-2.5 md:py-2.5 px-3 md:px-4 rounded-lg border border-white/10 flex items-center justify-center transition-all min-h-[44px] cursor-pointer"
+                                className="bg-white/5 hover:bg-white/10 active:bg-white/20 text-white text-xs lg:text-sm py-2.5 md:py-2 lg:py-2.5 px-3 md:px-3 lg:px-4 rounded-lg border border-white/10 flex items-center justify-center transition-all min-h-[44px] cursor-pointer"
                                 style={{ pointerEvents: 'auto' }}
                             >
                                 <RefreshCw size={14} className="mr-1.5" />
@@ -199,7 +199,7 @@ export const PokerCard = forwardRef<HTMLDivElement, PokerCardProps>(({
                             <button
                                 onClick={(e) => { e.stopPropagation(); onPlay?.(); }}
                                 className={cn(
-                                    "text-white text-xs md:text-sm py-2.5 md:py-2.5 px-3 md:px-4 rounded-lg flex items-center justify-center transition-all shadow-lg transform hover:scale-105 active:scale-95 min-h-[44px] cursor-pointer",
+                                    "text-white text-xs lg:text-sm py-2.5 md:py-2 lg:py-2.5 px-3 md:px-3 lg:px-4 rounded-lg flex items-center justify-center transition-all shadow-lg transform hover:scale-105 active:scale-95 min-h-[44px] cursor-pointer",
                                     isWildCard
                                         ? "bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 shadow-fuchsia-900/40"
                                         : "bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-400 shadow-emerald-900/40"

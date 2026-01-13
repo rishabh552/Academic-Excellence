@@ -521,7 +521,8 @@
     text-align: center;
     padding: 4rem 2rem;
     position: relative;
-    z-index: 40;
+    z-index: 50;
+    /* Higher than engine (z-index: 10) to ensure visibility */
     background: linear-gradient(to bottom, transparent, rgba(99, 102, 241, 0.05));
 }
 

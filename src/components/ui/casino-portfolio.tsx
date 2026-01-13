@@ -675,6 +675,12 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
             centerX = (containerRect.width / 2) - (cardWidth / 2);
             centerY = containerRect.height * 0.35; // 35% from top - below deck area
             cardScale = 1.3; // Slightly smaller scale on mobile
+        } else if (window.innerWidth < 1024) {
+            // Tablet (iPad Mini, etc): 200x280 card size
+            const cardWidth = 200;
+            centerX = (containerRect.width / 2) - (cardWidth / 2);
+            centerY = (containerRect.height / 2) - 160; // Center - 20px offset
+            cardScale = 1.4; // Good fit for tablet
         } else {
             // Desktop: Original centered positioning
             centerX = containerRect.width / 2 - 130;

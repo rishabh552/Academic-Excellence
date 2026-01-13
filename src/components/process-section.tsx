@@ -468,7 +468,7 @@ export function ProcessSection() {
                     // ===== HIDE CENTRAL ENGINE AT CTA =====
                     ScrollTrigger.create({
                         trigger: ctaRef.current,
-                        start: "top 60%",
+                        start: "top 70%",
                         end: "top 30%",
                         onEnter: () => {
                             gsap.to(centralVisualRef.current, {
@@ -479,46 +479,37 @@ export function ProcessSection() {
                             });
                         },
                         onLeaveBack: () => {
+                            // Just restore visibility - scrub animations will handle ring scales/rotations
                             gsap.to(centralVisualRef.current, {
                                 opacity: 1,
                                 scale: 1,
                                 duration: 0.5,
                                 ease: "power2.out"
                             });
-                            // Reset engine ring scales when scrolling back up
-                            gsap.to(".engine-ring-1", {
-                                scale: 1,
-                                opacity: 0.3,
-                                rotation: 0,
-                                duration: 0.5,
-                                ease: "power2.out"
-                            });
-                            gsap.to(".engine-ring-2", {
-                                scale: 1,
-                                opacity: 0.3,
-                                rotation: 0,
-                                duration: 0.5,
-                                ease: "power2.out"
-                            });
-                            gsap.to(".engine-ring-3", {
-                                scale: 1,
-                                opacity: 0.3,
-                                rotation: 0,
-                                duration: 0.5,
-                                ease: "power2.out"
-                            });
                         }
                     });
 
-                    // ===== CTA SECTION - Ensure button is visible =====
-                    // Set initial states explicitly
+                    // ===== CTA SECTION - Ensure text is always visible =====
+                    // Set initial states
                     gsap.set(".cta-title", { opacity: 0, y: 40 });
                     gsap.set(".cta-subtitle", { opacity: 0, y: 30 });
                     gsap.set(".cta-button", { opacity: 0, scale: 0.9 });
 
+                    // Check if user is already scrolled to CTA (e.g., page refresh at bottom)
+                    if (ctaRef.current) {
+                        const ctaRect = ctaRef.current.getBoundingClientRect();
+                        if (ctaRect.top < window.innerHeight * 0.85) {
+                            // Already in view, show immediately
+                            gsap.set(".cta-title", { opacity: 1, y: 0 });
+                            gsap.set(".cta-subtitle", { opacity: 1, y: 0 });
+                            gsap.set(".cta-button", { opacity: 1, scale: 1 });
+                        }
+                    }
+
                     ScrollTrigger.create({
                         trigger: ctaRef.current,
-                        start: "top 80%",
+                        start: "top 85%",
+                        end: "bottom top",
                         onEnter: () => {
                             gsap.to(".cta-title", {
                                 opacity: 1,
@@ -539,6 +530,34 @@ export function ProcessSection() {
                                 duration: 0.6,
                                 delay: 0.4,
                                 ease: "back.out(2)"
+                            });
+                        },
+                        onEnterBack: () => {
+                            // Also show when scrolling back up into CTA section
+                            gsap.to(".cta-title", {
+                                opacity: 1,
+                                y: 0,
+                                duration: 0.5,
+                                ease: "power2.out"
+                            });
+                            gsap.to(".cta-subtitle", {
+                                opacity: 1,
+                                y: 0,
+                                duration: 0.4,
+                                ease: "power2.out"
+                            });
+                            gsap.to(".cta-button", {
+                                opacity: 1,
+                                scale: 1,
+                                duration: 0.4,
+                                ease: "power2.out"
+                            });
+                        },
+                        onLeave: () => {
+                            // Only hide if scrolling past the CTA (shouldn't happen often)
+                            gsap.to(".cta-title, .cta-subtitle, .cta-button", {
+                                opacity: 0,
+                                duration: 0.3
                             });
                         },
                         onLeaveBack: () => {
