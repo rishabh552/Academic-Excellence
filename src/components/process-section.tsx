@@ -531,18 +531,24 @@ export function ProcessSection() {
                         transform="rotate(-90 170 170)"
                     />
                     {/* Step indicator dots around the ring */}
-                    {steps.map((_, i) => {
+                    {steps.map((step, i) => {
                         const angle = (i / 6) * 360 - 90; // Start from top
                         const rad = (angle * Math.PI) / 180;
                         const x = 170 + 160 * Math.cos(rad);
                         const y = 170 + 160 * Math.sin(rad);
+                        const isCompleted = i < currentStep;
+                        const isActive = i === currentStep;
                         return (
                             <circle
                                 key={i}
-                                className={`progress-dot ${i < currentStep ? 'completed' : ''} ${i === currentStep ? 'active' : ''}`}
+                                className={`progress-dot ${isCompleted ? 'completed' : ''} ${isActive ? 'active' : ''}`}
                                 cx={x}
                                 cy={y}
                                 r="6"
+                                style={{
+                                    fill: isCompleted || isActive ? step.color : undefined,
+                                    filter: isActive ? `drop-shadow(0 0 10px ${step.color}80)` : undefined
+                                }}
                             />
                         );
                     })}
