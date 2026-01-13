@@ -115,7 +115,6 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
 
         // Split rejected pile: cards that CAN be reshuffled vs cards that CANNOT
         const eligibleForReshuffle = rejectedPile.filter(card => !reshuffledCardIds.has(card.common));
-        const permanentlyRejected = rejectedPile.filter(card => reshuffledCardIds.has(card.common));
 
         if (hand.length === 0 && !isDealing && !activeProject && !isTransitioning && !isGameOver) {
             if (cardsInDeck > 0) {
@@ -126,18 +125,8 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
                 return () => clearTimeout(timer);
             } else if (eligibleForReshuffle.length > 0) {
                 // Deck empty, but we have cards that haven't been reshuffled yet
-                // Mark these cards as "reshuffled" and shuffle them back
+                // Trigger shuffle animation - dealNewHand will handle the filtering and reshuffling logic
                 const timer = setTimeout(() => {
-                    // Mark all eligible cards as reshuffled
-                    const newReshuffledIds = new Set(reshuffledCardIds);
-                    eligibleForReshuffle.forEach(card => newReshuffledIds.add(card.common));
-                    setReshuffledCardIds(newReshuffledIds);
-
-                    // Keep permanently rejected cards in rejected pile, only reshuffle eligible ones
-                    setRejectedPile(permanentlyRejected);
-                    setDeck(eligibleForReshuffle);
-
-                    // Deal new hand
                     performShuffleAnimation();
                 }, 300);
                 return () => clearTimeout(timer);
@@ -384,8 +373,19 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
 
     // Deal new shuffled hand
     const dealNewHand = () => {
-        // Shuffle only deck and rejected cards - saved/interested cards stay in their pile
-        const cardsToShuffle = [...deck, ...rejectedPile];
+        // Split rejected pile: cards that CAN be reshuffled vs cards that CANNOT (One Second Chance)
+        const eligibleForReshuffle = rejectedPile.filter(card => !reshuffledCardIds.has(card.common));
+        const permanentlyRejected = rejectedPile.filter(card => reshuffledCardIds.has(card.common));
+
+        // Mark eligible cards as "reshuffled" so they won't be eligible next time
+        if (eligibleForReshuffle.length > 0) {
+            const newReshuffledIds = new Set(reshuffledCardIds);
+            eligibleForReshuffle.forEach(card => newReshuffledIds.add(card.common));
+            setReshuffledCardIds(newReshuffledIds);
+        }
+
+        // Shuffle deck + ONLY eligible rejected cards
+        const cardsToShuffle = [...deck, ...eligibleForReshuffle];
         let shuffled = shuffleArray(cardsToShuffle);
 
         // Separate wild card from other cards
@@ -405,13 +405,13 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
             }
         }
 
-        // Deal new hand from shuffled cards (wild card will be first on first shuffle)
+        // Deal new hand from shuffled cards
         const newHandSize = Math.min(5, shuffled.length);
         const newHand = shuffled.slice(0, newHandSize);
         const newDeck = shuffled.slice(newHandSize);
 
-        // Reset state - only clear rejected pile, keep interested pile intact
-        setRejectedPile([]);
+        // Reset state
+        setRejectedPile(permanentlyRejected); // KEEP permanent rejects in the pile
         setHand(newHand);
         setDeck(newDeck);
 
