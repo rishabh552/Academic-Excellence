@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -31,12 +31,22 @@ interface ProcessStep {
     color: string;
 }
 
+// Memoized icons - created once outside component
+const StepIcons = {
+    send: <Send />,
+    fileText: <FileText />,
+    code2: <Code2 />,
+    testTube: <TestTube />,
+    checkCircle2: <CheckCircle2 />,
+    rocket: <Rocket />
+};
+
 const steps: ProcessStep[] = [
     {
         id: 1,
         title: "Submit Your Requirements",
         description: "Share your project vision with us. Get a detailed quote within 24 hours—no hidden fees, no surprises.",
-        icon: <Send />,
+        icon: StepIcons.send,
         details: [
             "Simple project request form",
             "Technology stack preferences",
@@ -50,7 +60,7 @@ const steps: ProcessStep[] = [
         id: 2,
         title: "Project Planning & Design",
         description: "Receive your project blueprint in 2-3 days: technical specs, wireframes, and a milestone timeline you can track.",
-        icon: <FileText />,
+        icon: StepIcons.fileText,
         details: [
             "Technical specifications",
             "Database architecture",
@@ -64,7 +74,7 @@ const steps: ProcessStep[] = [
         id: 3,
         title: "Expert Development",
         description: "Watch your project come alive with weekly progress demos. Comment on drafts in real-time as we build.",
-        icon: <Code2 />,
+        icon: StepIcons.code2,
         details: [
             "Clean, documented code",
             "Regular progress demos",
@@ -78,7 +88,7 @@ const steps: ProcessStep[] = [
         id: 4,
         title: "Quality Assurance",
         description: "We test everything before you see it. Expect a detailed QA report with every milestone delivery.",
-        icon: <TestTube />,
+        icon: StepIcons.testTube,
         details: [
             "Unit & integration tests",
             "Performance optimization",
@@ -92,7 +102,7 @@ const steps: ProcessStep[] = [
         id: 5,
         title: "Review & Refinement",
         description: "Your feedback shapes the final product. Request changes anytime—unlimited revisions included.",
-        icon: <CheckCircle2 />,
+        icon: StepIcons.checkCircle2,
         details: [
             "Project walkthrough",
             "Unlimited revisions",
@@ -106,7 +116,7 @@ const steps: ProcessStep[] = [
         id: 6,
         title: "Delivery & Support",
         description: "Handoff includes source code, documentation, and a video walkthrough. 30 days of free support included.",
-        icon: <Rocket />,
+        icon: StepIcons.rocket,
         details: [
             "Complete source code",
             "Deployment guide",
@@ -117,6 +127,16 @@ const steps: ProcessStep[] = [
         color: "#f43f5e", // Rose
     },
 ];
+
+// Pre-computed dot positions for SVG (static values)
+const DOT_POSITIONS = steps.map((_, i) => {
+    const angle = (i / 6) * 360 - 90; // Start from top
+    const rad = (angle * Math.PI) / 180;
+    return {
+        x: 170 + 160 * Math.cos(rad),
+        y: 170 + 160 * Math.sin(rad)
+    };
+});
 
 export function ProcessSection() {
     const containerRef = useRef<HTMLDivElement>(null);
@@ -129,10 +149,35 @@ export function ProcessSection() {
     const mobileProgressRef = useRef<HTMLDivElement>(null);
     const engineIconRef = useRef<HTMLDivElement>(null);
 
+    // Use ref for currentStep to avoid re-triggering useEffect
+    const currentStepRef = useRef(0);
+    const timelineDotsRef = useRef<NodeListOf<Element> | null>(null);
+
     const [currentStep, setCurrentStep] = useState(0);
     const [currentIcon, setCurrentIcon] = useState<React.ReactNode>(steps[0].icon);
     const [currentColor, setCurrentColor] = useState(steps[0].color);
     const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+
+    // Memoize engine styles to prevent object recreation
+    const engineCoreStyle = useMemo(() => ({
+        background: `radial-gradient(circle, ${currentColor} 0%, ${currentColor}80 100%)`
+    }), [currentColor]);
+
+    const engineCenterStyle = useMemo(() => ({
+        background: currentColor,
+        boxShadow: `0 0 60px ${currentColor}80`
+    }), [currentColor]);
+
+    // Memoized scroll-to-step handler
+    const scrollToStep = useCallback((index: number) => {
+        const el = stepRefs.current[index];
+        el?.scrollIntoView({ behavior: prefersReducedMotion ? 'auto' : 'smooth' });
+    }, [prefersReducedMotion]);
+
+    // Memoized back-to-top handler
+    const scrollToTop = useCallback(() => {
+        window.scrollTo({ top: 0, behavior: prefersReducedMotion ? 'auto' : 'smooth' });
+    }, [prefersReducedMotion]);
 
     // Check for reduced motion preference
     useEffect(() => {
@@ -149,6 +194,9 @@ export function ProcessSection() {
 
         // Defer GSAP initialization to allow LCP to complete first
         const initGSAP = () => {
+            // Cache timeline dots once during initialization
+            timelineDotsRef.current = document.querySelectorAll(".timeline-dot");
+
             ctx = gsap.context(() => {
                 // ===== HERO ANIMATION =====
                 // Hero is visible by default - animations enhance rather than block LCP
@@ -267,7 +315,8 @@ export function ProcessSection() {
 
                             // Calculate current step (1-6)
                             const stepIndex = Math.min(5, Math.floor(progress * 6));
-                            if (stepIndex !== currentStep) {
+                            if (stepIndex !== currentStepRef.current) {
+                                currentStepRef.current = stepIndex;
                                 setCurrentStep(stepIndex);
                                 setCurrentIcon(steps[stepIndex].icon);
                                 setCurrentColor(steps[stepIndex].color);
@@ -282,15 +331,17 @@ export function ProcessSection() {
                                     mobileProgressRef.current.style.background = `linear-gradient(90deg, ${steps[stepIndex].color}, ${steps[Math.min(5, stepIndex + 1)].color})`;
                                 }
 
-                                // Update timeline dots
-                                document.querySelectorAll(".timeline-dot").forEach((dot, i) => {
-                                    dot.classList.remove("active", "completed");
-                                    if (i < stepIndex) {
-                                        dot.classList.add("completed");
-                                    } else if (i === stepIndex) {
-                                        dot.classList.add("active");
-                                    }
-                                });
+                                // Update timeline dots using cached reference
+                                if (timelineDotsRef.current) {
+                                    timelineDotsRef.current.forEach((dot, i) => {
+                                        dot.classList.remove("active", "completed");
+                                        if (i < stepIndex) {
+                                            dot.classList.add("completed");
+                                        } else if (i === stepIndex) {
+                                            dot.classList.add("active");
+                                        }
+                                    });
+                                }
                             }
                         }
                     });
@@ -520,9 +571,8 @@ export function ProcessSection() {
                 }
             }
             if (ctx) ctx.revert();
-            window.removeEventListener('scroll', () => { });
         };
-    }, [currentStep, prefersReducedMotion]);
+    }, [prefersReducedMotion]); // Removed currentStep from dependencies
 
     return (
         <div className="process-flow" ref={containerRef}>
@@ -552,25 +602,20 @@ export function ProcessSection() {
                         strokeDashoffset="1005.3"
                         transform="rotate(-90 170 170)"
                     />
-                    {/* Step indicator dots around the ring */}
+                    {/* Step indicator dots around the ring - using pre-computed positions */}
                     {steps.map((step, i) => {
-                        const angle = (i / 6) * 360 - 90; // Start from top
-                        const rad = (angle * Math.PI) / 180;
-                        const x = 170 + 160 * Math.cos(rad);
-                        const y = 170 + 160 * Math.sin(rad);
+                        const { x, y } = DOT_POSITIONS[i];
                         const isCompleted = i < currentStep;
                         const isActive = i === currentStep;
                         return (
                             <circle
-                                key={i}
+                                key={step.id}
                                 className={`progress-dot ${isCompleted ? 'completed' : ''} ${isActive ? 'active' : ''}`}
                                 cx={x}
                                 cy={y}
                                 r="6"
-                                style={{
-                                    fill: isCompleted || isActive ? step.color : undefined,
-                                    filter: isActive ? `drop-shadow(0 0 10px ${step.color}80)` : undefined
-                                }}
+                                fill={isCompleted || isActive ? step.color : undefined}
+                                filter={isActive ? `drop-shadow(0 0 10px ${step.color}80)` : undefined}
                             />
                         );
                     })}
@@ -580,14 +625,8 @@ export function ProcessSection() {
                     <div className="engine-ring engine-ring-1" />
                     <div className="engine-ring engine-ring-2" />
                     <div className="engine-ring engine-ring-3" />
-                    <div className="engine-core" style={{ background: `radial-gradient(circle, ${currentColor} 0%, ${currentColor}80 100%)` }} />
-                    <div
-                        className="engine-center"
-                        style={{
-                            background: currentColor,
-                            boxShadow: `0 0 60px ${currentColor}80`
-                        }}
-                    >
+                    <div className="engine-core" style={engineCoreStyle} />
+                    <div className="engine-center" style={engineCenterStyle}>
                         <div ref={engineIconRef} className="engine-icon">
                             {currentIcon}
                         </div>
@@ -600,7 +639,7 @@ export function ProcessSection() {
             {/* BACK TO TOP BUTTON (Mobile) */}
             <button
                 className="back-to-top-btn"
-                onClick={() => window.scrollTo({ top: 0, behavior: prefersReducedMotion ? 'auto' : 'smooth' })}
+                onClick={scrollToTop}
                 aria-label="Back to top"
             >
                 <ChevronUp size={20} />
@@ -620,10 +659,7 @@ export function ProcessSection() {
                         <button
                             key={step.id}
                             className="how-it-works-item"
-                            onClick={() => {
-                                const el = stepRefs.current[i];
-                                el?.scrollIntoView({ behavior: prefersReducedMotion ? 'auto' : 'smooth' });
-                            }}
+                            onClick={() => scrollToStep(i)}
                         >
                             <div className="how-it-works-icon" style={{ background: step.color }}>
                                 {step.icon}
