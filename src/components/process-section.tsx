@@ -434,6 +434,28 @@ export function ProcessSection() {
                                 duration: 0.5,
                                 ease: "power2.out"
                             });
+                            // Reset engine ring scales when scrolling back up
+                            gsap.to(".engine-ring-1", {
+                                scale: 1,
+                                opacity: 0.3,
+                                rotation: 0,
+                                duration: 0.5,
+                                ease: "power2.out"
+                            });
+                            gsap.to(".engine-ring-2", {
+                                scale: 1,
+                                opacity: 0.3,
+                                rotation: 0,
+                                duration: 0.5,
+                                ease: "power2.out"
+                            });
+                            gsap.to(".engine-ring-3", {
+                                scale: 1,
+                                opacity: 0.3,
+                                rotation: 0,
+                                duration: 0.5,
+                                ease: "power2.out"
+                            });
                         }
                     });
 

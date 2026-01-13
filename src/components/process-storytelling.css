@@ -588,7 +588,7 @@
         top: 50%;
         bottom: auto;
         left: 50%;
-        transform: translate(-50%, -50%) scale(0.45);
+        transform: translate(-50%, -50%) scale(0.6);
         opacity: 0.7;
         pointer-events: none;
         z-index: 5;
@@ -601,8 +601,8 @@
 
     /* Simplify ring animations for mobile performance */
     .central-engine {
-        width: 200px;
-        height: 200px;
+        width: 280px;
+        height: 280px;
     }
 
     .engine-ring-1,
@@ -612,24 +612,24 @@
     }
 
     .engine-center {
-        width: 60px;
-        height: 60px;
+        width: 70px;
+        height: 70px;
     }
 
     .engine-icon {
+        width: 32px;
+        height: 32px;
+    }
+
+    .engine-icon svg {
         width: 28px;
         height: 28px;
     }
 
-    .engine-icon svg {
-        width: 24px;
-        height: 24px;
-    }
-
     /* Progress ring adjustments for mobile */
     .progress-ring {
-        width: 220px;
-        height: 220px;
+        width: 300px;
+        height: 300px;
     }
 
     .progress-ring-bg,
@@ -638,11 +638,11 @@
     }
 
     .progress-dot {
-        r: 4;
+        r: 5;
     }
 
     .progress-dot.active {
-        r: 6;
+        r: 7;
     }
 
     .flow-step {
