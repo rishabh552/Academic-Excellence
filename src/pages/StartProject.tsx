@@ -789,7 +789,7 @@ export function StartProject() {
 
     // Step 2 Data
     const [selectedProject, setSelectedProject] = useState<string | null>(null);
-    const [projectTitle, setProjectTitle] = useState<string | null>(null);
+    const [_projectTitle, setProjectTitle] = useState<string | null>(null);
 
     // Step 3 Data
     const [selectedPackage, setSelectedPackage] = useState<string | null>(null);

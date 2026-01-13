@@ -34,6 +34,9 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
         const saved = localStorage.getItem('showcase-shuffle-count');
         return saved ? parseInt(saved, 10) : 0;
     }); // Track shuffle number for color alternation
+    const [isGameOver, setIsGameOver] = useState(false); // Track game-over state
+    const [reshuffledCardIds, setReshuffledCardIds] = useState<Set<string>>(new Set()); // Track cards that have been reshuffled once
+    const [isFirstShuffle, setIsFirstShuffle] = useState(true); // Track if this is the first shuffle (wild card forced to hand)
     const navigate = useNavigate();
     const { addProject: addToShowcase, hasProjects, selectedProjects } = useShowcaseOptional();
 
@@ -56,11 +59,13 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
         const alreadySaved = gameItems.filter(item => savedProjectNames.has(item.common));
         const availableItems = gameItems.filter(item => !savedProjectNames.has(item.common));
 
-        // Start with no cards in hand, available cards in deck
-        // But for the initial "Deal", we want to move 5 from deck to hand
+        // Deal 5 regular projects to hand first
         const initialHandSize = Math.min(5, availableItems.length);
         const initialHand = availableItems.slice(0, initialHandSize);
-        const remainingDeck = availableItems.slice(initialHandSize);
+        const remainingProjects = availableItems.slice(initialHandSize);
+
+        // Add Wild Card at FRONT of remaining deck (so it's first pick when drawing)
+        const remainingDeck = [WILD_CARD_PROJECT, ...remainingProjects];
 
         setHand(initialHand);
         setDeck(remainingDeck);
@@ -104,18 +109,90 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
     }, [isMobile, hand.length]);
 
     // Auto-shuffle and deal when hand is empty and no active project
+    // Per-card reshuffle tracking: cards can only be reshuffled ONCE each
     useEffect(() => {
-        // Check if hand is empty and there are cards in piles or deck to reshuffle
-        // Also ensure we're not in the middle of any animation
-        const totalDiscarded = interestedPile.length + rejectedPile.length;
-        if (hand.length === 0 && !isDealing && !activeProject && !isTransitioning && (totalDiscarded > 0 || deck.length > 0)) {
-            // Small delay to ensure all animations are complete
-            const timer = setTimeout(() => {
-                performShuffleAnimation();
-            }, 300);
-            return () => clearTimeout(timer);
+        const cardsInDeck = deck.length;
+
+        // Split rejected pile: cards that CAN be reshuffled vs cards that CANNOT
+        const eligibleForReshuffle = rejectedPile.filter(card => !reshuffledCardIds.has(card.common));
+        const permanentlyRejected = rejectedPile.filter(card => reshuffledCardIds.has(card.common));
+
+        if (hand.length === 0 && !isDealing && !activeProject && !isTransitioning && !isGameOver) {
+            if (cardsInDeck > 0) {
+                // Still have cards in deck - deal from deck
+                const timer = setTimeout(() => {
+                    performShuffleAnimation();
+                }, 300);
+                return () => clearTimeout(timer);
+            } else if (eligibleForReshuffle.length > 0) {
+                // Deck empty, but we have cards that haven't been reshuffled yet
+                // Mark these cards as "reshuffled" and shuffle them back
+                const timer = setTimeout(() => {
+                    // Mark all eligible cards as reshuffled
+                    const newReshuffledIds = new Set(reshuffledCardIds);
+                    eligibleForReshuffle.forEach(card => newReshuffledIds.add(card.common));
+                    setReshuffledCardIds(newReshuffledIds);
+
+                    // Keep permanently rejected cards in rejected pile, only reshuffle eligible ones
+                    setRejectedPile(permanentlyRejected);
+                    setDeck(eligibleForReshuffle);
+
+                    // Deal new hand
+                    performShuffleAnimation();
+                }, 300);
+                return () => clearTimeout(timer);
+            } else {
+                // Deck empty AND no cards eligible for reshuffle
+                // GAME OVER
+                const timer = setTimeout(() => {
+                    setIsGameOver(true);
+                }, 500);
+                return () => clearTimeout(timer);
+            }
         }
-    }, [hand.length, isDealing, activeProject, isTransitioning, interestedPile.length, rejectedPile.length, deck.length]);
+    }, [hand.length, isDealing, activeProject, isTransitioning, rejectedPile, deck.length, reshuffledCardIds, isGameOver]);
+
+    // Restart game - reset all state to initial
+    const restartGame = () => {
+        setIsGameOver(false);
+        setReshuffledCardIds(new Set()); // Reset per-card reshuffle tracking
+        setIsFirstShuffle(true); // Reset so wild card priority works again
+
+        // Reset all piles
+        setInterestedPile([]);
+        setRejectedPile([]);
+        setDeck([]);
+        setHand([]);
+        setFocusedIndex(null);
+        setActiveProject(null);
+        setActiveCardIndex(null);
+
+        // Clear localStorage shuffle count
+        localStorage.removeItem('showcase-shuffle-count');
+        setShuffleCount(0);
+
+        // Reinitialize with all items
+        const gameItems = [...items];
+        const initialHandSize = Math.min(5, gameItems.length);
+        const initialHand = gameItems.slice(0, initialHandSize);
+        const remainingProjects = gameItems.slice(initialHandSize);
+
+        // Add wild card at front of deck (same as initialization)
+        const remainingDeck = [WILD_CARD_PROJECT, ...remainingProjects];
+
+        setHand(initialHand);
+        setDeck(remainingDeck);
+
+        // Trigger deal animation
+        if (initialHandSize > 0) {
+            setTimeout(() => dealCards(initialHandSize), 100);
+        }
+    };
+
+    // Handle leave game / cash out
+    const handleLeaveGame = () => {
+        navigate('/start-project?step=3');
+    };
 
     // Visual shuffle animation
     const performShuffleAnimation = () => {
@@ -309,23 +386,29 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
     const dealNewHand = () => {
         // Shuffle only deck and rejected cards - saved/interested cards stay in their pile
         const cardsToShuffle = [...deck, ...rejectedPile];
-        const shuffled = shuffleArray(cardsToShuffle);
+        let shuffled = shuffleArray(cardsToShuffle);
 
-        // Check if Wild Card should be injected
-        // Wild Card appears if there are saved projects (interested pile) and no wild card exists
-        const hasWildCard = [...shuffled, ...interestedPile].some(p => p.type === 'wildcard');
-        const hasSavedProjects = interestedPile.length > 0;
+        // Separate wild card from other cards
+        const wildCard = shuffled.find(p => p.type === 'wildcard');
+        const otherCards = shuffled.filter(p => p.type !== 'wildcard');
 
-        // Deal new hand from shuffled cards
-        let newHandSize = Math.min(5, shuffled.length);
-        let newHand = shuffled.slice(0, newHandSize);
-        let newDeck = shuffled.slice(newHandSize);
-
-        // Inject Wild Card into the hand if conditions are met
-        if (!hasWildCard && hasSavedProjects && newHand.length < 5) {
-            newHand = [...newHand, WILD_CARD_PROJECT];
-            newHandSize = newHand.length;
+        // On FIRST shuffle: Force wild card to front (guaranteed in hand)
+        // On SUBSEQUENT shuffles: Wild card shuffles naturally
+        if (wildCard) {
+            if (isFirstShuffle) {
+                // First shuffle - wild card goes to FRONT (forced to hand)
+                shuffled = [wildCard, ...otherCards];
+                setIsFirstShuffle(false); // Mark first shuffle as done
+            } else {
+                // Subsequent shuffles - wild card shuffles naturally (already in shuffled array)
+                shuffled = shuffleArray([wildCard, ...otherCards]);
+            }
         }
+
+        // Deal new hand from shuffled cards (wild card will be first on first shuffle)
+        const newHandSize = Math.min(5, shuffled.length);
+        const newHand = shuffled.slice(0, newHandSize);
+        const newDeck = shuffled.slice(newHandSize);
 
         // Reset state - only clear rejected pile, keep interested pile intact
         setRejectedPile([]);
@@ -1844,23 +1927,9 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
         // Check if hand is full (max 5 cards)
         if (hand.length >= 5) return;
 
-        // CUSTOM PROJECT LOGIC: 
-        // Wild Card appears ONLY after one card has been discarded and user picks from deck.
-        const totalDiscarded = interestedPile.length + rejectedPile.length;
-        const hasWildCard = [...hand, ...interestedPile, ...rejectedPile, ...deck].some(p => p.type === 'wildcard');
-
-        let newCard: Project;
-        let newDeck: Project[];
-
-        if (!hasWildCard && totalDiscarded > 0) {
-            // Inject Wild Card without consuming a real project
-            newCard = WILD_CARD_PROJECT;
-            newDeck = deck;
-        } else {
-            // Normal Draw
-            newCard = deck[0];
-            newDeck = deck.slice(1);
-        }
+        // Normal Draw - draw from front of deck (wild card is already there if applicable)
+        const newCard = deck[0];
+        const newDeck = deck.slice(1);
 
         const newHand = [...hand, newCard];
 
@@ -1959,29 +2028,29 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
         });
     };
 
-    // Helper: Position Calculation (Responsive for mobile/desktop)
+    // Helper: Position Calculation (Responsive for mobile/tablet/desktop)
     const getHandPosition = (index: number, total: number, w: number, h: number) => {
-        // Check mobile DIRECTLY from window to avoid stale closure issues
-        const isMobileNow = window.innerWidth < 768;
+        // Check viewport DIRECTLY from window to avoid stale closure issues
+        const viewportWidth = window.innerWidth;
+        const isMobileNow = viewportWidth < 768;
+        const isTabletNow = viewportWidth >= 768 && viewportWidth < 1024;
 
         if (isMobileNow) {
-            // MOBILE: Wider fan with better spacing for readability
+            // MOBILE (<768px): Compact fan with good spacing
             const cardW = 150;
             const cardH = 200;
-            const cardSpacing = 55; // wider spacing to reduce overlap
+            const cardSpacing = 55;
             const totalWidth = cardW + (total - 1) * cardSpacing;
             const startX = (w - totalWidth) / 2;
-            const baseY = h - cardH - 40; // 40px from bottom edge for more breathing room
+            const baseY = h - cardH - 40;
 
-            // Fan rotation - slightly reduced for cleaner look
             const maxRotation = 15;
             const rotationStep = total > 1 ? (maxRotation * 2) / (total - 1) : 0;
             const rotation = -maxRotation + index * rotationStep;
 
-            // Arc effect - more pronounced for visual hierarchy
             const centerIndex = (total - 1) / 2;
             const distFromCenter = Math.abs(index - centerIndex);
-            const yOffset = distFromCenter * 12; // edge cards 12px higher per position
+            const yOffset = distFromCenter * 12;
 
             return {
                 x: startX + index * cardSpacing,
@@ -1990,7 +2059,32 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
             };
         }
 
-        // DESKTOP: Original arc calculation
+        if (isTabletNow) {
+            // TABLET (768-1024px): Medium arc - fits iPad Mini/Air/Pro portrait
+            const cardW = 180; // Slightly smaller than desktop
+            const arcRadius = 1000; // Tighter arc than desktop
+            const yOffset = 180;
+            const yCardOffset = 280;
+            const spreadMax = 28; // Narrower spread to avoid overlap
+            const spreadPerCard = 5;
+
+            const centerArcX = w / 2;
+            const centerArcY = h + arcRadius - yOffset;
+
+            const totalSpread = Math.min(spreadMax, (total - 1) * spreadPerCard);
+            const startDeg = -totalSpread / 2;
+            const step = total > 1 ? totalSpread / (total - 1) : 0;
+
+            const deg = startDeg + index * step;
+            const rad = (deg - 90) * (Math.PI / 180);
+
+            const x = centerArcX + arcRadius * Math.cos(rad) - cardW / 2;
+            const y = centerArcY + arcRadius * Math.sin(rad) - yCardOffset;
+
+            return { x, y, rotation: deg };
+        }
+
+        // DESKTOP (>=1024px): Full arc calculation
         const cardW = 240;
         const arcRadius = 1500;
         const yOffset = 200;
@@ -2105,6 +2199,18 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
                     <div className={`text-lg md:text-3xl font-black mt-0.5 md:mt-1 ${interestedPile.length > 0 ? 'text-blue-400/60' : 'text-white/10'}`}>{interestedPile.length}</div>
                 </div>
             </div>
+
+            {/* LEAVE GAME BUTTON - Positioned below SAVED pile */}
+            {hasProjects && (
+                <button
+                    onClick={() => navigate('/start-project?step=3')}
+                    className="absolute top-[22%] left-[5%] md:top-[40%] md:left-[10%] w-[70px] md:w-[130px] z-20 bg-black/80 hover:bg-emerald-900/80 text-white px-2 py-2 md:px-3 md:py-2.5 rounded-xl font-bold shadow-lg shadow-black/30 flex items-center justify-center gap-1.5 md:gap-2 transition-all hover:scale-105 active:scale-95 border border-white/10 hover:border-emerald-500/50"
+                    title="Leave the game and proceed with your selections"
+                >
+                    <Check className="w-3 h-3 md:w-4 md:h-4 text-emerald-400" />
+                    <span className="text-[9px] md:text-xs">Cash Out</span>
+                </button>
+            )}
 
             {/* REJECTED PILE - Premium Glass Red */}
             <div
@@ -2232,17 +2338,76 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
                 </div>
             </div>
 
-            {/* LEAVE GAME BUTTON - Navigate to Step 3 with selected projects */}
-            {hasProjects && (
-                <button
-                    onClick={() => navigate('/start-project?step=3')}
-                    className="fixed bottom-6 left-6 md:bottom-8 md:left-8 z-[200] bg-black hover:bg-neutral-800 text-white px-5 py-3 rounded-2xl font-bold shadow-lg shadow-black/30 flex items-center gap-3 transition-all hover:scale-105 active:scale-95"
-                    title="Leave the game and proceed with your selections"
-                >
-                    <X className="w-5 h-5" />
-                    <span className="text-sm md:text-base">Leave Game</span>
-                </button>
+            {/* GAME OVER MODAL */}
+            {isGameOver && (
+                <div className="game-over-overlay">
+                    <div className="game-over-modal">
+                        {/* Decorative top border */}
+                        <div className="game-over-border" />
+
+                        {/* Title */}
+                        <div className="game-over-title">
+                            {interestedPile.length > 0 ? '🎰 Round Complete!' : '🃏 Game Over'}
+                        </div>
+
+                        {/* Stats */}
+                        <div className="game-over-stats">
+                            <div className="stat-item saved">
+                                <span className="stat-value">{interestedPile.length}</span>
+                                <span className="stat-label">Saved</span>
+                            </div>
+                            <div className="stat-divider" />
+                            <div className="stat-item total">
+                                <span className="stat-value">{items.length}</span>
+                                <span className="stat-label">Total</span>
+                            </div>
+                        </div>
+
+                        {/* Message */}
+                        <p className="game-over-message">
+                            {interestedPile.length > 0
+                                ? `You've selected ${interestedPile.length} project${interestedPile.length > 1 ? 's' : ''}! Ready to proceed?`
+                                : "You've reviewed all projects. Want to try again?"
+                            }
+                        </p>
+
+                        {/* Buttons */}
+                        <div className="game-over-buttons">
+                            <button
+                                onClick={restartGame}
+                                className="game-over-btn restart"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                                    <path d="M3 3v5h5" />
+                                    <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" />
+                                    <path d="M16 21h5v-5" />
+                                </svg>
+                                Restart Game
+                            </button>
+
+                            <button
+                                onClick={handleLeaveGame}
+                                className={`game-over-btn primary ${interestedPile.length > 0 ? 'cash-out' : 'leave'}`}
+                            >
+                                {interestedPile.length > 0 ? (
+                                    <>
+                                        <Check size={18} />
+                                        Cash Out
+                                    </>
+                                ) : (
+                                    <>
+                                        <ExternalLink size={18} />
+                                        Leave Game
+                                    </>
+                                )}
+                            </button>
+                        </div>
+                    </div>
+                </div>
             )}
+
+            {/* Leave Game button moved to below SAVED pile - see line ~2108 */}
         </div>
     );
 }

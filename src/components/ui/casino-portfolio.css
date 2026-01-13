@@ -4,7 +4,7 @@
     width: 100%;
     height: 100vh;
     overflow: hidden;
-    /* High Fidelity Felt Texture */
+    /* High Fidelity Felt Texture - DEFAULT GREEN (only shown before first shuffle) */
     background-color: #0f3822;
     /* Dark Green Base */
     background-image:
@@ -18,46 +18,46 @@
     /* Stronger perspective */
     --mouse-x: 50%;
     --mouse-y: 50%;
-    /* Color transitions managed via permanent state changes */
+    /* Smooth color transitions */
+    transition: background-color 0.6s ease;
 }
 
 /* Table color change during ripple - PERMANENT until refresh */
 .casino-table-container.table-ripple-active {
-    background-color: #0d4a35;
+    background-color: #0d4a35 !important;
     /* Brighter emerald-teal - matches ripple */
     background-image:
         /* Noise Texture */
         url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.15'/%3E%3C/svg%3E"),
         /* Gradient Vignette - with emerald tint */
-        radial-gradient(circle at 50% 50%, rgba(16, 185, 129, 0.05) 0%, rgba(6, 182, 212, 0.03) 20%, #05140b 100%);
+        radial-gradient(circle at 50% 50%, rgba(16, 185, 129, 0.05) 0%, rgba(6, 182, 212, 0.03) 20%, #05140b 100%) !important;
 }
 
 /* ============================================
    BRAND COLOR SCHEMES - Dark Blue & Premium Red
+   Use !important to fully override default green
    ============================================ */
 
-/* DARK BLUE TABLE - First Shuffle */
+/* DARK BLUE TABLE - Odd Shuffles (1, 3, 5...) */
 .casino-table-container.table-ripple-blue {
-    background-color: #0a1628;
+    background-color: #0a1628 !important;
     /* Deep navy blue base */
     background-image:
         /* Noise Texture */
         url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.12'/%3E%3C/svg%3E"),
         /* Gradient Vignette - with dark blue tint */
-        radial-gradient(circle at 50% 50%, rgba(30, 64, 175, 0.08) 0%, rgba(59, 130, 246, 0.04) 25%, #050a14 100%);
-    transition: background-color 0.6s ease, background-image 0.6s ease;
+        radial-gradient(circle at 50% 50%, rgba(30, 64, 175, 0.08) 0%, rgba(59, 130, 246, 0.04) 25%, #050a14 100%) !important;
 }
 
-/* PREMIUM RED TABLE - Second Shuffle */
+/* PREMIUM RED TABLE - Even Shuffles (2, 4, 6...) */
 .casino-table-container.table-ripple-red {
-    background-color: #1a0a0a;
+    background-color: #1a0a0a !important;
     /* Deep crimson base */
     background-image:
         /* Noise Texture */
         url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.12'/%3E%3C/svg%3E"),
         /* Gradient Vignette - with premium red tint */
-        radial-gradient(circle at 50% 50%, rgba(185, 28, 28, 0.08) 0%, rgba(239, 68, 68, 0.04) 25%, #0a0505 100%);
-    transition: background-color 0.6s ease, background-image 0.6s ease;
+        radial-gradient(circle at 50% 50%, rgba(185, 28, 28, 0.08) 0%, rgba(239, 68, 68, 0.04) 25%, #0a0505 100%) !important;
 }
 
 /* Global Spotlight follower */
@@ -375,8 +375,61 @@
     box-shadow: -20px 0 80px rgba(0, 0, 0, 0.8);
 }
 
-/* Responsive adjustments */
-@media (max-width: 768px) {
+/* ===== TABLET (768px - 1023px) - iPad Mini/Air/Pro ===== */
+@media (min-width: 768px) and (max-width: 1023px) {
+    .poker-card {
+        width: 200px;
+        height: 280px;
+        border-radius: 15px;
+        box-shadow:
+            inset 0 1px 0 rgba(255, 255, 255, 0.1),
+            0 2px 0 #1a1a1f,
+            0 4px 0 #151518,
+            0 6px 0 #101013,
+            0 10px 20px rgba(0, 0, 0, 0.45),
+            0 20px 40px rgba(0, 0, 0, 0.35);
+    }
+
+    .poker-card.interactive:hover {
+        transform: translateY(-10px);
+    }
+
+    .poker-card.focused {
+        box-shadow:
+            inset 0 1px 0 rgba(255, 255, 255, 0.12),
+            0 2px 0 #1a1a1f,
+            0 4px 0 #151518,
+            0 30px 60px rgba(0, 0, 0, 0.5),
+            0 0 80px rgba(16, 185, 129, 0.2);
+    }
+
+    .card-face {
+        border-radius: 15px;
+    }
+
+    .card-tilt-inner {
+        border-radius: 15px;
+    }
+
+    .active-slot {
+        width: 200px;
+        height: 280px;
+    }
+
+    /* Tablet pile sizing */
+    .deck-stack {
+        width: 180px !important;
+        height: 260px !important;
+    }
+
+    .details-panel {
+        width: 400px;
+        padding: 2rem;
+    }
+}
+
+/* ===== MOBILE (<768px) ===== */
+@media (max-width: 767px) {
     .poker-card {
         width: 165px;
         height: 225px;
@@ -1226,4 +1279,215 @@
     cursor: pointer;
     position: relative;
     z-index: 101;
+}
+
+/* ===== GAME OVER MODAL ===== */
+.game-over-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.game-over-modal {
+    background: linear-gradient(145deg, rgba(30, 30, 40, 0.95), rgba(15, 15, 25, 0.98));
+    border-radius: 24px;
+    padding: 2.5rem 2rem 2rem;
+    width: 90%;
+    max-width: 400px;
+    text-align: center;
+    position: relative;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow:
+        0 0 0 1px rgba(255, 255, 255, 0.05),
+        0 25px 80px rgba(0, 0, 0, 0.6),
+        0 0 100px rgba(16, 185, 129, 0.15);
+    animation: modalSlideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes modalSlideUp {
+    from {
+        opacity: 0;
+        transform: translateY(40px) scale(0.95);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.game-over-border {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60%;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, #10b981, transparent);
+    border-radius: 0 0 3px 3px;
+}
+
+.game-over-title {
+    font-size: 2rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #fff 0%, #a7a7a7 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 1.5rem;
+}
+
+.game-over-stats {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.stat-item .stat-value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.stat-item.saved .stat-value {
+    color: #10b981;
+    text-shadow: 0 0 20px rgba(16, 185, 129, 0.5);
+}
+
+.stat-item.total .stat-value {
+    color: #6b7280;
+}
+
+.stat-item .stat-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: rgba(255, 255, 255, 0.4);
+    margin-top: 0.25rem;
+}
+
+.stat-divider {
+    width: 1px;
+    height: 40px;
+    background: linear-gradient(180deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+}
+
+.game-over-message {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.95rem;
+    margin-bottom: 2rem;
+    line-height: 1.5;
+}
+
+.game-over-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.game-over-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.875rem 1.5rem;
+    border-radius: 12px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+}
+
+.game-over-btn.restart {
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.game-over-btn.restart:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: #fff;
+    transform: translateY(-2px);
+}
+
+.game-over-btn.primary {
+    padding: 1rem 1.5rem;
+    font-size: 1rem;
+}
+
+.game-over-btn.primary.cash-out {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: #fff;
+    box-shadow: 0 4px 20px rgba(16, 185, 129, 0.4);
+}
+
+.game-over-btn.primary.cash-out:hover {
+    background: linear-gradient(135deg, #34d399, #10b981);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 30px rgba(16, 185, 129, 0.5);
+}
+
+.game-over-btn.primary.leave {
+    background: linear-gradient(135deg, #6b7280, #4b5563);
+    color: #fff;
+}
+
+.game-over-btn.primary.leave:hover {
+    background: linear-gradient(135deg, #9ca3af, #6b7280);
+    transform: translateY(-2px);
+}
+
+/* Mobile adjustments */
+@media (max-width: 767px) {
+    .game-over-modal {
+        padding: 2rem 1.5rem 1.5rem;
+        margin: 1rem;
+    }
+
+    .game-over-title {
+        font-size: 1.5rem;
+    }
+
+    .stat-item .stat-value {
+        font-size: 2rem;
+    }
+
+    .game-over-message {
+        font-size: 0.875rem;
+    }
+
+    .game-over-btn {
+        padding: 0.75rem 1rem;
+        font-size: 0.875rem;
+    }
+
+    .game-over-btn.primary {
+        padding: 0.875rem 1rem;
+    }
 }
