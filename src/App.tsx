@@ -81,11 +81,15 @@ function AppContent() {
   );
 }
 
+import { ShowcaseProvider } from "./context/ShowcaseContext";
+
 function App() {
   return (
-    <Router>
-      <AppContent />
-    </Router>
+    <ShowcaseProvider>
+      <Router>
+        <AppContent />
+      </Router>
+    </ShowcaseProvider>
   );
 }
 

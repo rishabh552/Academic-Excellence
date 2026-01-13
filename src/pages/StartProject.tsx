@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { BeamsBackground } from '@/components/ui/beams-background';
 import { GradientHeadline } from '@/components/ui/gradient-headline';
 import { cn } from '@/lib/utils';
+import { useShowcaseOptional } from '@/context/ShowcaseContext';
 import {
     ArrowRight,
     ArrowLeft,
@@ -19,6 +20,8 @@ import {
     Crown,
     Send,
     CheckCircle2,
+    X,
+    Plus,
 } from 'lucide-react';
 
 const pageVariants = {
@@ -118,6 +121,33 @@ const caseStudyPreviews = [
         results: ['<50ms latency', '5 exchanges', '12K+ traders'],
         image: 'https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=400&q=80',
     },
+    {
+        id: 'image-classifier',
+        type: 'deep-learning',
+        title: 'Image Classifier',
+        description: 'CNN-based image classification with 95%+ accuracy',
+        timeline: '3 months',
+        results: ['95%+ accuracy', 'GPU accelerated', 'Custom CNN'],
+        image: 'https://images.unsplash.com/photo-1555949963-aa79dcee981c?w=400&q=80',
+    },
+    {
+        id: 'portfolio-builder',
+        type: 'web-development',
+        title: 'Portfolio Builder',
+        description: 'Modern portfolio website with 3D animations and dark mode',
+        timeline: '2 months',
+        results: ['3D animations', 'SEO optimized', 'CMS integration'],
+        image: 'https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?w=400&q=80',
+    },
+    {
+        id: 'team-taskboard',
+        type: 'web-development',
+        title: 'Team Taskboard',
+        description: 'Collaborative task management with real-time updates',
+        timeline: '2.5 months',
+        results: ['Real-time sync', 'Drag & drop', 'Team analytics'],
+        image: 'https://images.unsplash.com/photo-1484480974693-6ca0a78fb36b?w=400&q=80',
+    },
 ];
 
 // Pricing packages
@@ -178,8 +208,9 @@ function StepProgressBar({ currentStep, completedSteps }: { currentStep: number;
     const steps = [
         { num: 1, label: 'Project Type' },
         { num: 2, label: 'Details' },
-        { num: 3, label: 'Package' },
-        { num: 4, label: 'Contact' },
+        { num: 3, label: 'Selections' },
+        { num: 4, label: 'Package' },
+        { num: 5, label: 'Contact' },
     ];
 
     return (
@@ -190,7 +221,7 @@ function StepProgressBar({ currentStep, completedSteps }: { currentStep: number;
                     <motion.div
                         className="h-full bg-gradient-to-r from-brand-secondary to-brand-accent"
                         initial={{ width: '0%' }}
-                        animate={{ width: `${((currentStep - 1) / 3) * 100}%` }}
+                        animate={{ width: `${((currentStep - 1) / 4) * 100}%` }}
                         transition={{ duration: 0.3 }}
                     />
                 </div>
@@ -429,8 +460,95 @@ function Step2Details({
     );
 }
 
-// Step 3: Choose Package
-function Step3Package({
+// Step 3: Selected Projects (from Showcase)
+function Step3SelectedProjects() {
+    const { selectedProjects, removeProject, hasProjects } = useShowcaseOptional();
+
+    return (
+        <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            className="space-y-6"
+        >
+            <div className="text-center mb-8">
+                <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-2">
+                    Your Selected Projects
+                </h2>
+                <p className="text-muted-foreground">
+                    {hasProjects
+                        ? 'Review your selections from the Showcase. Remove any you don\'t need.'
+                        : 'You haven\'t selected any projects yet. Visit the Showcase to pick some!'}
+                </p>
+            </div>
+
+            {hasProjects ? (
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-5xl mx-auto">
+                    {selectedProjects.map((project) => (
+                        <motion.div
+                            key={project.common}
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.9 }}
+                            className="group relative bg-white/5 rounded-2xl border border-white/10 overflow-hidden hover:border-brand-secondary/30 transition-all"
+                        >
+                            {/* Remove Button */}
+                            <button
+                                onClick={() => removeProject(project.common)}
+                                className="absolute top-3 right-3 z-10 p-2 rounded-full bg-black/80 text-white hover:bg-black transition-all"
+                                title="Remove project"
+                            >
+                                <X size={16} />
+                            </button>
+
+                            {/* Project Image */}
+                            {project.photo?.url && (
+                                <div className="w-full h-32 overflow-hidden">
+                                    <img
+                                        src={project.photo.url}
+                                        alt={project.common}
+                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                    />
+                                </div>
+                            )}
+
+                            {/* Project Info */}
+                            <div className="p-4">
+                                <h3 className="font-semibold text-foreground text-lg mb-1">
+                                    {project.common}
+                                </h3>
+                                <p className="text-sm text-muted-foreground line-clamp-2">
+                                    {project.binomial}
+                                </p>
+                            </div>
+                        </motion.div>
+                    ))}
+                </div>
+            ) : (
+                <div className="text-center py-12">
+                    <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-brand-secondary/10 flex items-center justify-center">
+                        <Plus className="w-10 h-10 text-brand-secondary" />
+                    </div>
+                    <p className="text-muted-foreground mb-6">No projects selected yet</p>
+                </div>
+            )}
+
+            {/* Add More Projects Link */}
+            <div className="text-center mt-8">
+                <Link
+                    to="/showcase"
+                    className="inline-flex items-center gap-2 px-6 py-3 rounded-full border border-brand-secondary/30 text-brand-secondary hover:bg-brand-secondary/10 transition-all"
+                >
+                    <Plus size={18} />
+                    {hasProjects ? 'Add More Projects' : 'Browse Showcase'}
+                </Link>
+            </div>
+        </motion.div>
+    );
+}
+
+// Step 4: Choose Package
+function Step4Package({
     selectedPackage,
     onSelect,
 }: {
@@ -519,8 +637,8 @@ function Step3Package({
     );
 }
 
-// Step 4: Contact Form
-function Step4Contact({
+// Step 5: Contact Form
+function Step5Contact({
     formData,
     onChange,
     onSubmit,
@@ -686,10 +804,12 @@ export function StartProject() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isSubmitted, setIsSubmitted] = useState(false);
 
-    // Check URL params for pre-selection
+    // Check URL params for pre-selection and direct step navigation
     useEffect(() => {
         const type = searchParams.get('type');
         const project = searchParams.get('project');
+        const stepParam = searchParams.get('step');
+
         if (type) {
             setSelectedType(type);
         }
@@ -703,6 +823,20 @@ export function StartProject() {
                 }
             }
         }
+
+        // Direct navigation to a specific step (e.g., from Showcase "Leave Game")
+        if (stepParam) {
+            const targetStep = parseInt(stepParam, 10);
+            if (targetStep >= 1 && targetStep <= 5) {
+                setCurrentStep(targetStep);
+                // Mark all previous steps as completed
+                const completed = [];
+                for (let i = 1; i < targetStep; i++) {
+                    completed.push(i);
+                }
+                setCompletedSteps(completed);
+            }
+        }
     }, [searchParams]);
 
     const canProceed = () => {
@@ -712,8 +846,10 @@ export function StartProject() {
             case 2:
                 return selectedProject !== null;
             case 3:
-                return selectedPackage !== null;
+                return true; // Selected projects step - always can proceed
             case 4:
+                return selectedPackage !== null;
+            case 5:
                 return formData.name && formData.email && formData.message;
             default:
                 return false;
@@ -721,7 +857,7 @@ export function StartProject() {
     };
 
     const nextStep = () => {
-        if (canProceed() && currentStep < 4) {
+        if (canProceed() && currentStep < 5) {
             setCompletedSteps((prev) => (prev.includes(currentStep) ? prev : [...prev, currentStep]));
             setCurrentStep(currentStep + 1);
         }
@@ -739,7 +875,7 @@ export function StartProject() {
         await new Promise((resolve) => setTimeout(resolve, 2000));
         setIsSubmitting(false);
         setIsSubmitted(true);
-        setCompletedSteps((prev) => [...prev, 4]);
+        setCompletedSteps((prev) => [...prev, 5]);
     };
 
     return (
@@ -792,15 +928,18 @@ export function StartProject() {
                             />
                         )}
                         {currentStep === 3 && (
-                            <Step3Package
-                                key="step3"
+                            <Step3SelectedProjects key="step3" />
+                        )}
+                        {currentStep === 4 && (
+                            <Step4Package
+                                key="step4"
                                 selectedPackage={selectedPackage}
                                 onSelect={(pkg) => setSelectedPackage(pkg)}
                             />
                         )}
-                        {currentStep === 4 && (
-                            <Step4Contact
-                                key="step4"
+                        {currentStep === 5 && (
+                            <Step5Contact
+                                key="step5"
                                 formData={formData}
                                 onChange={(field, value) =>
                                     setFormData((prev) => ({ ...prev, [field]: value }))
@@ -830,7 +969,7 @@ export function StartProject() {
                             Back
                         </button>
 
-                        {currentStep < 4 && (
+                        {currentStep < 5 && (
                             <button
                                 onClick={nextStep}
                                 disabled={!canProceed()}
@@ -848,40 +987,6 @@ export function StartProject() {
                     </div>
                 )}
 
-                {/* Summary Sidebar (visible on step 2+) */}
-                {currentStep >= 2 && !isSubmitted && (
-                    <motion.div
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        className="hidden md:block fixed top-1/2 -translate-y-1/2 right-6 w-64 p-4 rounded-2xl bg-surface-elevated/95 backdrop-blur-lg border border-white/10 shadow-xl z-30"
-                    >
-                        <h4 className="text-sm font-semibold text-foreground mb-3">Your Selection</h4>
-                        <div className="space-y-2 text-sm">
-                            {selectedType && (
-                                <div className="flex justify-between">
-                                    <span className="text-muted-foreground">Project Type:</span>
-                                    <span className="text-foreground font-medium">
-                                        {projectTypes.find((t) => t.id === selectedType)?.title}
-                                    </span>
-                                </div>
-                            )}
-                            {projectTitle && (
-                                <div className="flex justify-between">
-                                    <span className="text-muted-foreground">Reference:</span>
-                                    <span className="text-foreground font-medium">{projectTitle}</span>
-                                </div>
-                            )}
-                            {selectedPackage && (
-                                <div className="flex justify-between">
-                                    <span className="text-muted-foreground">Package:</span>
-                                    <span className="text-brand-secondary font-medium">
-                                        {packages.find((p) => p.id === selectedPackage)?.name}
-                                    </span>
-                                </div>
-                            )}
-                        </div>
-                    </motion.div>
-                )}
             </div>
         </motion.div>
     );

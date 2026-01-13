@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import gsap from 'gsap';
 import { MotionPathPlugin } from 'gsap/MotionPathPlugin';
 import { PokerCard, Project, WILD_CARD_PROJECT } from './poker-card';
+import { useShowcaseOptional } from '@/context/ShowcaseContext';
 
 // Register GSAP plugins
 gsap.registerPlugin(MotionPathPlugin);
@@ -28,8 +29,13 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
     const [isDealing, setIsDealing] = useState(false);
     const [isTransitioning, setIsTransitioning] = useState(false); // Prevent double clicks
     const [isMobile, setIsMobile] = useState(false); // Responsive sizing
-    const [shuffleCount, setShuffleCount] = useState(0); // Track shuffle number for color alternation
+    const [shuffleCount, setShuffleCount] = useState(() => {
+        // Persist table color across page navigations
+        const saved = localStorage.getItem('showcase-shuffle-count');
+        return saved ? parseInt(saved, 10) : 0;
+    }); // Track shuffle number for color alternation
     const navigate = useNavigate();
+    const { addProject: addToShowcase, hasProjects, selectedProjects } = useShowcaseOptional();
 
     // REFS
     const containerRef = useRef<HTMLDivElement>(null);
@@ -45,20 +51,40 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
     useEffect(() => {
         const gameItems = [...items];
 
-        // Start with no cards in hand, all in deck
+        // Filter out projects that are already saved in the ShowcaseContext
+        const savedProjectNames = new Set(selectedProjects.map(p => p.common));
+        const alreadySaved = gameItems.filter(item => savedProjectNames.has(item.common));
+        const availableItems = gameItems.filter(item => !savedProjectNames.has(item.common));
+
+        // Start with no cards in hand, available cards in deck
         // But for the initial "Deal", we want to move 5 from deck to hand
-        const initialHandSize = Math.min(5, gameItems.length);
-        const initialHand = gameItems.slice(0, initialHandSize);
-        const remainingDeck = gameItems.slice(initialHandSize);
+        const initialHandSize = Math.min(5, availableItems.length);
+        const initialHand = availableItems.slice(0, initialHandSize);
+        const remainingDeck = availableItems.slice(initialHandSize);
 
         setHand(initialHand);
         setDeck(remainingDeck);
-        setInterestedPile([]); // Reset interested pile on init
+        setInterestedPile(alreadySaved); // Pre-populate with already saved projects
         setRejectedPile([]); // Reset rejected pile on init
 
-        // Trigger deal animation on mount
-        dealCards(initialHandSize);
+        // Trigger deal animation on mount (only if we have cards to deal)
+        if (initialHandSize > 0) {
+            dealCards(initialHandSize);
+        }
     }, [items]); // Only run when items change (initial load)
+
+    // Restore table color on mount based on saved shuffleCount
+    useEffect(() => {
+        if (shuffleCount > 0 && containerRef.current) {
+            const isBluePhase = shuffleCount % 2 === 1;
+            containerRef.current.classList.remove('table-ripple-blue', 'table-ripple-red');
+            if (isBluePhase) {
+                containerRef.current.classList.add('table-ripple-blue');
+            } else {
+                containerRef.current.classList.add('table-ripple-red');
+            }
+        }
+    }, []); // Run once on mount
 
     // Detect Mobile & Handle Resize + Reposition Hand
     useEffect(() => {
@@ -135,9 +161,10 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
     const shuffleDeckAnimation = () => {
         if (!deckRef.current || !containerRef.current) return;
 
-        // Increment shuffle count for color alternation
+        // Increment shuffle count for color alternation and persist to localStorage
         const newShuffleCount = shuffleCount + 1;
         setShuffleCount(newShuffleCount);
+        localStorage.setItem('showcase-shuffle-count', String(newShuffleCount));
 
         // Determine which color scheme to use:
         // Odd shuffles (1, 3, 5...) = Dark Blue
@@ -280,17 +307,27 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
 
     // Deal new shuffled hand
     const dealNewHand = () => {
-        // Shuffle all cards (combining deck and both piles - hand should be empty)
-        const allCards = [...deck, ...interestedPile, ...rejectedPile];
-        const shuffled = shuffleArray(allCards);
+        // Shuffle only deck and rejected cards - saved/interested cards stay in their pile
+        const cardsToShuffle = [...deck, ...rejectedPile];
+        const shuffled = shuffleArray(cardsToShuffle);
+
+        // Check if Wild Card should be injected
+        // Wild Card appears if there are saved projects (interested pile) and no wild card exists
+        const hasWildCard = [...shuffled, ...interestedPile].some(p => p.type === 'wildcard');
+        const hasSavedProjects = interestedPile.length > 0;
 
         // Deal new hand from shuffled cards
-        const newHandSize = Math.min(5, shuffled.length);
-        const newHand = shuffled.slice(0, newHandSize);
-        const newDeck = shuffled.slice(newHandSize);
+        let newHandSize = Math.min(5, shuffled.length);
+        let newHand = shuffled.slice(0, newHandSize);
+        let newDeck = shuffled.slice(newHandSize);
 
-        // Reset state - clear both piles after shuffling
-        setInterestedPile([]);
+        // Inject Wild Card into the hand if conditions are met
+        if (!hasWildCard && hasSavedProjects && newHand.length < 5) {
+            newHand = [...newHand, WILD_CARD_PROJECT];
+            newHandSize = newHand.length;
+        }
+
+        // Reset state - only clear rejected pile, keep interested pile intact
         setRejectedPile([]);
         setHand(newHand);
         setDeck(newDeck);
@@ -1131,6 +1168,11 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
                 // Update state: remove from hand, add to interested pile
                 setHand(prev => prev.filter((_, i) => i !== closedIndex));
                 setInterestedPile(prev => [...prev, closedProject]);
+
+                // Sync to ShowcaseContext for Start Project page
+                if (closedProject && closedProject.type !== 'wildcard') {
+                    addToShowcase(closedProject);
+                }
                 setActiveProject(null);
                 setActiveCardIndex(null);
                 setFocusedIndex(null);
@@ -1601,6 +1643,9 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
                 setIsTransitioning(false);
                 onActiveProjectChange?.(project);
 
+                // Add to ShowcaseContext for Start Project integration
+                addToShowcase(project);
+
                 // Slide in details panel
                 gsap.to(".details-panel", {
                     right: 0,
@@ -1892,13 +1937,22 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
         if (!containerRef.current) return;
         const containerRect = containerRef.current.getBoundingClientRect();
 
+        // Calculate center index for z-index ordering (center cards on top)
+        const centerIndex = (total - 1) / 2;
+
         handRefs.current.forEach((card, i) => {
             if (!card || i >= total) return;
             const pos = getHandPosition(i, total, containerRect.width, containerRect.height);
+
+            // Z-index: center cards have highest z-index, edge cards lower
+            const distFromCenter = Math.abs(i - centerIndex);
+            const zIndex = Math.round(50 - distFromCenter * 5);
+
             gsap.to(card, {
                 x: pos.x,
                 y: pos.y,
                 rotation: pos.rotation,
+                zIndex: zIndex,
                 duration: 0.4,
                 ease: "power2.out"
             });
@@ -2177,7 +2231,19 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
                     <span className="tooltip-desc">Build something unique</span>
                 </div>
             </div>
-        </div >
+
+            {/* LEAVE GAME BUTTON - Navigate to Step 3 with selected projects */}
+            {hasProjects && (
+                <button
+                    onClick={() => navigate('/start-project?step=3')}
+                    className="fixed bottom-6 left-6 md:bottom-8 md:left-8 z-[200] bg-black hover:bg-neutral-800 text-white px-5 py-3 rounded-2xl font-bold shadow-lg shadow-black/30 flex items-center gap-3 transition-all hover:scale-105 active:scale-95"
+                    title="Leave the game and proceed with your selections"
+                >
+                    <X className="w-5 h-5" />
+                    <span className="text-sm md:text-base">Leave Game</span>
+                </button>
+            )}
+        </div>
     );
 }
 
