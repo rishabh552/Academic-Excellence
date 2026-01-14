@@ -590,14 +590,14 @@
         bottom: auto;
         left: 50%;
         transform: translate(-50%, -50%) scale(0.6);
-        opacity: 0.7;
+        opacity: 0.15;
         pointer-events: none;
         z-index: 5;
         /* Behind step panels (z-index: 30) */
     }
 
     .flow-central-visual.visible {
-        opacity: 0.9;
+        opacity: 0.2;
     }
 
     /* Simplify ring animations for mobile performance */
@@ -610,16 +610,25 @@
     .engine-ring-2,
     .engine-ring-3 {
         animation: none;
+        opacity: 0.2;
+    }
+
+    .engine-core {
+        opacity: 0.05;
     }
 
     .engine-center {
         width: 70px;
         height: 70px;
+        opacity: 0.4;
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.5), rgba(168, 85, 247, 0.5));
+        box-shadow: 0 0 20px rgba(99, 102, 241, 0.15);
     }
 
     .engine-icon {
         width: 32px;
         height: 32px;
+        opacity: 0.6;
     }
 
     .engine-icon svg {
@@ -648,11 +657,18 @@
 
     .flow-step {
         padding: 2rem 1rem;
+        min-height: auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
 
     .flow-step-panel {
         padding: 1.5rem;
         max-width: 100%;
+        margin: 0 auto !important;
+        position: relative;
+        z-index: 30;
     }
 
     .flow-timeline {
