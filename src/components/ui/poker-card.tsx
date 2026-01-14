@@ -31,6 +31,7 @@ interface PokerCardProps {
     isActive: boolean;
     isFocused: boolean;
     isInHand: boolean;
+    isTransitioning?: boolean;
     onClick: () => void;
     onFold?: () => void;
     onPlay?: () => void;
@@ -47,7 +48,8 @@ export const PokerCard = forwardRef<HTMLDivElement, PokerCardProps>(({
     onPlay,
     className,
     style,
-    isFocused
+    isFocused,
+    isTransitioning = false
 }, ref) => {
 
     // TILT LOGIC
@@ -187,24 +189,26 @@ export const PokerCard = forwardRef<HTMLDivElement, PokerCardProps>(({
                         </div>
 
                         {/* Action Buttons - Larger touch targets for mobile */}
-                        <div className="mt-auto grid grid-cols-2 gap-2 lg:gap-3 opacity-0 action-buttons relative z-10" style={{ pointerEvents: 'auto' }}>
+                        <div className="mt-auto grid grid-cols-2 gap-2 lg:gap-3 opacity-0 action-buttons relative z-10" style={{ pointerEvents: isTransitioning ? 'none' : 'auto' }}>
                             <button
-                                onClick={(e) => { e.stopPropagation(); onFold?.(); }}
-                                className="bg-white/5 hover:bg-white/10 active:bg-white/20 text-white text-xs lg:text-sm py-2.5 md:py-2 lg:py-2.5 px-3 md:px-3 lg:px-4 rounded-lg border border-white/10 flex items-center justify-center transition-all min-h-[44px] cursor-pointer"
-                                style={{ pointerEvents: 'auto' }}
+                                onClick={(e) => { e.stopPropagation(); if (!isTransitioning) onFold?.(); }}
+                                disabled={isTransitioning}
+                                className="bg-white/5 hover:bg-white/10 active:bg-white/20 text-white text-xs lg:text-sm py-2.5 md:py-2 lg:py-2.5 px-3 md:px-3 lg:px-4 rounded-lg border border-white/10 flex items-center justify-center transition-all min-h-[44px] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                                style={{ pointerEvents: isTransitioning ? 'none' : 'auto' }}
                             >
                                 <RefreshCw size={14} className="mr-1.5" />
                                 {isWildCard ? "Pass" : "Fold"}
                             </button>
                             <button
-                                onClick={(e) => { e.stopPropagation(); onPlay?.(); }}
+                                onClick={(e) => { e.stopPropagation(); if (!isTransitioning) onPlay?.(); }}
+                                disabled={isTransitioning}
                                 className={cn(
-                                    "text-white text-xs lg:text-sm py-2.5 md:py-2 lg:py-2.5 px-3 md:px-3 lg:px-4 rounded-lg flex items-center justify-center transition-all shadow-lg transform hover:scale-105 active:scale-95 min-h-[44px] cursor-pointer",
+                                    "text-white text-xs lg:text-sm py-2.5 md:py-2 lg:py-2.5 px-3 md:px-3 lg:px-4 rounded-lg flex items-center justify-center transition-all shadow-lg transform hover:scale-105 active:scale-95 min-h-[44px] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none",
                                     isWildCard
                                         ? "bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 shadow-fuchsia-900/40"
                                         : "bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-400 shadow-emerald-900/40"
                                 )}
-                                style={{ pointerEvents: 'auto' }}
+                                style={{ pointerEvents: isTransitioning ? 'none' : 'auto' }}
                             >
                                 {isWildCard ? <code className="mr-1.5 font-bold">&gt;_</code> : <Eye size={14} className="mr-1.5" />}
                                 {isWildCard ? "INITIATE" : "Play"}

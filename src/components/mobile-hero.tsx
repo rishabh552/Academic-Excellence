@@ -11,7 +11,7 @@ interface MobileHeroProps {
     title?: string;
 }
 
-export function MobileHero({ title = "Academic Excellence" }: MobileHeroProps) {
+export function MobileHero({ title = "aqro for Students" }: MobileHeroProps) {
     const words = ["Full Stack Web", "Machine Learning", "Deep Learning", "NLP Projects", "Mobile Apps"];
 
     return (

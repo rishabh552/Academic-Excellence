@@ -81,7 +81,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           <p style="white-space: pre-wrap; color: #555;">${message}</p>
         </div>
         <p style="color: #999; font-size: 12px; margin-top: 20px;">
-          This email was sent from the Academic Excellence contact form.
+          This email was sent from the aqro for Students contact form.
         </p>
       </div>
     `,

@@ -38,6 +38,7 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
     const [reshuffledCardIds, setReshuffledCardIds] = useState<Set<string>>(new Set()); // Track cards that have been reshuffled once
     const [isFirstShuffle, setIsFirstShuffle] = useState(true); // Track if this is the first shuffle (wild card forced to hand)
     const [activeFilter, setActiveFilter] = useState<string | null>(null); // Filter: null = all, or category name
+    const [isPlayAnimating, setIsPlayAnimating] = useState(false); // Track when a card is being played (prevent Cash Out from appearing)
     const navigate = useNavigate();
     const { addProject: addToShowcase, hasProjects, selectedProjects, clearProjects } = useShowcaseOptional();
 
@@ -56,6 +57,7 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
     const rejectedPileRef = useRef<HTMLDivElement>(null); // Ref for rejected pile
     const rippleLayerRef = useRef<HTMLDivElement>(null); // Ref for table ripple effect
     const pendingInspectRef = useRef<number | null>(null); // Track pending card to inspect
+    const isAnimatingRef = useRef(false); // Synchronous guard against rapid clicks (prevents glitch on fold/play)
 
     // Initialize Game
     useEffect(() => {
@@ -608,9 +610,9 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
         const tiltInner = card.querySelector('.card-tilt-inner') as HTMLElement;
         const glare = card.querySelector('.card-glare-overlay') as HTMLElement;
 
-        // Kill animations and glare immediately
+        // Kill animations and glare immediately - also bypass CSS transition to prevent flash
         gsap.killTweensOf([card, tiltInner, actions, glare]);
-        if (glare) gsap.set(glare, { opacity: 0 });
+        if (glare) gsap.set(glare, { opacity: 0, visibility: 'hidden', transition: 'none' });
 
         // FAST fold for card switching - total ~0.3s
         const tl = gsap.timeline({
@@ -689,7 +691,7 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
                 const inner = c.querySelector('.card-tilt-inner');
                 const glare = c.querySelector('.card-glare-overlay');
                 if (inner) gsap.killTweensOf(inner);
-                if (glare) gsap.set(glare, { opacity: 0 }); // Kill ALL glare immediately
+                if (glare) gsap.set(glare, { opacity: 0, visibility: 'hidden', transition: 'none' }); // Kill ALL glare immediately - bypass CSS transition
             }
         });
 
@@ -704,7 +706,7 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
             gsap.set(tiltInner, { rotateX: 0, rotateY: 0 });
         }
         if (glare) {
-            gsap.set(glare, { opacity: 0 }); // No rainbow during pick
+            gsap.set(glare, { opacity: 0, visibility: 'hidden', transition: 'none' }); // No rainbow during pick - bypass CSS transition
         }
 
         const containerRect = containerRef.current.getBoundingClientRect();
@@ -806,7 +808,12 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
 
     // FOLD ANIMATION - "Vader's Force Pull" to REJECTED PILE
     const handleFold = () => {
+        // Synchronous guard - prevents rapid clicks from triggering multiple animations
+        if (isAnimatingRef.current) return;
         if (focusedIndex === null || isTransitioning) return;
+
+        // Set synchronous guard immediately
+        isAnimatingRef.current = true;
 
         const index = focusedIndex;
         const card = handRefs.current[index];
@@ -900,16 +907,32 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
                 setHand(prev => prev.filter((_, i) => i !== index));
                 setRejectedPile(prev => [...prev, foldedProject]);
                 setFocusedIndex(null);
-                setIsTransitioning(false);
+                // NOTE: setIsTransitioning(false) is now called AFTER repositioning completes (see below)
 
                 // Cleanup FX
                 if (fxLayer.parentNode) fxLayer.remove();
 
                 // Reposition remaining cards in hand
                 setTimeout(() => {
-                    if (!containerRef.current) return;
+                    if (!containerRef.current) {
+                        setIsTransitioning(false);
+                        isAnimatingRef.current = false;
+                        return;
+                    }
                     const newContainerRect = containerRef.current.getBoundingClientRect();
                     const validRefs = handRefs.current.filter((c): c is HTMLDivElement => c !== null && c.isConnected);
+
+                    // Track animation completions to know when all cards are repositioned
+                    let completedCount = 0;
+                    const totalToAnimate = validRefs.length;
+
+                    // If no cards to animate, unlock immediately
+                    if (totalToAnimate === 0) {
+                        handRefs.current = validRefs;
+                        setIsTransitioning(false);
+                        isAnimatingRef.current = false;
+                        return;
+                    }
 
                     validRefs.forEach((c, newIndex) => {
                         const pos = getHandPosition(newIndex, newTotal, newContainerRect.width, newContainerRect.height);
@@ -921,7 +944,15 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
                             scale: 1,
                             filter: "none",
                             duration: 0.4,
-                            ease: "power2.out"
+                            ease: "power2.out",
+                            onComplete: () => {
+                                completedCount++;
+                                // Only unlock transitions when ALL cards have finished repositioning
+                                if (completedCount === totalToAnimate) {
+                                    setIsTransitioning(false);
+                                    isAnimatingRef.current = false;
+                                }
+                            }
                         });
                     });
                     handRefs.current = validRefs;
@@ -931,7 +962,7 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
 
         // Phase 1: Hide buttons, flip back (0-0.2s)
         if (actions) tl.set(actions, { opacity: 0 }, 0);
-        if (glare) tl.set(glare, { opacity: 0 }, 0);
+        if (glare) tl.set(glare, { opacity: 0, visibility: 'hidden', transition: 'none' }, 0);
 
         if (tiltInner) {
             tl.to(tiltInner, { rotateY: 0, rotateX: 0, duration: 0.2, ease: "power2.out" }, 0);
@@ -1327,6 +1358,7 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
                 setActiveCardIndex(null);
                 setFocusedIndex(null);
                 setIsTransitioning(false);
+                setIsPlayAnimating(false); // Allow Cash Out to show now that card has reached pile
                 onActiveProjectChange?.(null);
 
                 // Wait for React to re-render with new hand, then reposition
@@ -1687,6 +1719,7 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
         }
 
         setIsTransitioning(true);
+        setIsPlayAnimating(true); // Prevent Cash Out from showing during play animation
 
         const actions = card.querySelector('.action-buttons') as HTMLElement;
         const tiltInner = card.querySelector('.card-tilt-inner') as HTMLElement;
@@ -1820,7 +1853,7 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
 
         // --- PHASE 0: Instant Cleanup (0s) ---
         if (actions) tl.set(actions, { opacity: 0 }, 0);
-        if (glare) tl.set(glare, { opacity: 0 }, 0);
+        if (glare) tl.set(glare, { opacity: 0, visibility: 'hidden', transition: 'none' }, 0);
         if (tiltInner) {
             tl.to(tiltInner, { rotateY: 0, rotateX: 0, duration: 0.2, ease: "power2.out" }, 0);
         }
@@ -2375,7 +2408,7 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
             </div>
 
             {/* LEAVE GAME BUTTON - Positioned below SAVED pile */}
-            {hasProjects && (
+            {hasProjects && !isPlayAnimating && (
                 <button
                     onClick={() => navigate('/start-project?step=3')}
                     className="absolute top-[22%] left-[5%] md:top-[40%] md:left-[10%] w-[70px] md:w-[130px] z-20 bg-black/80 hover:bg-emerald-900/80 text-white px-2 py-2 md:px-3 md:py-2.5 rounded-xl font-bold shadow-lg shadow-black/30 flex items-center justify-center gap-1.5 md:gap-2 transition-all hover:scale-105 active:scale-95 border border-white/10 hover:border-emerald-500/50"
@@ -2435,6 +2468,7 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
                             isActive={activeProject === project}
                             isFocused={focusedIndex === index}
                             isInHand={true}
+                            isTransitioning={isTransitioning}
                             onClick={() => handleInspect(index)}
                             onFold={handleFold}
                             onPlay={handlePlay}

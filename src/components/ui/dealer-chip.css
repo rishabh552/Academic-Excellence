@@ -440,27 +440,27 @@
 /* Mobile adjustments for filter chips */
 @media (max-width: 768px) {
     .filter-chips-row {
-        top: 70px;
-        /* Just below mobile navbar */
-        gap: 4px;
-        /* Tighter gap */
-        max-width: 95%;
-        padding: 0 5px;
+        top: 60px;
+        /* Moved up to give more vertical space */
+        gap: 3px;
+        /* Tighter gap to fit all chips in one row */
+        max-width: 98%;
+        padding: 0 2px;
     }
 
     .filter-chip {
-        width: 32px;
-        /* Smaller chips */
-        height: 32px;
+        width: 28px;
+        /* Smaller chips to fit 8 in a row */
+        height: 28px;
     }
 
     .filter-chip-inner::before {
-        width: 20px;
-        height: 20px;
+        width: 18px;
+        height: 18px;
     }
 
     .filter-chip-label {
-        font-size: 8px;
+        font-size: 7px;
     }
 
     .filter-chip-inner {

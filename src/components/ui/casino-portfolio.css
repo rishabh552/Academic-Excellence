@@ -250,17 +250,13 @@
     opacity: 0;
     pointer-events: none;
     mix-blend-mode: overlay;
-    transition: opacity 0.4s ease;
+    /* NOTE: No CSS transition - GSAP handles all opacity changes to prevent glare glitch on fold */
     z-index: 10;
 }
 
-/* Glare only shows on played/focused cards, not on hover */
-
-/* Focused card glare - more intense */
-.poker-card:focus-within .card-glare-overlay,
-.poker-card[data-focused="true"] .card-glare-overlay {
-    opacity: 0.8;
-}
+/* Glare visibility is now fully controlled by GSAP animations, not CSS selectors.
+   This prevents the dark glare glitch that occurred when cards folded and the
+   CSS transition slowly faded the glare. */
 
 /* GAMIFIED EFFECTS (Juice) */
 
