@@ -648,8 +648,6 @@
 
     .flow-step {
         padding: 2rem 1rem;
-        padding-bottom: 180px;
-        /* Space for bottom engine */
     }
 
     .flow-step-panel {
@@ -659,11 +657,6 @@
 
     .flow-timeline {
         display: none;
-    }
-
-    /* Show mobile progress bar instead */
-    .mobile-progress {
-        display: flex !important;
     }
 }
 
@@ -718,47 +711,7 @@
     white-space: nowrap;
 }
 
-/* ===== ENHANCED MOBILE PROGRESS ===== */
-.mobile-progress {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    background: rgba(10, 10, 15, 0.95);
-    backdrop-filter: blur(10px);
-    z-index: 100;
-    padding: 8px 16px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-}
 
-.mobile-progress-content {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-}
-
-.mobile-step-label {
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--flow-text);
-    text-align: center;
-}
-
-.mobile-progress-track {
-    height: 4px;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 2px;
-    overflow: hidden;
-}
-
-.mobile-progress-fill {
-    height: 100%;
-    background: linear-gradient(90deg, var(--flow-accent), var(--flow-secondary));
-    width: 0%;
-    transition: width 0.2s ease-out;
-    border-radius: 2px;
-}
 
 /* ===== BACK TO TOP BUTTON ===== */
 .back-to-top-btn {
@@ -839,20 +792,13 @@
 
 /* ===== RESPONSIVE ===== */
 @media (max-width: 768px) {
-    .mobile-progress {
-        display: block !important;
-    }
-
     .back-to-top-btn {
         display: flex;
-    }
-
-    .back-to-top-btn {
-        bottom: 80px;
+        bottom: 24px;
     }
 
     .sticky-cta {
-        bottom: 80px;
+        bottom: 24px;
         right: 16px;
     }
 

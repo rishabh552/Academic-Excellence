@@ -146,7 +146,6 @@ export function ProcessSection() {
     const ctaRef = useRef<HTMLDivElement>(null);
     const centralVisualRef = useRef<HTMLDivElement>(null);
     const progressRingRef = useRef<SVGCircleElement>(null);
-    const mobileProgressRef = useRef<HTMLDivElement>(null);
     const engineIconRef = useRef<HTMLDivElement>(null);
 
     // Use ref for currentStep to avoid re-triggering useEffect
@@ -308,11 +307,6 @@ export function ProcessSection() {
                                 progressRingRef.current.style.strokeDashoffset = String(offset);
                             }
 
-                            // Update mobile progress
-                            if (mobileProgressRef.current) {
-                                mobileProgressRef.current.style.width = `${progress * 100}%`;
-                            }
-
                             // Calculate current step (1-6)
                             const stepIndex = Math.min(5, Math.floor(progress * 6));
                             if (stepIndex !== currentStepRef.current) {
@@ -324,11 +318,6 @@ export function ProcessSection() {
                                 // Update progress ring color
                                 if (progressRingRef.current) {
                                     progressRingRef.current.style.stroke = steps[stepIndex].color;
-                                }
-
-                                // Update mobile progress color
-                                if (mobileProgressRef.current) {
-                                    mobileProgressRef.current.style.background = `linear-gradient(90deg, ${steps[stepIndex].color}, ${steps[Math.min(5, stepIndex + 1)].color})`;
                                 }
 
                                 // Update timeline dots using cached reference
@@ -418,76 +407,88 @@ export function ProcessSection() {
                     });
 
                     // ===== CENTRAL ENGINE ROTATION - 2 FULL ROTATIONS =====
-                    gsap.to(".central-engine", {
-                        scrollTrigger: {
-                            trigger: journeyRef.current,
-                            start: "top top",
-                            end: "bottom bottom",
-                            scrub: 1
-                        },
-                        rotation: 720,
-                        ease: "none"
-                    });
-
-                    // Engine rings scale with scroll
-                    gsap.to(".engine-ring-1", {
-                        scrollTrigger: {
-                            trigger: journeyRef.current,
-                            start: "top top",
-                            end: "bottom bottom",
-                            scrub: 1
-                        },
-                        scale: 1.4,
-                        opacity: 0.6,
-                        rotation: 360
-                    });
-
-                    gsap.to(".engine-ring-2", {
-                        scrollTrigger: {
-                            trigger: journeyRef.current,
-                            start: "top top",
-                            end: "bottom bottom",
-                            scrub: 1.5
-                        },
-                        scale: 1.3,
-                        opacity: 0.5,
-                        rotation: -360
-                    });
-
-                    gsap.to(".engine-ring-3", {
-                        scrollTrigger: {
-                            trigger: journeyRef.current,
-                            start: "top top",
-                            end: "bottom bottom",
-                            scrub: 2
-                        },
-                        scale: 1.2,
-                        rotation: 180
-                    });
-
-                    // ===== HIDE CENTRAL ENGINE AT CTA =====
-                    ScrollTrigger.create({
-                        trigger: ctaRef.current,
-                        start: "top 70%",
-                        end: "top 30%",
-                        onEnter: () => {
-                            gsap.to(centralVisualRef.current, {
-                                opacity: 0,
-                                scale: 0.8,
-                                duration: 0.5,
-                                ease: "power2.out"
-                            });
-                        },
-                        onLeaveBack: () => {
-                            // Just restore visibility - scrub animations will handle ring scales/rotations
-                            gsap.to(centralVisualRef.current, {
-                                opacity: 1,
-                                scale: 1,
-                                duration: 0.5,
-                                ease: "power2.out"
-                            });
+                    gsap.fromTo(".central-engine", 
+                        { rotation: 0 },
+                        {
+                            scrollTrigger: {
+                                trigger: journeyRef.current,
+                                start: "top top",
+                                end: "bottom bottom",
+                                scrub: 1
+                            },
+                            rotation: 720,
+                            ease: "none"
                         }
-                    });
+                    );
+
+                    // Engine rings - subtle scale animation (no expansion on mobile for cleaner look)
+                    const isMobile = window.innerWidth <= 768;
+                    const ringScale1 = isMobile ? 1 : 1.15;
+                    const ringScale2 = isMobile ? 1 : 1.1;
+                    const ringScale3 = isMobile ? 1 : 1.05;
+
+                    gsap.fromTo(".engine-ring-1", 
+                        { scale: 1, opacity: 0.3, rotation: 0 },
+                        {
+                            scrollTrigger: {
+                                trigger: journeyRef.current,
+                                start: "top top",
+                                end: "bottom bottom",
+                                scrub: 1
+                            },
+                            scale: ringScale1,
+                            opacity: 0.5,
+                            rotation: 360
+                        }
+                    );
+
+                    gsap.fromTo(".engine-ring-2", 
+                        { scale: 1, opacity: 0.3, rotation: 0 },
+                        {
+                            scrollTrigger: {
+                                trigger: journeyRef.current,
+                                start: "top top",
+                                end: "bottom bottom",
+                                scrub: 1
+                            },
+                            scale: ringScale2,
+                            opacity: 0.4,
+                            rotation: -360
+                        }
+                    );
+
+                    gsap.fromTo(".engine-ring-3", 
+                        { scale: 1, opacity: 0.3, rotation: 0 },
+                        {
+                            scrollTrigger: {
+                                trigger: journeyRef.current,
+                                start: "top top",
+                                end: "bottom bottom",
+                                scrub: 1
+                            },
+                            scale: ringScale3,
+                            opacity: 0.35,
+                            rotation: 180
+                        }
+                    );
+
+                    // ===== FADE OUT ENGINE AFTER LAST STEP =====
+                    // Smooth scrub-based fade out as user scrolls from last step to CTA
+                    gsap.fromTo(centralVisualRef.current,
+                        { opacity: 1, scale: 1, filter: "blur(0px)" },
+                        {
+                            scrollTrigger: {
+                                trigger: ctaRef.current,
+                                start: "top 100%",
+                                end: "top 40%",
+                                scrub: 0.5
+                            },
+                            opacity: 0,
+                            scale: 0.7,
+                            filter: "blur(10px)",
+                            ease: "power2.inOut"
+                        }
+                    );
 
                     // ===== CTA SECTION - Ensure text is always visible =====
                     // Set initial states
