@@ -37,8 +37,15 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
     const [isGameOver, setIsGameOver] = useState(false); // Track game-over state
     const [reshuffledCardIds, setReshuffledCardIds] = useState<Set<string>>(new Set()); // Track cards that have been reshuffled once
     const [isFirstShuffle, setIsFirstShuffle] = useState(true); // Track if this is the first shuffle (wild card forced to hand)
+    const [activeFilter, setActiveFilter] = useState<string | null>(null); // Filter: null = all, or category name
     const navigate = useNavigate();
     const { addProject: addToShowcase, hasProjects, selectedProjects, clearProjects } = useShowcaseOptional();
+
+    // Filter helper function
+    const getFilteredItems = (allItems: Project[], filter: string | null): Project[] => {
+        if (!filter) return allItems;
+        return allItems.filter(p => p.binomial === filter);
+    };
 
     // REFS
     const containerRef = useRef<HTMLDivElement>(null);
@@ -52,12 +59,22 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
 
     // Initialize Game
     useEffect(() => {
-        const gameItems = [...items];
+        // Apply filter to items
+        const filteredItems = getFilteredItems([...items], activeFilter);
 
         // Filter out projects that are already saved in the ShowcaseContext
         const savedProjectNames = new Set(selectedProjects.map(p => p.common));
-        const alreadySaved = gameItems.filter(item => savedProjectNames.has(item.common));
-        const availableItems = gameItems.filter(item => !savedProjectNames.has(item.common));
+        const alreadySaved = filteredItems.filter(item => savedProjectNames.has(item.common));
+        const availableItems = filteredItems.filter(item => !savedProjectNames.has(item.common));
+
+        // Handle empty filter result
+        if (availableItems.length === 0) {
+            setHand([]);
+            setDeck([]);
+            setInterestedPile(alreadySaved);
+            setRejectedPile([]);
+            return;
+        }
 
         // Deal 5 regular projects to hand first
         const initialHandSize = Math.min(5, availableItems.length);
@@ -76,7 +93,7 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
         if (initialHandSize > 0) {
             dealCards(initialHandSize);
         }
-    }, [items]); // Only run when items change (initial load)
+    }, [items, activeFilter]); // Run when items or filter changes
 
     // Restore table color on mount based on saved shuffleCount
     useEffect(() => {
@@ -163,11 +180,11 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
         localStorage.removeItem('showcase-shuffle-count');
         setShuffleCount(0);
 
-        // Reinitialize with all items
-        const gameItems = [...items];
-        const initialHandSize = Math.min(5, gameItems.length);
-        const initialHand = gameItems.slice(0, initialHandSize);
-        const remainingProjects = gameItems.slice(initialHandSize);
+        // Reinitialize with filtered items
+        const filteredItems = getFilteredItems([...items], activeFilter);
+        const initialHandSize = Math.min(5, filteredItems.length);
+        const initialHand = filteredItems.slice(0, initialHandSize);
+        const remainingProjects = filteredItems.slice(initialHandSize);
 
         // Add wild card at front of deck (same as initialization)
         const remainingDeck = [WILD_CARD_PROJECT, ...remainingProjects];
@@ -181,9 +198,35 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
         }
     };
 
-    // Handle leave game / cash out
+    // Handle filter change - reset game with new filter
+    const handleFilterChange = (filter: string | null) => {
+        setActiveFilter(filter);
+        setIsGameOver(false);
+        setReshuffledCardIds(new Set());
+        setIsFirstShuffle(true);
+        setRejectedPile([]);
+        setFocusedIndex(null);
+        setActiveProject(null);
+        setActiveCardIndex(null);
+        // The useEffect will handle reinitializing with the new filter
+    };
+
+    // Handle "View All Projects" from filtered game over
+    const handleViewAllProjects = () => {
+        setActiveFilter(null);
+        setIsGameOver(false);
+        setReshuffledCardIds(new Set());
+        setIsFirstShuffle(true);
+        // useEffect will reinitialize with all items
+    };
+
+    // Handle leave game / cash out - navigate based on saved projects count
     const handleLeaveGame = () => {
-        navigate('/start-project?step=3');
+        if (interestedPile.length >= 1) {
+            navigate('/start-project?step=3'); // Project wizard (have saved projects)
+        } else {
+            navigate('/pricing'); // Pricing page (no projects saved)
+        }
     };
 
     // Visual shuffle animation
@@ -2174,6 +2217,73 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
             < div className="table-trim" />
             <div className="table-spotlight" /> {/* New Lighting Layer */}
 
+            {/* Filter Chips Row */}
+            <div className="filter-chips-row">
+                <button
+                    className={cn("filter-chip", activeFilter === null && "active")}
+                    onClick={() => handleFilterChange(null)}
+                    title="All Projects"
+                >
+                    <div className="filter-chip-inner">
+                        <span className="filter-chip-label">ALL</span>
+                    </div>
+                </button>
+                <button
+                    className={cn("filter-chip frontend", activeFilter === "Frontend" && "active")}
+                    onClick={() => handleFilterChange("Frontend")}
+                    title="Frontend"
+                >
+                    <div className="filter-chip-inner">
+                        <span className="filter-chip-label">♠</span>
+                    </div>
+                </button>
+                <button
+                    className={cn("filter-chip fullstack", activeFilter === "Full Stack Web" && "active")}
+                    onClick={() => handleFilterChange("Full Stack Web")}
+                    title="Full Stack Web"
+                >
+                    <div className="filter-chip-inner">
+                        <span className="filter-chip-label">♥</span>
+                    </div>
+                </button>
+                <button
+                    className={cn("filter-chip mobile", activeFilter === "Mobile Application" && "active")}
+                    onClick={() => handleFilterChange("Mobile Application")}
+                    title="Mobile Application"
+                >
+                    <div className="filter-chip-inner">
+                        <span className="filter-chip-label">♣</span>
+                    </div>
+                </button>
+                <button
+                    className={cn("filter-chip nlp", activeFilter === "NLP" && "active")}
+                    onClick={() => handleFilterChange("NLP")}
+                    title="NLP"
+                >
+                    <div className="filter-chip-inner">
+                        <span className="filter-chip-label">◇</span>
+                    </div>
+                </button>
+                <button
+                    className={cn("filter-chip data-science", activeFilter === "Machine Learning" && "active")}
+                    onClick={() => handleFilterChange("Machine Learning")}
+                    title="Machine Learning"
+                >
+                    <div className="filter-chip-inner">
+                        <span className="filter-chip-label">◆</span>
+                    </div>
+                </button>
+                <button
+                    className={cn("filter-chip backend", activeFilter === "Deep Learning" && "active")}
+                    onClick={() => handleFilterChange("Deep Learning")}
+                    title="Deep Learning"
+                >
+                    <div className="filter-chip-inner">
+                        <span className="filter-chip-label">♦</span>
+                    </div>
+                </button>
+            </div>
+
             {/* Premium Water Ripple Effect Layer (Shuffle Phase) */}
             <div ref={rippleLayerRef} className="table-ripple-layer">
                 <div className="ripple-center-glow" />
@@ -2188,7 +2298,7 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
             {/* Visual Deck Stack */}
             <div
                 ref={deckRef}
-                className="deck-stack absolute top-[10%] right-[5%] md:top-[15%] md:right-[10%] w-[140px] h-[200px] md:w-[260px] md:h-[360px] perspective-1000 z-30 cursor-pointer"
+                className="deck-stack absolute top-[120px] right-[5%] md:top-[15%] md:right-[10%] w-[140px] h-[200px] md:w-[260px] md:h-[360px] perspective-1000 z-30 cursor-pointer"
                 onClick={handleDraw}
                 data-no-swipe="true"
             >
@@ -2402,7 +2512,7 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
 
                         {/* Title */}
                         <div className="game-over-title">
-                            {interestedPile.length > 0 ? '🎰 Round Complete!' : '🃏 Game Over'}
+                            {interestedPile.length > 0 ? '🎰 Round Complete!' : activeFilter ? `🃏 No More ${activeFilter} Projects` : '🃏 Game Over'}
                         </div>
 
                         {/* Stats */}
@@ -2413,8 +2523,8 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
                             </div>
                             <div className="stat-divider" />
                             <div className="stat-item total">
-                                <span className="stat-value">{items.length}</span>
-                                <span className="stat-label">Total</span>
+                                <span className="stat-value">{activeFilter ? getFilteredItems(items, activeFilter).length : items.length}</span>
+                                <span className="stat-label">{activeFilter || 'Total'}</span>
                             </div>
                         </div>
 
@@ -2422,12 +2532,29 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
                         <p className="game-over-message">
                             {interestedPile.length > 0
                                 ? `You've selected ${interestedPile.length} project${interestedPile.length > 1 ? 's' : ''}! Ready to proceed?`
-                                : "You've reviewed all projects. Want to try again?"
+                                : activeFilter
+                                    ? `You've reviewed all ${activeFilter} projects. Try another category or view all projects!`
+                                    : "You've reviewed all projects. Want to try again?"
                             }
                         </p>
 
                         {/* Buttons */}
                         <div className="game-over-buttons">
+                            {/* View All Projects button - only show when filter is active */}
+                            {activeFilter && (
+                                <button
+                                    onClick={handleViewAllProjects}
+                                    className="game-over-btn view-all"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                                        <line x1="3" y1="9" x2="21" y2="9" />
+                                        <line x1="9" y1="21" x2="9" y2="9" />
+                                    </svg>
+                                    View All
+                                </button>
+                            )}
+
                             <button
                                 onClick={restartGame}
                                 className="game-over-btn restart"
@@ -2438,7 +2565,7 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
                                     <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" />
                                     <path d="M16 21h5v-5" />
                                 </svg>
-                                Restart Game
+                                Restart
                             </button>
 
                             <button
@@ -2453,7 +2580,7 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
                                 ) : (
                                     <>
                                         <ExternalLink size={18} />
-                                        Leave Game
+                                        Continue
                                     </>
                                 )}
                             </button>

@@ -31,11 +31,11 @@
     z-index: 10;
     pointer-events: none;
     opacity: 0;
-    transition: opacity 0.5s ease;
+    visibility: hidden;
 }
 
 .flow-central-visual.visible {
-    opacity: 1;
+    /* Opacity handled by GSAP */
 }
 
 /* Central Circle/Engine */
@@ -590,14 +590,16 @@
         bottom: auto;
         left: 50%;
         transform: translate(-50%, -50%) scale(0.6);
-        opacity: 0.15;
+        opacity: 0;
+        visibility: hidden;
+        /* Ensure it starts hidden */
         pointer-events: none;
         z-index: 5;
         /* Behind step panels (z-index: 30) */
     }
 
     .flow-central-visual.visible {
-        opacity: 0.2;
+        /* Opacity handled by GSAP */
     }
 
     /* Simplify ring animations for mobile performance */
@@ -706,18 +708,19 @@
 }
 
 .how-it-works-icon {
-    width: 40px;
-    height: 40px;
-    border-radius: 12px;
+    width: 64px;
+    height: 64px;
+    border-radius: 16px;
     display: flex;
     align-items: center;
     justify-content: center;
     color: white;
+    flex-shrink: 0;
 }
 
 .how-it-works-icon svg {
-    width: 20px;
-    height: 20px;
+    width: 42px;
+    height: 42px;
 }
 
 .how-it-works-label {

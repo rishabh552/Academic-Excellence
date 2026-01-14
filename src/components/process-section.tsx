@@ -1,21 +1,21 @@
-"use client";
-
-import { useEffect, useRef, useState, useMemo, useCallback } from "react";
+import { useRef, useState, useMemo, useCallback, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import {
-    Send,
-    FileText,
-    Code2,
-    TestTube,
-    CheckCircle2,
-    Rocket,
     Check,
     ArrowRight,
     ChevronUp
 } from "lucide-react";
 import { ShineBorder } from "./ui/shine-border";
+import {
+    RequirementsIcon,
+    PlanningIcon,
+    DevelopmentIcon,
+    QAIcon,
+    ReviewIcon,
+    DeliveryIcon
+} from "./ui/process-icons";
 import "./process-storytelling.css";
 
 // Register GSAP plugin
@@ -31,22 +31,12 @@ interface ProcessStep {
     color: string;
 }
 
-// Memoized icons - created once outside component
-const StepIcons = {
-    send: <Send />,
-    fileText: <FileText />,
-    code2: <Code2 />,
-    testTube: <TestTube />,
-    checkCircle2: <CheckCircle2 />,
-    rocket: <Rocket />
-};
-
 const steps: ProcessStep[] = [
     {
         id: 1,
         title: "Submit Your Requirements",
         description: "Share your project vision with us. Get a detailed quote within 24 hours—no hidden fees, no surprises.",
-        icon: StepIcons.send,
+        icon: <RequirementsIcon className="w-full h-full" />,
         details: [
             "Simple project request form",
             "Technology stack preferences",
@@ -60,7 +50,7 @@ const steps: ProcessStep[] = [
         id: 2,
         title: "Project Planning & Design",
         description: "Receive your project blueprint in 2-3 days: technical specs, wireframes, and a milestone timeline you can track.",
-        icon: StepIcons.fileText,
+        icon: <PlanningIcon className="w-full h-full" />,
         details: [
             "Technical specifications",
             "Database architecture",
@@ -74,7 +64,7 @@ const steps: ProcessStep[] = [
         id: 3,
         title: "Expert Development",
         description: "Watch your project come alive with weekly progress demos. Comment on drafts in real-time as we build.",
-        icon: StepIcons.code2,
+        icon: <DevelopmentIcon className="w-full h-full" />,
         details: [
             "Clean, documented code",
             "Regular progress demos",
@@ -88,7 +78,7 @@ const steps: ProcessStep[] = [
         id: 4,
         title: "Quality Assurance",
         description: "We test everything before you see it. Expect a detailed QA report with every milestone delivery.",
-        icon: StepIcons.testTube,
+        icon: <QAIcon className="w-full h-full" />,
         details: [
             "Unit & integration tests",
             "Performance optimization",
@@ -102,7 +92,7 @@ const steps: ProcessStep[] = [
         id: 5,
         title: "Review & Refinement",
         description: "Your feedback shapes the final product. Request changes anytime—unlimited revisions included.",
-        icon: StepIcons.checkCircle2,
+        icon: <ReviewIcon className="w-full h-full" />,
         details: [
             "Project walkthrough",
             "Unlimited revisions",
@@ -116,7 +106,7 @@ const steps: ProcessStep[] = [
         id: 6,
         title: "Delivery & Support",
         description: "Handoff includes source code, documentation, and a video walkthrough. 30 days of free support included.",
-        icon: StepIcons.rocket,
+        icon: <DeliveryIcon className="w-full h-full" />,
         details: [
             "Complete source code",
             "Deployment guide",
@@ -163,8 +153,9 @@ export function ProcessSection() {
     }), [currentColor]);
 
     const engineCenterStyle = useMemo(() => ({
-        background: currentColor,
-        boxShadow: `0 0 60px ${currentColor}80`
+        background: `${currentColor}15`,
+        boxShadow: `0 0 60px ${currentColor}40`,
+        border: `1px solid ${currentColor}60`
     }), [currentColor]);
 
     // Memoized scroll-to-step handler
@@ -193,8 +184,13 @@ export function ProcessSection() {
 
         // Defer GSAP initialization to allow LCP to complete first
         const initGSAP = () => {
+            if (!containerRef.current) return;
+
             // Cache timeline dots once during initialization
             timelineDotsRef.current = document.querySelectorAll(".timeline-dot");
+
+            const isMobile = window.innerWidth <= 768;
+            const targetOpacity = isMobile ? 0.2 : 1;
 
             ctx = gsap.context(() => {
                 // ===== HERO ANIMATION =====
@@ -250,42 +246,44 @@ export function ProcessSection() {
                     });
 
                     // ===== CENTRAL VISUAL VISIBILITY =====
-                    // Set initial state (hidden)
-                    gsap.set(centralVisualRef.current, { opacity: 0 });
+                    // Set initial state (hidden with visibility: hidden)
+                    if (centralVisualRef.current) {
+                        gsap.set(centralVisualRef.current, { autoAlpha: 0 });
+                    }
 
                     ScrollTrigger.create({
                         trigger: journeyRef.current,
-                        start: "top 80%",
+                        start: "top 70%",
                         end: "bottom 20%",
                         onEnter: () => {
                             gsap.to(centralVisualRef.current, {
-                                opacity: 1,
-                                duration: 0.5,
-                                ease: "power1.out"
+                                autoAlpha: targetOpacity,
+                                duration: 1.0,
+                                ease: "sine.inOut"
                             });
                             centralVisualRef.current?.classList.add("visible");
                         },
                         onLeave: () => {
                             gsap.to(centralVisualRef.current, {
-                                opacity: 0,
-                                duration: 0.4,
-                                ease: "power1.in"
+                                autoAlpha: 0,
+                                duration: 1.0,
+                                ease: "sine.inOut"
                             });
                             centralVisualRef.current?.classList.remove("visible");
                         },
                         onEnterBack: () => {
                             gsap.to(centralVisualRef.current, {
-                                opacity: 1,
-                                duration: 0.5,
-                                ease: "power1.out"
+                                autoAlpha: targetOpacity,
+                                duration: 1.0,
+                                ease: "sine.inOut"
                             });
                             centralVisualRef.current?.classList.add("visible");
                         },
                         onLeaveBack: () => {
                             gsap.to(centralVisualRef.current, {
-                                opacity: 0,
-                                duration: 0.4,
-                                ease: "power1.in"
+                                autoAlpha: 0,
+                                duration: 1.0,
+                                ease: "sine.inOut"
                             });
                             centralVisualRef.current?.classList.remove("visible");
                         }
@@ -407,7 +405,7 @@ export function ProcessSection() {
                     });
 
                     // ===== CENTRAL ENGINE ROTATION - 2 FULL ROTATIONS =====
-                    gsap.fromTo(".central-engine", 
+                    gsap.fromTo(".central-engine",
                         { rotation: 0 },
                         {
                             scrollTrigger: {
@@ -427,7 +425,7 @@ export function ProcessSection() {
                     const ringScale2 = isMobile ? 1 : 1.1;
                     const ringScale3 = isMobile ? 1 : 1.05;
 
-                    gsap.fromTo(".engine-ring-1", 
+                    gsap.fromTo(".engine-ring-1",
                         { scale: 1, opacity: 0.3, rotation: 0 },
                         {
                             scrollTrigger: {
@@ -442,7 +440,7 @@ export function ProcessSection() {
                         }
                     );
 
-                    gsap.fromTo(".engine-ring-2", 
+                    gsap.fromTo(".engine-ring-2",
                         { scale: 1, opacity: 0.3, rotation: 0 },
                         {
                             scrollTrigger: {
@@ -457,7 +455,7 @@ export function ProcessSection() {
                         }
                     );
 
-                    gsap.fromTo(".engine-ring-3", 
+                    gsap.fromTo(".engine-ring-3",
                         { scale: 1, opacity: 0.3, rotation: 0 },
                         {
                             scrollTrigger: {
@@ -597,7 +595,7 @@ export function ProcessSection() {
     return (
         <div className="process-flow" ref={containerRef}>
             {/* FIXED CENTRAL VISUAL (Engine) with Progress Ring */}
-            <div className="flow-central-visual" ref={centralVisualRef}>
+            <div className="flow-central-visual" ref={centralVisualRef} style={{ opacity: 0 }}>
                 {/* SVG Progress Ring */}
                 <svg className="progress-ring" viewBox="0 0 340 340">
                     {/* Background ring */}
@@ -681,7 +679,11 @@ export function ProcessSection() {
                             className="how-it-works-item"
                             onClick={() => scrollToStep(i)}
                         >
-                            <div className="how-it-works-icon" style={{ background: step.color }}>
+                            <div className="how-it-works-icon" style={{
+                                background: `${step.color}10`,
+                                border: `1px solid ${step.color}80`,
+                                boxShadow: `0 0 15px ${step.color}40, inset 0 0 10px ${step.color}20`
+                            }}>
                                 {step.icon}
                             </div>
                             <span className="how-it-works-label">{i + 1}. {step.title.split(' ')[0]}</span>
