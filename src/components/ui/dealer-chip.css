@@ -423,6 +423,20 @@
             #00bcd4 315deg, #00bcd4 360deg);
 }
 
+.filter-chip.n8n .filter-chip-inner {
+    background:
+        radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.2), transparent 40%),
+        conic-gradient(from 0deg,
+            #134e4a 0deg, #134e4a 45deg,
+            #14b8a6 45deg, #14b8a6 90deg,
+            #134e4a 90deg, #134e4a 135deg,
+            #14b8a6 135deg, #14b8a6 180deg,
+            #134e4a 180deg, #134e4a 225deg,
+            #14b8a6 225deg, #14b8a6 270deg,
+            #134e4a 270deg, #134e4a 315deg,
+            #14b8a6 315deg, #14b8a6 360deg);
+}
+
 /* Mobile adjustments for filter chips */
 @media (max-width: 768px) {
     .filter-chips-row {

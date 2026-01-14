@@ -2282,6 +2282,15 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
                         <span className="filter-chip-label">♦</span>
                     </div>
                 </button>
+                <button
+                    className={cn("filter-chip n8n", activeFilter === "n8n Automation" && "active")}
+                    onClick={() => handleFilterChange("n8n Automation")}
+                    title="n8n Automation"
+                >
+                    <div className="filter-chip-inner">
+                        <span className="filter-chip-label">⚙</span>
+                    </div>
+                </button>
             </div>
 
             {/* Premium Water Ripple Effect Layer (Shuffle Phase) */}

@@ -11,6 +11,7 @@ import {
   Brain,
   MessageSquare,
   Smartphone,
+  Workflow,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -38,6 +39,12 @@ const serviceItems = [
     name: "Mobile Apps",
     description: "React Native, Flutter",
     icon: Smartphone,
+    color: "bg-blue-700",
+  },
+  {
+    name: "n8n Automation",
+    description: "Workflow & API Integration",
+    icon: Workflow,
     color: "bg-blue-700",
   },
 ];
@@ -191,8 +198,8 @@ export function ModernNavbar() {
                           isActive
                             ? "text-white"
                             : isScrolled || !isHome
-                            ? "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200/50 dark:hover:bg-white/10"
-                            : "text-gray-700 dark:text-gray-200 hover:bg-white/20 dark:hover:bg-black/20"
+                              ? "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200/50 dark:hover:bg-white/10"
+                              : "text-gray-700 dark:text-gray-200 hover:bg-white/20 dark:hover:bg-black/20"
                         )}
                       >
                         {isActive && (

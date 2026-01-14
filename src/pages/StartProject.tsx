@@ -22,6 +22,7 @@ import {
     CheckCircle2,
     X,
     Plus,
+    Workflow,
 } from 'lucide-react';
 
 const pageVariants = {
@@ -71,6 +72,14 @@ const projectTypes = [
         icon: Smartphone,
         color: 'from-orange-500 to-orange-600',
         examples: ['React Native', 'Flutter', 'Native Apps'],
+    },
+    {
+        id: 'n8n-automation',
+        title: 'n8n Automation',
+        description: 'Workflow automation and integrations',
+        icon: Workflow,
+        color: 'from-teal-500 to-teal-600',
+        examples: ['Workflow Automation', 'API Integration', 'Data Pipelines'],
     },
 ];
 

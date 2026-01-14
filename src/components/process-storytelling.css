@@ -34,10 +34,6 @@
     visibility: hidden;
 }
 
-.flow-central-visual.visible {
-    /* Opacity handled by GSAP */
-}
-
 /* Central Circle/Engine */
 .central-engine {
     position: relative;
@@ -596,10 +592,6 @@
         pointer-events: none;
         z-index: 5;
         /* Behind step panels (z-index: 30) */
-    }
-
-    .flow-central-visual.visible {
-        /* Opacity handled by GSAP */
     }
 
     /* Simplify ring animations for mobile performance */
