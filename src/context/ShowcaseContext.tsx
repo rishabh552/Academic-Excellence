@@ -2,6 +2,12 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 import { Project } from '@/components/ui/poker-card';
 
 const STORAGE_KEY = 'showcase_selected_projects';
+const EXPIRY_MS = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+
+interface StoredData {
+    projects: Project[];
+    savedAt: number;
+}
 
 interface ShowcaseContextType {
     selectedProjects: Project[];
@@ -15,19 +21,34 @@ const ShowcaseContext = createContext<ShowcaseContextType | null>(null);
 
 export function ShowcaseProvider({ children }: { children: ReactNode }) {
     const [selectedProjects, setSelectedProjects] = useState<Project[]>(() => {
-        // Initialize from localStorage
+        // Initialize from localStorage with expiration check
         try {
             const stored = localStorage.getItem(STORAGE_KEY);
-            return stored ? JSON.parse(stored) : [];
+            if (stored) {
+                const data: StoredData = JSON.parse(stored);
+                // Check if data has expired (older than 24 hours)
+                if (data.savedAt && (Date.now() - data.savedAt) < EXPIRY_MS) {
+                    return data.projects || [];
+                } else {
+                    // Data expired, clear it
+                    localStorage.removeItem(STORAGE_KEY);
+                    return [];
+                }
+            }
+            return [];
         } catch {
             return [];
         }
     });
 
-    // Sync to localStorage whenever selectedProjects changes
+    // Sync to localStorage with timestamp whenever selectedProjects changes
     useEffect(() => {
         try {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(selectedProjects));
+            const data: StoredData = {
+                projects: selectedProjects,
+                savedAt: Date.now()
+            };
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
         } catch (e) {
             console.warn('Failed to save to localStorage:', e);
         }

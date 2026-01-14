@@ -38,7 +38,7 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
     const [reshuffledCardIds, setReshuffledCardIds] = useState<Set<string>>(new Set()); // Track cards that have been reshuffled once
     const [isFirstShuffle, setIsFirstShuffle] = useState(true); // Track if this is the first shuffle (wild card forced to hand)
     const navigate = useNavigate();
-    const { addProject: addToShowcase, hasProjects, selectedProjects } = useShowcaseOptional();
+    const { addProject: addToShowcase, hasProjects, selectedProjects, clearProjects } = useShowcaseOptional();
 
     // REFS
     const containerRef = useRef<HTMLDivElement>(null);
@@ -146,6 +146,9 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
         setIsGameOver(false);
         setReshuffledCardIds(new Set()); // Reset per-card reshuffle tracking
         setIsFirstShuffle(true); // Reset so wild card priority works again
+
+        // Clear saved projects from localStorage
+        clearProjects();
 
         // Reset all piles
         setInterestedPile([]);
@@ -663,8 +666,12 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
 
         const containerRect = containerRef.current.getBoundingClientRect();
 
-        // Responsive positioning - on mobile, place card below deck to avoid overlap
-        const isMobileNow = window.innerWidth < 768;
+        // Responsive positioning - use consistent breakpoints with getHandPosition
+        const viewportWidth = window.innerWidth;
+        const isMobileNow = viewportWidth < 768;
+        const isTabletNow = viewportWidth >= 768 && viewportWidth < 1200;
+        const aspectRatio = containerRect.width / containerRect.height;
+
         let centerX: number;
         let centerY: number;
         let cardScale: number;
@@ -674,13 +681,24 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
             const cardWidth = 165; // Mobile card width
             centerX = (containerRect.width / 2) - (cardWidth / 2);
             centerY = containerRect.height * 0.35; // 35% from top - below deck area
-            cardScale = 1.3; // Slightly smaller scale on mobile
-        } else if (window.innerWidth < 1024) {
-            // Tablet (iPad Mini, etc): 200x280 card size
-            const cardWidth = 200;
-            centerX = (containerRect.width / 2) - (cardWidth / 2);
-            centerY = (containerRect.height / 2) - 160; // Center - 20px offset
-            cardScale = 1.4; // Good fit for tablet
+            cardScale = 1.3;
+        } else if (isTabletNow) {
+            // Tablet (768-1200px): Use aspect ratio for landscape vs portrait
+            const isLandscape = aspectRatio > 1.1;
+
+            if (isLandscape) {
+                // Tablet Landscape: Smaller card, higher position
+                const cardWidth = 160;
+                centerX = (containerRect.width / 2) - (cardWidth / 2);
+                centerY = containerRect.height * 0.15; // Higher up for landscape
+                cardScale = 1.2;
+            } else {
+                // Tablet Portrait: Standard tablet sizing
+                const cardWidth = 200;
+                centerX = (containerRect.width / 2) - (cardWidth / 2);
+                centerY = (containerRect.height / 2) - 160;
+                cardScale = 1.4;
+            }
         } else {
             // Desktop: Original centered positioning
             centerX = containerRect.width / 2 - 130;
@@ -2038,8 +2056,9 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
     const getHandPosition = (index: number, total: number, w: number, h: number) => {
         // Check viewport DIRECTLY from window to avoid stale closure issues
         const viewportWidth = window.innerWidth;
+        const aspectRatio = w / h;
         const isMobileNow = viewportWidth < 768;
-        const isTabletNow = viewportWidth >= 768 && viewportWidth < 1024;
+        const isTabletNow = viewportWidth >= 768 && viewportWidth < 1200;
 
         if (isMobileNow) {
             // MOBILE (<768px): Compact fan with good spacing
@@ -2048,33 +2067,63 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
             const cardSpacing = 55;
             const totalWidth = cardW + (total - 1) * cardSpacing;
             const startX = (w - totalWidth) / 2;
-            const baseY = h - cardH - 40;
+            const baseY = h - cardH - 60; // Moved up a bit
 
-            const maxRotation = 15;
+            const maxRotation = 12; // Slightly less rotation
             const rotationStep = total > 1 ? (maxRotation * 2) / (total - 1) : 0;
             const rotation = -maxRotation + index * rotationStep;
 
+            // Arc: Center cards higher, edge cards lower (proper fan shape)
             const centerIndex = (total - 1) / 2;
             const distFromCenter = Math.abs(index - centerIndex);
-            const yOffset = distFromCenter * 12;
+            const yOffset = distFromCenter * 8; // Edge cards go DOWN
 
             return {
                 x: startX + index * cardSpacing,
-                y: baseY - yOffset,
+                y: baseY + yOffset, // + to push edges DOWN (proper arc)
                 rotation
             };
         }
 
         if (isTabletNow) {
-            // TABLET (768-1024px): Medium arc - fits iPad Mini/Air/Pro portrait
-            const cardW = 180; // Slightly smaller than desktop
-            const arcRadius = 1000; // Tighter arc than desktop
-            const yOffset = 180;
-            const yCardOffset = 280;
-            const spreadMax = 28; // Narrower spread to avoid overlap
-            const spreadPerCard = 5;
+            // TABLET: Use aspect ratio for sizing
+            // < 0.9 = portrait (taller), > 1.1 = landscape (wider), between = square-ish
+            // < 0.9 = portrait (taller), > 1.1 = landscape (wider), between = square-ish
+            const isWide = aspectRatio > 1.1;
+            const isTall = aspectRatio < 0.9;
 
-            const centerArcX = w / 2;
+            // Dynamic sizing based on aspect ratio
+            let cardW: number, arcRadius: number, yOffset: number, yCardOffset: number, spreadMax: number, centerXShift: number, spreadPerCard: number;
+
+            if (isWide) {
+                // LANDSCAPE: Cards centered, moderate spread to stay on screen
+                cardW = 140;
+                arcRadius = 550;
+                yOffset = 60;
+                yCardOffset = 300;
+                spreadMax = 40; // Reduced to keep cards on screen
+                spreadPerCard = 10;
+                centerXShift = 20; // Minimal shift to keep centered
+            } else if (isTall) {
+                // PORTRAIT: Larger cards, tighter spread, more vertical room
+                cardW = 180;
+                arcRadius = 1000;
+                yOffset = 180;
+                yCardOffset = 280;
+                spreadMax = 26;
+                spreadPerCard = 5;
+                centerXShift = 30;
+            } else {
+                // SQUARE-ISH: Balanced sizing
+                cardW = 160;
+                arcRadius = 850;
+                yOffset = 140;
+                yCardOffset = 220;
+                spreadMax = 30;
+                spreadPerCard = 7;
+                centerXShift = 40;
+            }
+            const centerArcX = (w / 2) + centerXShift;
             const centerArcY = h + arcRadius - yOffset;
 
             const totalSpread = Math.min(spreadMax, (total - 1) * spreadPerCard);
