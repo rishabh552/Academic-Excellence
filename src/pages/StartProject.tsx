@@ -15,9 +15,6 @@ import {
     MessageSquare,
     Network,
     Clock,
-    Sparkles,
-    Zap,
-    Crown,
     Send,
     CheckCircle2,
     X,
@@ -168,55 +165,98 @@ const caseStudyPreviews = [
     },
 ];
 
-// Pricing packages
+// Custom Logos matching Pricing Section
+const MiniLogo = () => (
+    <svg width="100%" height="100%" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" className="drop-shadow-lg">
+        <path d="M24 4L6 14V34L24 44L42 34V14L24 4Z" className="fill-slate-800/50 stroke-slate-300" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M6 14L24 24L42 14" className="stroke-slate-300" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M24 44V24" className="stroke-slate-300" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M24 24L32 29M24 24L16 29" className="stroke-slate-400/50" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+);
+
+const MajorLogo = () => (
+    <svg width="100%" height="100%" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" className="drop-shadow-lg">
+        <path d="M8 38H40V42H8V38Z" className="fill-amber-500/20 stroke-amber-400" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M8 38L4 16L16 24L24 8L32 24L44 16L40 38H8Z" className="fill-amber-500/10 stroke-amber-400" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        <circle cx="24" cy="18" r="3" className="fill-amber-200" />
+        <circle cx="16" cy="24" r="2" className="fill-amber-300" />
+        <circle cx="32" cy="24" r="2" className="fill-amber-300" />
+    </svg>
+);
+
+const ResearchLogo = () => (
+    <svg width="100%" height="100%" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" className="drop-shadow-lg">
+        <circle cx="24" cy="24" r="6" className="fill-fuchsia-400/30 stroke-fuchsia-300" strokeWidth="2" />
+        <ellipse cx="24" cy="24" rx="18" ry="8" className="stroke-fuchsia-400/60" strokeWidth="1.5" transform="rotate(45 24 24)" />
+        <ellipse cx="24" cy="24" rx="18" ry="8" className="stroke-purple-400/60" strokeWidth="1.5" transform="rotate(-45 24 24)" />
+        <ellipse cx="24" cy="24" rx="18" ry="8" className="stroke-indigo-400/60" strokeWidth="1.5" />
+        <circle cx="38" cy="10" r="2" className="fill-fuchsia-300 animate-pulse" />
+    </svg>
+);
+
+// Updated Pricing packages
 const packages = [
     {
-        id: 'basic',
+        id: 'mini',
         name: 'Basic',
-        price: 499,
-        description: 'Perfect for small projects and MVPs',
-        icon: Sparkles,
-        color: 'from-emerald-500 to-emerald-600',
+        price: '2,000',
+        description: 'Perfect for semester projects and basic requirements.',
+        icon: MiniLogo,
+        color: 'text-slate-200',
+        gradient: 'from-slate-300 via-slate-100 to-slate-300',
+        glowColor: 'hover:shadow-[0_0_20px_-5px_rgba(148,163,184,0.5)]',
+        hoverBorder: 'hover:border-slate-400',
+        priceSuffix: 'Starting Price',
         features: [
-            'Single page application',
-            'Responsive design',
-            'Basic backend API',
-            '2 weeks development',
-            '1 month support',
+            'Complete Source Code',
+            'Basic Documentation',
+            'Setup Instructions',
+            '3 Days Delivery',
+            'Standard Support',
         ],
     },
     {
-        id: 'professional',
+        id: 'major',
         name: 'Professional',
-        price: 1499,
-        description: 'Best for growing businesses',
-        icon: Zap,
-        color: 'from-violet-500 to-violet-600',
+        price: '3,000',
+        description: 'Comprehensive solution for final year submissions.',
+        icon: MajorLogo,
+        color: 'text-amber-300',
+        gradient: 'from-amber-300 via-yellow-200 to-amber-400',
+        glowColor: 'hover:shadow-[0_0_25px_-5px_rgba(251,191,36,0.6)]',
+        hoverBorder: 'hover:border-amber-400',
         popular: true,
         features: [
-            'Multi-page application',
-            'Advanced UI/UX design',
-            'Full backend with auth',
-            'Database integration',
-            '4 weeks development',
-            '3 months support',
+            'Complete Source Code',
+            'Basic Documentation',
+            'Setup Instructions',
+            '1 Week Delivery',
+            'Priority Support',
+            'Project Report',
+            'PPT Presentation',
+            'Video Walkthrough'
         ],
     },
     {
-        id: 'enterprise',
-        name: 'Enterprise',
-        price: 4999,
-        description: 'Complete solution for large projects',
-        icon: Crown,
-        color: 'from-amber-500 to-amber-600',
+        id: 'research',
+        name: 'Research / Custom',
+        price: '5,000+',
+        description: 'For complex research papers and unique requirements.',
+        icon: ResearchLogo,
+        color: 'text-fuchsia-300',
+        gradient: 'from-fuchsia-400 via-purple-300 to-indigo-400',
+        glowColor: 'hover:shadow-[0_0_20px_-5px_rgba(232,121,249,0.5)]',
+        hoverBorder: 'hover:border-fuchsia-400',
+        priceSuffix: 'varies by complexity',
         features: [
-            'Full-scale application',
-            'Custom architecture',
-            'ML/AI integration',
-            'Cloud deployment',
-            '8+ weeks development',
-            '6 months support',
-            'Dedicated team',
+            'Complete Source Code',
+            'Research Implementation',
+            'Novel Algorithms',
+            'Custom Timeline',
+            '1-on-1 Explanations',
+            'Project Report',
+            'Conference Quality',
         ],
     },
 ];
@@ -662,15 +702,16 @@ function Step4Package({
                             whileTap={{ scale: 0.98 }}
                             data-cursor="default"
                             className={cn(
-                                'relative p-6 rounded-2xl border text-left transition-all',
+                                'relative p-6 rounded-2xl border text-left transition-all duration-300 group',
+                                'bg-[#050505] backdrop-blur-md', // Opaque Dark
                                 isSelected
-                                    ? 'border-brand-secondary bg-brand-secondary/10 ring-2 ring-brand-secondary/50'
-                                    : 'border-white/10 bg-white/5 hover:border-white/20',
-                                pkg.popular && !isSelected && 'border-brand-secondary/50'
+                                    ? cn('ring-2 bg-[#0A0A0A]', pkg.hoverBorder ? pkg.hoverBorder.replace('hover:', '') : 'border-brand-secondary') // Active state uses hover border color permanently or brand
+                                    : cn('border-white/10', pkg.hoverBorder), // Default state with hover effect
+                                pkg.glowColor // Outline glow
                             )}
                         >
                             {pkg.popular && (
-                                <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-gradient-to-r from-brand-secondary to-brand-accent rounded-full text-xs font-bold text-white">
+                                <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-gradient-to-r from-brand-secondary to-brand-accent rounded-full text-xs font-bold text-white shadow-lg shadow-brand-secondary/20">
                                     Most Popular
                                 </div>
                             )}
@@ -679,33 +720,59 @@ function Step4Package({
                                 <motion.div
                                     initial={{ scale: 0 }}
                                     animate={{ scale: 1 }}
-                                    className="absolute top-3 right-3 w-6 h-6 rounded-full bg-brand-secondary flex items-center justify-center"
+                                    className="absolute top-3 right-3 w-6 h-6 rounded-full bg-brand-secondary flex items-center justify-center z-10"
                                 >
                                     <Check className="w-4 h-4 text-white" />
                                 </motion.div>
                             )}
 
+                            {/* Icon Container matching Price Section */}
                             <div
                                 className={cn(
-                                    'w-12 h-12 rounded-xl flex items-center justify-center mb-4 bg-gradient-to-r',
-                                    pkg.color
+                                    'w-14 h-14 rounded-xl flex items-center justify-center mb-5 transition-transform duration-500 group-hover:scale-110',
+                                    'bg-[#151515] border border-white/10 shadow-inner'
                                 )}
                             >
-                                <Icon className="w-6 h-6 text-white" />
+                                <div className={cn("w-10 h-10", "bg-clip-text text-transparent bg-gradient-to-br", pkg.gradient)}>
+                                    <Icon />
+                                    {/* Note: Icon component itself has gradients, but wrapper helps sizing */}
+                                </div>
                             </div>
 
-                            <h3 className="text-xl font-bold text-foreground mb-1">{pkg.name}</h3>
+                            <h3 className={cn("text-2xl font-bold mb-1 font-heading tracking-tight bg-clip-text text-transparent bg-gradient-to-br", pkg.gradient)}>
+                                {pkg.name}
+                            </h3>
+
                             <div className="flex items-baseline gap-1 mb-2">
-                                <span className="text-3xl font-bold text-brand-secondary">${pkg.price}</span>
-                                <span className="text-muted-foreground text-sm">starting</span>
+                                <span className="text-2xl text-slate-500 font-serif italic mt-1">₹</span>
+                                <span className="text-4xl font-bold text-white tracking-tighter">
+                                    {pkg.price}
+                                </span>
                             </div>
-                            <p className="text-sm text-muted-foreground mb-4">{pkg.description}</p>
 
-                            <ul className="space-y-2">
+                            {/* Price Suffix */}
+                            {pkg.priceSuffix && (
+                                <p className="text-xs text-slate-500 uppercase tracking-widest font-medium mb-4">
+                                    {pkg.priceSuffix}
+                                </p>
+                            )}
+
+                            <p className="text-sm text-slate-400 mb-6 leading-relaxed">
+                                {pkg.description}
+                            </p>
+
+                            <div className="w-full h-px bg-white/5 mb-6" />
+
+                            <ul className="space-y-3">
                                 {pkg.features.map((feature, i) => (
-                                    <li key={i} className="flex items-center gap-2 text-sm text-muted-foreground">
-                                        <CheckCircle2 className="w-4 h-4 text-green-400 flex-shrink-0" />
-                                        {feature}
+                                    <li key={i} className="flex items-center gap-3 text-sm">
+                                        <div className={cn(
+                                            "flex h-4 w-4 items-center justify-center rounded-full bg-white/5 ring-1 ring-white/10",
+                                            pkg.color
+                                        )}>
+                                            <Check className="w-2.5 h-2.5" />
+                                        </div>
+                                        <span className="text-slate-300">{feature}</span>
                                     </li>
                                 ))}
                             </ul>
