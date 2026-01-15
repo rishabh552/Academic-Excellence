@@ -478,9 +478,21 @@ function Step2Details({
     );
 }
 
-// Step 3: Selected Projects (from Showcase)
-function Step3SelectedProjects() {
+// Step 3: Selected Projects (from Wizard Step 2 + Showcase)
+interface WizardProject {
+    id: string;
+    title: string;
+    description: string;
+    image: string;
+    timeline: string;
+    results: string[];
+}
+
+function Step3SelectedProjects({ wizardProject }: { wizardProject: WizardProject | null }) {
     const { selectedProjects, removeProject, hasProjects } = useShowcaseOptional();
+
+    // Check if we have any projects to display (wizard OR showcase)
+    const hasAnyProjects = hasProjects || wizardProject !== null;
 
     return (
         <motion.div
@@ -494,14 +506,59 @@ function Step3SelectedProjects() {
                     Your Selected Projects
                 </h2>
                 <p className="text-muted-foreground">
-                    {hasProjects
-                        ? 'Review your selections from the Showcase. Remove any you don\'t need.'
-                        : 'You haven\'t selected any projects yet. Visit the Showcase to pick some!'}
+                    {hasAnyProjects
+                        ? 'Review your selections. These will help us understand your requirements.'
+                        : 'You haven\'t selected any projects yet. Go back to choose a reference project or visit the Showcase!'}
                 </p>
             </div>
 
-            {hasProjects ? (
+            {hasAnyProjects ? (
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-5xl mx-auto">
+                    {/* Wizard Step 2 Selection */}
+                    {wizardProject && (
+                        <motion.div
+                            key={`wizard-${wizardProject.id}`}
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            className="group relative bg-white/5 rounded-2xl border border-brand-secondary/30 overflow-hidden"
+                        >
+                            {/* Reference Badge */}
+                            <div className="absolute top-3 left-3 z-10 px-2 py-1 rounded-full bg-brand-secondary/80 text-white text-xs font-medium">
+                                Reference Project
+                            </div>
+
+                            {/* Project Image */}
+                            <div className="w-full h-32 overflow-hidden">
+                                <img
+                                    src={wizardProject.image}
+                                    alt={wizardProject.title}
+                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                />
+                            </div>
+
+                            {/* Project Info */}
+                            <div className="p-4">
+                                <h3 className="font-semibold text-foreground text-lg mb-1">
+                                    {wizardProject.title}
+                                </h3>
+                                <p className="text-sm text-muted-foreground line-clamp-2">
+                                    {wizardProject.description}
+                                </p>
+                                <div className="flex flex-wrap gap-1 mt-2">
+                                    {wizardProject.results.slice(0, 2).map((result, i) => (
+                                        <span
+                                            key={i}
+                                            className="px-2 py-0.5 bg-brand-secondary/10 text-brand-secondary text-xs rounded-full"
+                                        >
+                                            {result}
+                                        </span>
+                                    ))}
+                                </div>
+                            </div>
+                        </motion.div>
+                    )}
+
+                    {/* Showcase Projects */}
                     {selectedProjects.map((project) => (
                         <motion.div
                             key={project.common}
@@ -510,6 +567,11 @@ function Step3SelectedProjects() {
                             exit={{ opacity: 0, scale: 0.9 }}
                             className="group relative bg-white/5 rounded-2xl border border-white/10 overflow-hidden hover:border-brand-secondary/30 transition-all"
                         >
+                            {/* Showcase Badge */}
+                            <div className="absolute top-3 left-3 z-10 px-2 py-1 rounded-full bg-purple-500/80 text-white text-xs font-medium">
+                                From Showcase
+                            </div>
+
                             {/* Remove Button */}
                             <button
                                 onClick={() => removeProject(project.common)}
@@ -558,7 +620,7 @@ function Step3SelectedProjects() {
                     className="inline-flex items-center gap-2 px-6 py-3 rounded-full border border-brand-secondary/30 text-brand-secondary hover:bg-brand-secondary/10 transition-all"
                 >
                     <Plus size={18} />
-                    {hasProjects ? 'Add More Projects' : 'Browse Showcase'}
+                    {hasAnyProjects ? 'Add More from Showcase' : 'Browse Showcase'}
                 </Link>
             </div>
         </motion.div>
@@ -801,6 +863,7 @@ export function StartProject() {
     // Wizard State
     const [currentStep, setCurrentStep] = useState(1);
     const [completedSteps, setCompletedSteps] = useState<number[]>([]);
+    const [cameFromShowcase, setCameFromShowcase] = useState(false); // Track if user entered from showcase cash out
 
     // Step 1 Data
     const [selectedType, setSelectedType] = useState<string | null>(null);
@@ -847,6 +910,10 @@ export function StartProject() {
             const targetStep = parseInt(stepParam, 10);
             if (targetStep >= 1 && targetStep <= 5) {
                 setCurrentStep(targetStep);
+                // If coming directly to step 3, mark as from showcase
+                if (targetStep === 3) {
+                    setCameFromShowcase(true);
+                }
                 // Mark all previous steps as completed
                 const completed = [];
                 for (let i = 1; i < targetStep; i++) {
@@ -883,7 +950,14 @@ export function StartProject() {
 
     const prevStep = () => {
         if (currentStep > 1) {
-            setCurrentStep(currentStep - 1);
+            // If user came from showcase and is on step 3, go directly to step 1
+            if (cameFromShowcase && currentStep === 3) {
+                setCurrentStep(1);
+                setCompletedSteps([]);
+                setCameFromShowcase(false); // Reset after going back
+            } else {
+                setCurrentStep(currentStep - 1);
+            }
         }
     };
 
@@ -946,7 +1020,14 @@ export function StartProject() {
                             />
                         )}
                         {currentStep === 3 && (
-                            <Step3SelectedProjects key="step3" />
+                            <Step3SelectedProjects
+                                key="step3"
+                                wizardProject={
+                                    selectedProject && selectedProject !== 'custom'
+                                        ? caseStudyPreviews.find(p => p.id === selectedProject) || null
+                                        : null
+                                }
+                            />
                         )}
                         {currentStep === 4 && (
                             <Step4Package
