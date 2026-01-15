@@ -157,6 +157,15 @@ const caseStudyPreviews = [
         results: ['Real-time sync', 'Drag & drop', 'Team analytics'],
         image: 'https://images.unsplash.com/photo-1484480974693-6ca0a78fb36b?w=400&q=80',
     },
+    {
+        id: 'n8n-bot',
+        type: 'n8n-automation',
+        title: 'N8N Bot',
+        description: 'AI-powered Telegram bot with Gemini, voice transcription & RAG memory',
+        timeline: '2 months',
+        results: ['Gemini AI Agent', 'Pinecone RAG', 'Voice-to-Text'],
+        image: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=400&q=80',
+    },
 ];
 
 // Pricing packages

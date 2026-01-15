@@ -889,12 +889,14 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
         gsap.killTweensOf([card, tiltInner, actions, glare]);
 
         // LOCK starting position and ensure card is visible with high z-index
+        // CRITICAL: Reset filter to prevent black flash from residual filter values
         gsap.set(card, {
             x: startX,
             y: startY,
             opacity: 1,
             zIndex: 500,
-            rotation: 0
+            rotation: 0,
+            filter: 'none'
         });
 
         const tl = gsap.timeline({
@@ -1010,7 +1012,6 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
             scale: 1.1,
             y: startY - 15,
             boxShadow: "0 0 50px rgba(255, 0, 0, 0.7), 0 0 80px rgba(255, 50, 50, 0.4)",
-            filter: "brightness(0.85) saturate(1.2)",
             duration: 0.3,
             ease: "power2.out"
         }, 0);
@@ -1027,7 +1028,6 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
         // Intensify red glow before pull - card about to be yanked
         tl.to(card, {
             boxShadow: "0 0 70px rgba(255, 0, 0, 0.85), 0 0 100px rgba(255, 50, 50, 0.5)",
-            filter: "brightness(1.0) saturate(1.4)",
             scale: 0.95,
             duration: 0.12,
             ease: "power2.in"
@@ -1048,7 +1048,6 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
             scale: 0.85,  // Start shrinking
             rotation: Math.random() * 15 - 7.5,
             boxShadow: "0 0 60px rgba(255, 0, 0, 0.7), 0 0 100px rgba(255, 50, 50, 0.4)",
-            filter: "brightness(0.85) saturate(1.3)",
             duration: 0.2,
             ease: "power2.out"
         }, 0.52);
@@ -1060,7 +1059,6 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
             scale: targetScale * 0.9,  // Continue shrinking
             rotation: Math.random() * 10 - 5,
             boxShadow: "0 0 50px rgba(255, 0, 0, 0.6)",
-            filter: "brightness(0.8) saturate(1.2)",
             duration: 0.25,
             ease: "power3.in"
         }, 0.72);
@@ -2646,6 +2644,7 @@ export const getBadgeClass = (category: string) => {
         case 'Mobile': return 'bg-orange-500/20 text-orange-300 border-orange-500/30';
         case 'Data Science': return 'bg-pink-500/20 text-pink-300 border-pink-500/30';
         case 'NLP': return 'bg-cyan-500/20 text-cyan-300 border-cyan-500/30';
+        case 'n8n Automation': return 'bg-teal-500/20 text-teal-300 border-teal-500/30';
         default: return 'bg-gray-500/20 text-gray-300 border-gray-500/30';
     }
 };

@@ -159,6 +159,8 @@
     border-radius: 16px;
     transform-style: preserve-3d;
     transition: box-shadow 0.3s ease;
+    /* Prevent black flash during rapid card flips - show consistent background when both faces hidden at 90deg */
+    background: linear-gradient(135deg, #1e1e24 0%, #12121a 100%);
 }
 
 .poker-card.interactive:hover .card-tilt-inner {
