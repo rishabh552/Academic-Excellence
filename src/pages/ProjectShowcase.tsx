@@ -135,7 +135,7 @@ export function ProjectShowcase() {
             techStack: ["React", "D3.js", "WebSockets", "Node.js"]
         },
         {
-            common: "N8N Bot",
+            common: "AI Assistant",
             binomial: "n8n Automation",
             description: "Intelligent Telegram bot powered by n8n automation with Google Gemini AI, voice transcription, and RAG-based memory using Pinecone vector store for contextual conversations.",
             features: [
@@ -146,7 +146,7 @@ export function ProjectShowcase() {
                 "Contextual Conversations"
             ],
             photo: {
-                url: "https://images.unsplash.com/photo-1677442136019-21780ecad995?w=800&q=80",
+                url: "https://images.unsplash.com/photo-1587560699334-cc4ff634909a?w=800&q=80",
             },
             techStack: ["n8n", "Google Gemini", "Pinecone", "Telegram API"]
         }

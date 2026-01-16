@@ -6,6 +6,33 @@ import { useRef, useState } from "react";
 import { Mail, Phone, MapPin, Send, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+// Validation helpers
+const validateName = (name: string): string | null => {
+  if (!name.trim()) return null; // Name is optional in this form
+  if (name.trim().length < 2) return "Name must be at least 2 characters";
+  if (!/^[a-zA-Z\s]+$/.test(name.trim())) return "Name can only contain letters and spaces";
+  return null;
+};
+
+const validateEmail = (email: string): string | null => {
+  if (!email.trim()) return "Email is required";
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email.trim())) return "Please enter a valid email address";
+  return null;
+};
+
+const validateSubject = (subject: string): string | null => {
+  if (!subject.trim()) return null; // Subject is optional
+  if (subject.trim().length < 3) return "Subject must be at least 3 characters";
+  return null;
+};
+
+const validateMessage = (message: string): string | null => {
+  if (!message.trim()) return "Message is required";
+  if (message.trim().length < 10) return "Please provide at least 10 characters";
+  return null;
+};
+
 export function ContactSection() {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
@@ -16,6 +43,9 @@ export function ContactSection() {
     subject: "",
     message: "",
   });
+
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
+  const [errors, setErrors] = useState<Record<string, string | null>>({});
 
   const [status, setStatus] = useState<
     "idle" | "submitting" | "success" | "error"
@@ -31,17 +61,65 @@ export function ContactSection() {
     });
   };
 
+  const handleBlur = (field: string) => {
+    setTouched((prev) => ({ ...prev, [field]: true }));
+    validateField(field);
+  };
+
+  const validateField = (field: string) => {
+    let error: string | null = null;
+    switch (field) {
+      case "name":
+        error = validateName(formState.name);
+        break;
+      case "email":
+        error = validateEmail(formState.email);
+        break;
+      case "subject":
+        error = validateSubject(formState.subject);
+        break;
+      case "message":
+        error = validateMessage(formState.message);
+        break;
+    }
+    setErrors((prev) => ({ ...prev, [field]: error }));
+    return error;
+  };
+
+  const validateAll = (): boolean => {
+    const nameError = validateName(formState.name);
+    const emailError = validateEmail(formState.email);
+    const subjectError = validateSubject(formState.subject);
+    const messageError = validateMessage(formState.message);
+
+    setErrors({
+      name: nameError,
+      email: emailError,
+      subject: subjectError,
+      message: messageError,
+    });
+
+    setTouched({
+      name: true,
+      email: true,
+      subject: true,
+      message: true,
+    });
+
+    return !nameError && !emailError && !subjectError && !messageError;
+  };
+
+  const isFormValid = !validateName(formState.name) && !validateEmail(formState.email) && !validateSubject(formState.subject) && !validateMessage(formState.message);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setStatus("submitting");
-    setErrorMessage("");
 
-    // Validation
-    if (!formState.email || !formState.message) {
-      setStatus("error");
-      setErrorMessage("Please fill in all required fields.");
+    if (!validateAll()) {
       return;
     }
+
+    setStatus("submitting");
+    setErrorMessage("");
 
     try {
       const response = await fetch("/api/send-email", {
@@ -57,6 +135,8 @@ export function ContactSection() {
       if (response.ok) {
         setStatus("success");
         setFormState({ name: "", email: "", subject: "", message: "" });
+        setTouched({});
+        setErrors({});
         setTimeout(() => setStatus("idle"), 3000);
       } else {
         setStatus("error");
@@ -103,12 +183,12 @@ export function ContactSection() {
                 {
                   icon: <Phone className="w-6 h-6 text-brand-secondary" />,
                   title: "Call Us",
-                  value: "+1 (555) 123-4567",
+                  value: "+91 98234 56789",
                 },
                 {
                   icon: <MapPin className="w-6 h-6 text-brand-accent" />,
                   title: "Location",
-                  value: "San Francisco, CA",
+                  value: "Mumbai, India",
                 },
               ].map((item, index) => (
                 <motion.div
@@ -157,16 +237,23 @@ export function ContactSection() {
                       autoComplete="name"
                       value={formState.name}
                       onChange={handleChange}
-                      className="w-full px-4 py-4 sm:py-3 rounded-xl bg-white/5 border border-white/10 focus:border-brand-primary focus:ring-1 focus:ring-brand-primary outline-none transition-all text-white placeholder:text-white/20"
-                      placeholder="John Doe"
+                      onBlur={() => handleBlur("name")}
+                      className={cn(
+                        "w-full px-4 py-4 sm:py-3 rounded-xl bg-white/5 border focus:border-brand-primary focus:ring-1 focus:ring-brand-primary outline-none transition-all text-white placeholder:text-white/20",
+                        touched.name && errors.name ? "border-red-500" : "border-white/10"
+                      )}
+                      placeholder="Rahul Sharma"
                     />
+                    {touched.name && errors.name && (
+                      <p className="text-sm text-red-400">{errors.name}</p>
+                    )}
                   </div>
                   <div className="space-y-2">
                     <label
                       htmlFor="email"
                       className="text-sm font-medium text-muted-foreground"
                     >
-                      Email
+                      Email *
                     </label>
                     <input
                       type="email"
@@ -175,9 +262,16 @@ export function ContactSection() {
                       autoComplete="email"
                       value={formState.email}
                       onChange={handleChange}
-                      className="w-full px-4 py-4 sm:py-3 rounded-xl bg-white/5 border border-white/10 focus:border-brand-primary focus:ring-1 focus:ring-brand-primary outline-none transition-all text-white placeholder:text-white/20"
-                      placeholder="john@example.com"
+                      onBlur={() => handleBlur("email")}
+                      className={cn(
+                        "w-full px-4 py-4 sm:py-3 rounded-xl bg-white/5 border focus:border-brand-primary focus:ring-1 focus:ring-brand-primary outline-none transition-all text-white placeholder:text-white/20",
+                        touched.email && errors.email ? "border-red-500" : "border-white/10"
+                      )}
+                      placeholder="rahul@example.com"
                     />
+                    {touched.email && errors.email && (
+                      <p className="text-sm text-red-400">{errors.email}</p>
+                    )}
                   </div>
                 </div>
 
@@ -194,9 +288,16 @@ export function ContactSection() {
                     name="subject"
                     value={formState.subject}
                     onChange={handleChange}
-                    className="w-full px-4 py-4 sm:py-3 rounded-xl bg-white/5 border border-white/10 focus:border-brand-primary focus:ring-1 focus:ring-brand-primary outline-none transition-all text-white placeholder:text-white/20"
+                    onBlur={() => handleBlur("subject")}
+                    className={cn(
+                      "w-full px-4 py-4 sm:py-3 rounded-xl bg-white/5 border focus:border-brand-primary focus:ring-1 focus:ring-brand-primary outline-none transition-all text-white placeholder:text-white/20",
+                      touched.subject && errors.subject ? "border-red-500" : "border-white/10"
+                    )}
                     placeholder="Project Inquiry"
                   />
+                  {touched.subject && errors.subject && (
+                    <p className="text-sm text-red-400">{errors.subject}</p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
@@ -204,27 +305,36 @@ export function ContactSection() {
                     htmlFor="message"
                     className="text-sm font-medium text-muted-foreground"
                   >
-                    Message
+                    Message *
                   </label>
                   <textarea
                     id="message"
                     name="message"
                     value={formState.message}
                     onChange={handleChange}
+                    onBlur={() => handleBlur("message")}
                     rows={4}
-                    className="w-full px-4 py-4 sm:py-3 rounded-xl bg-white/5 border border-white/10 focus:border-brand-primary focus:ring-1 focus:ring-brand-primary outline-none transition-all text-white placeholder:text-white/20 resize-none"
+                    className={cn(
+                      "w-full px-4 py-4 sm:py-3 rounded-xl bg-white/5 border focus:border-brand-primary focus:ring-1 focus:ring-brand-primary outline-none transition-all text-white placeholder:text-white/20 resize-none",
+                      touched.message && errors.message ? "border-red-500" : "border-white/10"
+                    )}
                     placeholder="Tell us about your project..."
                   />
+                  {touched.message && errors.message && (
+                    <p className="text-sm text-red-400">{errors.message}</p>
+                  )}
                 </div>
 
                 <button
                   type="submit"
-                  disabled={status === "submitting" || status === "success"}
+                  disabled={status === "submitting" || status === "success" || !isFormValid}
                   className={cn(
                     "w-full py-4 rounded-xl font-bold text-lg transition-all duration-300 flex items-center justify-center gap-2",
                     status === "success"
                       ? "bg-status-success text-white"
-                      : "bg-gradient-to-r from-brand-primary to-brand-secondary text-white hover:shadow-lg hover:shadow-brand-primary/25 hover:scale-[1.02] active:scale-[0.98]"
+                      : !isFormValid || status === "submitting"
+                        ? "bg-gray-500 cursor-not-allowed text-white"
+                        : "bg-gradient-to-r from-brand-primary to-brand-secondary text-white hover:shadow-lg hover:shadow-brand-primary/25 hover:scale-[1.02] active:scale-[0.98]"
                   )}
                 >
                   {status === "submitting" ? (
@@ -253,3 +363,4 @@ export function ContactSection() {
     </section>
   );
 }
+

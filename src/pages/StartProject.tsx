@@ -155,13 +155,13 @@ const caseStudyPreviews = [
         image: 'https://images.unsplash.com/photo-1484480974693-6ca0a78fb36b?w=400&q=80',
     },
     {
-        id: 'n8n-bot',
+        id: 'chat-helper',
         type: 'n8n-automation',
-        title: 'N8N Bot',
+        title: 'AI Assistant',
         description: 'AI-powered Telegram bot with Gemini, voice transcription & RAG memory',
         timeline: '2 months',
         results: ['Gemini AI Agent', 'Pinecone RAG', 'Voice-to-Text'],
-        image: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=400&q=80',
+        image: 'https://images.unsplash.com/photo-1587560699334-cc4ff634909a?w=400&q=80',
     },
 ];
 
@@ -784,6 +784,37 @@ function Step4Package({
     );
 }
 
+// Validation helpers
+const validateName = (name: string): string | null => {
+    if (!name.trim()) return 'Name is required';
+    if (name.trim().length < 2) return 'Name must be at least 2 characters';
+    if (!/^[a-zA-Z\s]+$/.test(name.trim())) return 'Name can only contain letters and spaces';
+    return null;
+};
+
+const validateEmail = (email: string): string | null => {
+    if (!email.trim()) return 'Email is required';
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email.trim())) return 'Please enter a valid email address';
+    return null;
+};
+
+const validatePhone = (phone: string): string | null => {
+    if (!phone.trim()) return null; // Phone is optional
+    // Indian phone: +91 followed by 10 digits, or just 10 digits
+    const phoneRegex = /^(\+91[\s-]?)?[6-9]\d{4}[\s-]?\d{5}$/;
+    if (!phoneRegex.test(phone.replace(/\s/g, ''))) {
+        return 'Please enter a valid Indian phone number (e.g., +91 98234 56789)';
+    }
+    return null;
+};
+
+const validateMessage = (message: string): string | null => {
+    if (!message.trim()) return 'Project details are required';
+    if (message.trim().length < 10) return 'Please provide at least 10 characters';
+    return null;
+};
+
 // Step 5: Contact Form
 function Step5Contact({
     formData,
@@ -798,6 +829,65 @@ function Step5Contact({
     isSubmitting: boolean;
     isSubmitted: boolean;
 }) {
+    const [touched, setTouched] = useState<Record<string, boolean>>({});
+    const [errors, setErrors] = useState<Record<string, string | null>>({});
+
+    const handleBlur = (field: string) => {
+        setTouched((prev) => ({ ...prev, [field]: true }));
+        validateField(field);
+    };
+
+    const validateField = (field: string) => {
+        let error: string | null = null;
+        switch (field) {
+            case 'name':
+                error = validateName(formData.name);
+                break;
+            case 'email':
+                error = validateEmail(formData.email);
+                break;
+            case 'phone':
+                error = validatePhone(formData.phone);
+                break;
+            case 'message':
+                error = validateMessage(formData.message);
+                break;
+        }
+        setErrors((prev) => ({ ...prev, [field]: error }));
+        return error;
+    };
+
+    const validateAll = (): boolean => {
+        const nameError = validateName(formData.name);
+        const emailError = validateEmail(formData.email);
+        const phoneError = validatePhone(formData.phone);
+        const messageError = validateMessage(formData.message);
+
+        setErrors({
+            name: nameError,
+            email: emailError,
+            phone: phoneError,
+            message: messageError,
+        });
+
+        setTouched({
+            name: true,
+            email: true,
+            phone: true,
+            message: true,
+        });
+
+        return !nameError && !emailError && !phoneError && !messageError;
+    };
+
+    const handleSubmit = () => {
+        if (validateAll()) {
+            onSubmit();
+        }
+    };
+
+    const isFormValid = !validateName(formData.name) && !validateEmail(formData.email) && !validatePhone(formData.phone) && !validateMessage(formData.message);
+
     if (isSubmitted) {
         return (
             <motion.div
@@ -851,10 +941,17 @@ function Step5Contact({
                         type="text"
                         value={formData.name}
                         onChange={(e) => onChange('name', e.target.value)}
+                        onBlur={() => handleBlur('name')}
                         autoComplete="name"
-                        placeholder="John Doe"
-                        className="w-full px-4 py-4 sm:py-3 rounded-xl bg-white/5 border border-white/10 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-brand-secondary/50"
+                        placeholder="Rahul Sharma"
+                        className={cn(
+                            "w-full px-4 py-4 sm:py-3 rounded-xl bg-white/5 border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-brand-secondary/50 transition-colors",
+                            touched.name && errors.name ? 'border-red-500' : 'border-white/10'
+                        )}
                     />
+                    {touched.name && errors.name && (
+                        <p className="mt-1 text-sm text-red-400">{errors.name}</p>
+                    )}
                 </div>
 
                 <div>
@@ -863,10 +960,17 @@ function Step5Contact({
                         type="email"
                         value={formData.email}
                         onChange={(e) => onChange('email', e.target.value)}
+                        onBlur={() => handleBlur('email')}
                         autoComplete="email"
-                        placeholder="john@example.com"
-                        className="w-full px-4 py-4 sm:py-3 rounded-xl bg-white/5 border border-white/10 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-brand-secondary/50"
+                        placeholder="rahul@example.com"
+                        className={cn(
+                            "w-full px-4 py-4 sm:py-3 rounded-xl bg-white/5 border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-brand-secondary/50 transition-colors",
+                            touched.email && errors.email ? 'border-red-500' : 'border-white/10'
+                        )}
                     />
+                    {touched.email && errors.email && (
+                        <p className="mt-1 text-sm text-red-400">{errors.email}</p>
+                    )}
                 </div>
 
                 <div>
@@ -875,10 +979,17 @@ function Step5Contact({
                         type="tel"
                         value={formData.phone}
                         onChange={(e) => onChange('phone', e.target.value)}
+                        onBlur={() => handleBlur('phone')}
                         autoComplete="tel"
-                        placeholder="+1 (555) 000-0000"
-                        className="w-full px-4 py-4 sm:py-3 rounded-xl bg-white/5 border border-white/10 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-brand-secondary/50"
+                        placeholder="+91 98234 56789"
+                        className={cn(
+                            "w-full px-4 py-4 sm:py-3 rounded-xl bg-white/5 border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-brand-secondary/50 transition-colors",
+                            touched.phone && errors.phone ? 'border-red-500' : 'border-white/10'
+                        )}
                     />
+                    {touched.phone && errors.phone && (
+                        <p className="mt-1 text-sm text-red-400">{errors.phone}</p>
+                    )}
                 </div>
 
                 <div>
@@ -886,18 +997,25 @@ function Step5Contact({
                     <textarea
                         value={formData.message}
                         onChange={(e) => onChange('message', e.target.value)}
+                        onBlur={() => handleBlur('message')}
                         placeholder="Tell us about your project requirements, timeline, and any specific features you need..."
                         rows={4}
-                        className="w-full px-4 py-4 sm:py-3 rounded-xl bg-white/5 border border-white/10 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-brand-secondary/50 resize-none"
+                        className={cn(
+                            "w-full px-4 py-4 sm:py-3 rounded-xl bg-white/5 border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-brand-secondary/50 resize-none transition-colors",
+                            touched.message && errors.message ? 'border-red-500' : 'border-white/10'
+                        )}
                     />
+                    {touched.message && errors.message && (
+                        <p className="mt-1 text-sm text-red-400">{errors.message}</p>
+                    )}
                 </div>
 
                 <button
-                    onClick={onSubmit}
-                    disabled={isSubmitting || !formData.name || !formData.email || !formData.message}
+                    onClick={handleSubmit}
+                    disabled={isSubmitting || !isFormValid}
                     className={cn(
                         'w-full flex items-center justify-center gap-2 px-6 py-4 rounded-xl font-semibold text-white transition-all',
-                        isSubmitting || !formData.name || !formData.email || !formData.message
+                        isSubmitting || !isFormValid
                             ? 'bg-gray-500 cursor-not-allowed'
                             : 'bg-gradient-to-r from-brand-secondary to-brand-accent hover:shadow-lg hover:shadow-brand-secondary/25'
                     )}
