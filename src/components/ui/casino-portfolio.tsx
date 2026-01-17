@@ -10,7 +10,8 @@ gsap.registerPlugin(MotionPathPlugin);
 import { cn } from '@/lib/utils';
 import './casino-portfolio.css';
 import './dealer-chip.css';
-import { Check, Github, ExternalLink, X } from 'lucide-react';
+import { Check, Github, ExternalLink, X, HelpCircle } from 'lucide-react';
+import { ShowcaseTutorial } from './showcase-tutorial';
 
 interface CasinoPortfolioProps {
     items: Project[];
@@ -39,6 +40,7 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
     const [isFirstShuffle, setIsFirstShuffle] = useState(true); // Track if this is the first shuffle (wild card forced to hand)
     const [activeFilter, setActiveFilter] = useState<string | null>(null); // Filter: null = all, or category name
     const [isPlayAnimating, setIsPlayAnimating] = useState(false); // Track when a card is being played (prevent Cash Out from appearing)
+    const [showTutorial, setShowTutorial] = useState(false); // Tutorial modal visibility
     const navigate = useNavigate();
     const { addProject: addToShowcase, hasProjects, selectedProjects, clearProjects } = useShowcaseOptional();
 
@@ -2629,6 +2631,21 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
                     </div>
                 </div>
             )}
+
+            {/* Tutorial Overlay */}
+            <ShowcaseTutorial
+                onComplete={() => setShowTutorial(false)}
+                forceShow={showTutorial}
+            />
+
+            {/* Help Button - Replay Tutorial */}
+            <button
+                className="tutorial-help-btn"
+                onClick={() => setShowTutorial(true)}
+                title="How to play"
+            >
+                <HelpCircle size={20} />
+            </button>
 
             {/* Leave Game button moved to below SAVED pile - see line ~2108 */}
         </div>
