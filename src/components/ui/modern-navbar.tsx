@@ -132,7 +132,9 @@ export function ModernNavbar() {
           "fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b",
           isScrolled
             ? "bg-obsidian/90 md:bg-obsidian/80 backdrop-blur-lg md:backdrop-blur-xl saturate-150 border-white/5 shadow-lg shadow-black/10 py-3"
-            : "bg-transparent border-transparent py-5"
+            : "bg-transparent border-transparent py-5",
+          // Reduce padding on mobile showcase to prevent overlap with filter chips
+          location.pathname === "/showcase" && "py-2 md:py-3"
         )}
       >
         <div className="w-full px-6 md:px-8 lg:px-12">
