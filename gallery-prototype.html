@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gallery | Lift → Flip → Return Flipped</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            min-height: 100vh;
+            background: #08080c;
+            font-family: 'Inter', -apple-system, sans-serif;
+            overflow: hidden;
+            color: white;
+        }
+
+        #gallery-container {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+        }
+
+        .cards-container {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            cursor: grab;
+            /* Perspective on the container for 3D effect */
+            perspective: 1000px;
+            perspective-origin: 50% 50%;
+        }
+
+        .cards-container.dragging {
+            cursor: grabbing;
+        }
+
+        .card {
+            position: absolute;
+            width: 240px;
+            height: 340px;
+            cursor: pointer;
+            /* 3D transform style */
+            transform-style: preserve-3d;
+            /* Prevent jank */
+            will-change: transform, opacity;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 16px;
+            /* CRITICAL: backface-visibility for proper flip */
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            overflow: hidden;
+        }
+
+        /* FRONT (A) - rotateY(0) */
+        .card-front {
+            background: #0f0f14;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+            /* Front face is at rotateY(0) */
+            transform: rotateY(0deg);
+        }
+
+        .card-front img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            filter: grayscale(100%);
+            transition: filter 0.3s;
+        }
+
+        .card.flipped .card-front img {
+            filter: grayscale(0%);
+        }
+
+        .card-front .label {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 20px 16px;
+            background: linear-gradient(transparent, rgba(0, 0, 0, 0.9));
+            text-align: center;
+        }
+
+        .card-front .label h3 {
+            font-size: 0.95rem;
+            font-weight: 600;
+        }
+
+        .card-front .label span {
+            font-size: 0.65rem;
+            color: rgba(255, 255, 255, 0.5);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* BACK (B) - rotateY(180deg) - CRITICAL: This makes text appear correctly */
+        .card-back {
+            background: linear-gradient(160deg, #111118, #16162a);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            /* CRITICAL FIX: rotateY(180deg) so when card flips, this shows correctly */
+            transform: rotateY(180deg);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5), 0 0 20px rgba(139, 92, 246, 0.15);
+        }
+
+        .card-back::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #6366f1, #8b5cf6);
+            border-radius: 16px 16px 0 0;
+        }
+
+        .card-back .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            border-radius: 12px;
+            font-size: 9px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            width: fit-content;
+        }
+
+        .card-back h4 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .card-back p {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.5);
+            line-height: 1.5;
+            margin-bottom: 14px;
+        }
+
+        .features-list {
+            flex: 1;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            align-content: flex-start;
+        }
+
+        .feature-tag {
+            padding: 5px 10px;
+            background: rgba(139, 92, 246, 0.12);
+            border: 1px solid rgba(139, 92, 246, 0.2);
+            border-radius: 16px;
+            font-size: 10px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .cta-btn {
+            margin-top: auto;
+            padding: 12px;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .cta-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
+        }
+
+        /* FLIPPED STATE - Glow */
+        .card.flipped {
+            filter: drop-shadow(0 0 20px rgba(139, 92, 246, 0.4));
+        }
+
+        .card.flipped:hover {
+            filter: drop-shadow(0 0 30px rgba(139, 92, 246, 0.6));
+        }
+
+        .nav-hint {
+            position: fixed;
+            bottom: 25px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: rgba(255, 255, 255, 0.3);
+            font-size: 12px;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 10px 20px;
+            border-radius: 20px;
+            z-index: 100;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="gallery-container">
+        <div class="cards-container" id="cards"></div>
+        <div class="nav-hint">Drag to browse • Click card to flip • Click again or another to switch</div>
+    </div>
+
+    <script>
+        const projects = [
+            { title: "E-Commerce Platform", category: "Full Stack", image: "https://images.unsplash.com/photo-1557821552-17105176677c?w=500&q=80", description: "MERN stack e-commerce with payments.", features: ["Payments", "Admin", "Auth"] },
+            { title: "Disease Prediction", category: "ML", image: "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=500&q=80", description: "98% accuracy disease detection.", features: ["98% Accuracy", "Real-time"] },
+            { title: "Fitness Tracker", category: "Mobile", image: "https://images.unsplash.com/photo-1551650975-87deedd944c3?w=500&q=80", description: "Cross-platform fitness app.", features: ["Offline", "Cloud Sync"] },
+            { title: "Sentiment Analyzer", category: "NLP", image: "https://images.unsplash.com/photo-1555421689-491a97ff2040?w=500&q=80", description: "Social media sentiment analysis.", features: ["Real-time", "Multi-lang"] },
+            { title: "Portfolio Builder", category: "Frontend", image: "https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?w=500&q=80", description: "Portfolio with 3D animations.", features: ["3D Effects", "Dark Mode"] },
+            { title: "Crypto Dashboard", category: "FinTech", image: "https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=500&q=80", description: "Live crypto tracking.", features: ["Live Prices", "Alerts"] },
+            { title: "Task Manager", category: "Productivity", image: "https://images.unsplash.com/photo-1484480974693-6ca0a78fb36b?w=500&q=80", description: "Team task management.", features: ["Real-time", "Teams"] }
+        ];
+
+        const container = document.getElementById('cards');
+
+        let rotation = 0;
+        let flippedCard = null;
+        let isAnimating = false;
+
+        // Drag state
+        let isDragging = false;
+        let dragStartX = 0;
+        let lastDragX = 0;
+        let velocity = 0;
+        let hasDragged = false;
+
+        const cardPositions = new Map();
+
+        // FIX: Clamp rotation to prevent cards flying away
+        const MAX_ROTATION = 3; // Limit how far user can rotate
+        function clampRotation(value) {
+            return Math.max(-MAX_ROTATION, Math.min(MAX_ROTATION, value));
+        }
+
+        // Create cards
+        projects.forEach((project, i) => {
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.dataset.index = i;
+            card.innerHTML = `
+        <div class="card-face card-front">
+          <img src="${project.image}" alt="${project.title}">
+          <div class="label"><h3>${project.title}</h3><span>${project.category}</span></div>
+        </div>
+        <div class="card-face card-back">
+          <span class="badge">${project.category}</span>
+          <h4>${project.title}</h4>
+          <p>${project.description}</p>
+          <div class="features-list">${project.features.map(f => `<span class="feature-tag">${f}</span>`).join('')}</div>
+          <button class="cta-btn">View Full Project →</button>
+        </div>
+      `;
+            container.appendChild(card);
+
+            card.addEventListener('click', (e) => {
+                if (e.target.tagName === 'BUTTON') { e.stopPropagation(); alert('View: ' + project.title); return; }
+                if (hasDragged || isAnimating) return;
+                handleCardClick(card);
+            });
+        });
+
+        const cards = document.querySelectorAll('.card');
+
+        // Position cards in deck
+        function positionCardsInDeck(animate = true) {
+            const centerX = window.innerWidth / 2;
+            const deckY = window.innerHeight * 0.58;
+
+            cards.forEach((card, i) => {
+                const offset = i - (cards.length - 1) / 2;
+                const pos = offset + rotation;
+
+                // Clamp positions for visibility
+                const clampedPos = Math.max(-4, Math.min(4, pos));
+
+                const x = centerX + clampedPos * 130 - 120;
+                const y = deckY + Math.abs(clampedPos) * 10;
+
+                const dist = Math.abs(clampedPos);
+                const scale = Math.max(0.6, 1 - dist * 0.08);
+                const tiltZ = clampedPos * 3;
+
+                // Z-index: flipped card always on top, then by distance
+                let zIndex;
+                if (card.classList.contains('flipped')) {
+                    zIndex = 200;
+                } else {
+                    zIndex = Math.round(100 - dist * 15);
+                }
+
+                const opacity = Math.max(0.4, 1 - dist * 0.12);
+
+                cardPositions.set(card, { x, y, scale, tiltZ, zIndex, opacity });
+
+                // Determine rotate Y based on flip state
+                const rotateY = card.classList.contains('flipped') ? 180 : 0;
+
+                const duration = animate ? 0.4 : 0;
+
+                gsap.to(card, {
+                    x, y, scale,
+                    rotateZ: tiltZ,
+                    rotateY,
+                    zIndex,
+                    opacity,
+                    duration,
+                    ease: "power2.out",
+                    overwrite: "auto"
+                });
+            });
+        }
+
+        // CLICK HANDLER
+        function handleCardClick(card) {
+            if (flippedCard === card) {
+                // Click on already flipped card - unflip it
+                unflipCard(card);
+                return;
+            }
+
+            if (flippedCard) {
+                // Another card is flipped - unflip it first, then flip new one
+                unflipCard(flippedCard, () => liftFlipReturn(card));
+            } else {
+                liftFlipReturn(card);
+            }
+        }
+
+        // LIFT → FLIP → RETURN (still flipped)
+        function liftFlipReturn(card) {
+            isAnimating = true;
+
+            const pos = cardPositions.get(card) || {};
+            const liftX = window.innerWidth / 2 - 120;
+            const liftY = window.innerHeight * 0.28;
+
+            const tl = gsap.timeline({
+                onComplete: () => {
+                    card.classList.add('flipped');
+                    flippedCard = card;
+                    isAnimating = false;
+                }
+            });
+
+            // 1. LIFT UP
+            tl.to(card, {
+                x: liftX,
+                y: liftY,
+                scale: 1.05,
+                rotateZ: 0,
+                zIndex: 500,
+                opacity: 1,
+                duration: 0.35,
+                ease: "power2.out"
+            });
+
+            // 2. FLIP (rotate Y from 0 to 180)
+            tl.to(card, {
+                rotateY: 180,
+                duration: 0.45,
+                ease: "power2.inOut"
+            });
+
+            // 3. RETURN to deck (still rotated 180 = showing back)
+            tl.to(card, {
+                x: pos.x,
+                y: pos.y,
+                scale: pos.scale || 1,
+                rotateZ: pos.tiltZ || 0,
+                rotateY: 180,
+                zIndex: 200,
+                opacity: 1,
+                duration: 0.35,
+                ease: "power2.out"
+            });
+        }
+
+        // UNFLIP card (rotate Y from 180 to 0)
+        function unflipCard(card, onComplete) {
+            isAnimating = true;
+            card.classList.remove('flipped');
+
+            gsap.to(card, {
+                rotateY: 0,
+                duration: 0.4,
+                ease: "power2.inOut",
+                onComplete: () => {
+                    if (flippedCard === card) flippedCard = null;
+
+                    // If there's a follow-up action, do it WITHOUT repositioning all cards first
+                    // This prevents the "snap" effect
+                    if (onComplete) {
+                        // Small delay for visual smoothness
+                        setTimeout(() => {
+                            isAnimating = false;
+                            onComplete();
+                        }, 50);
+                    } else {
+                        isAnimating = false;
+                        positionCardsInDeck();
+                    }
+                }
+            });
+        }
+
+        // Initial positioning
+        positionCardsInDeck(false);
+
+        // DRAG HANDLERS
+        container.addEventListener('mousedown', startDrag);
+        container.addEventListener('touchstart', startDrag, { passive: true });
+        window.addEventListener('mousemove', moveDrag);
+        window.addEventListener('touchmove', moveDrag, { passive: false });
+        window.addEventListener('mouseup', endDrag);
+        window.addEventListener('touchend', endDrag);
+
+        function getX(e) { return e.touches ? e.touches[0].clientX : e.clientX; }
+
+        function startDrag(e) {
+            if (e.target.tagName === 'BUTTON' || isAnimating) return;
+            isDragging = true;
+            hasDragged = false;
+            dragStartX = getX(e);
+            lastDragX = dragStartX;
+            velocity = 0;
+            container.classList.add('dragging');
+        }
+
+        function moveDrag(e) {
+            if (!isDragging) return;
+            const x = getX(e);
+            const delta = x - lastDragX;
+            const totalDelta = Math.abs(x - dragStartX);
+
+            if (totalDelta > 10) {
+                hasDragged = true;
+                e.preventDefault();
+
+                velocity = delta * 0.008;
+                rotation = clampRotation(rotation + delta * 0.003);
+                lastDragX = x;
+                positionCardsInDeck();
+            }
+        }
+
+        function endDrag() {
+            if (!isDragging) return;
+            isDragging = false;
+            container.classList.remove('dragging');
+
+            // Momentum with clamping
+            if (hasDragged && Math.abs(velocity) > 0.001) {
+                const momentum = () => {
+                    if (Math.abs(velocity) < 0.0003) return;
+                    rotation = clampRotation(rotation + velocity * 4);
+                    velocity *= 0.88;
+                    positionCardsInDeck();
+                    requestAnimationFrame(momentum);
+                };
+                momentum();
+            }
+            setTimeout(() => { hasDragged = false; }, 100);
+        }
+
+        // Keyboard
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && flippedCard) unflipCard(flippedCard);
+            else if (e.key === 'ArrowLeft') { rotation = clampRotation(rotation + 0.4); positionCardsInDeck(); }
+            else if (e.key === 'ArrowRight') { rotation = clampRotation(rotation - 0.4); positionCardsInDeck(); }
+        });
+
+        window.addEventListener('resize', () => positionCardsInDeck());
+    </script>
+</body>
+
+</html>

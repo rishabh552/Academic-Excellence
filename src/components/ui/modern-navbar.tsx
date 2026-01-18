@@ -11,6 +11,7 @@ import {
   Brain,
   MessageSquare,
   Smartphone,
+  Workflow,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -38,6 +39,12 @@ const serviceItems = [
     name: "Mobile Apps",
     description: "React Native, Flutter",
     icon: Smartphone,
+    color: "bg-blue-700",
+  },
+  {
+    name: "n8n Automation",
+    description: "Workflow & API Integration",
+    icon: Workflow,
     color: "bg-blue-700",
   },
 ];
@@ -125,7 +132,9 @@ export function ModernNavbar() {
           "fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b",
           isScrolled
             ? "bg-obsidian/90 md:bg-obsidian/80 backdrop-blur-lg md:backdrop-blur-xl saturate-150 border-white/5 shadow-lg shadow-black/10 py-3"
-            : "bg-transparent border-transparent py-5"
+            : "bg-transparent border-transparent py-5",
+          // Reduce padding on mobile showcase to prevent overlap with filter chips
+          location.pathname === "/showcase" && "py-2 md:py-3"
         )}
       >
         <div className="w-full px-6 md:px-8 lg:px-12">
@@ -191,8 +200,8 @@ export function ModernNavbar() {
                           isActive
                             ? "text-white"
                             : isScrolled || !isHome
-                            ? "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200/50 dark:hover:bg-white/10"
-                            : "text-gray-700 dark:text-gray-200 hover:bg-white/20 dark:hover:bg-black/20"
+                              ? "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200/50 dark:hover:bg-white/10"
+                              : "text-gray-700 dark:text-gray-200 hover:bg-white/20 dark:hover:bg-black/20"
                         )}
                       >
                         {isActive && (

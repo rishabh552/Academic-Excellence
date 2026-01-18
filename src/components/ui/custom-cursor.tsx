@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, useRef } from "react";
+import { useLocation } from "react-router-dom";
 import { motion, useSpring, useMotionValue, AnimatePresence } from "framer-motion";
 
 type CursorVariant = "default" | "hover" | "text" | "button";
@@ -19,6 +20,15 @@ export function CustomCursor() {
 
     // Use ref to track last snapped element to avoid redundant updates
     const lastSnapTargetRef = useRef<Element | null>(null);
+
+    // Track route changes to reset cursor state
+    const location = useLocation();
+
+    // Reset cursor state on route change
+    useEffect(() => {
+        setCursorState({ variant: "default" });
+        lastSnapTargetRef.current = null;
+    }, [location.pathname]);
 
     // Motion values for smooth cursor movement
     const cursorX = useMotionValue(0);
@@ -50,7 +60,15 @@ export function CustomCursor() {
 
     // Click handlers
     const handleMouseDown = useCallback(() => setIsClicking(true), []);
-    const handleMouseUp = useCallback(() => setIsClicking(false), []);
+    const handleMouseUp = useCallback(() => {
+        setIsClicking(false);
+        // Reset cursor state after click to handle buttons that trigger same-page actions
+        // Use a small timeout to let any DOM changes settle
+        setTimeout(() => {
+            setCursorState({ variant: "default" });
+            lastSnapTargetRef.current = null;
+        }, 50);
+    }, []);
 
     // Combined mouse move and element detection
     useEffect(() => {

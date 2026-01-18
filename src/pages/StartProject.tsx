@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { BeamsBackground } from '@/components/ui/beams-background';
 import { GradientHeadline } from '@/components/ui/gradient-headline';
 import { cn } from '@/lib/utils';
+import { useShowcaseOptional } from '@/context/ShowcaseContext';
 import {
     ArrowRight,
     ArrowLeft,
@@ -14,11 +15,11 @@ import {
     MessageSquare,
     Network,
     Clock,
-    Sparkles,
-    Zap,
-    Crown,
     Send,
     CheckCircle2,
+    X,
+    Plus,
+    Workflow,
 } from 'lucide-react';
 
 const pageVariants = {
@@ -69,6 +70,14 @@ const projectTypes = [
         color: 'from-orange-500 to-orange-600',
         examples: ['React Native', 'Flutter', 'Native Apps'],
     },
+    {
+        id: 'n8n-automation',
+        title: 'n8n Automation',
+        description: 'Workflow automation and integrations',
+        icon: Workflow,
+        color: 'from-teal-500 to-teal-600',
+        examples: ['Workflow Automation', 'API Integration', 'Data Pipelines'],
+    },
 ];
 
 // Case studies for Step 2
@@ -118,57 +127,136 @@ const caseStudyPreviews = [
         results: ['<50ms latency', '5 exchanges', '12K+ traders'],
         image: 'https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=400&q=80',
     },
+    {
+        id: 'image-classifier',
+        type: 'deep-learning',
+        title: 'Image Classifier',
+        description: 'CNN-based image classification with 95%+ accuracy',
+        timeline: '3 months',
+        results: ['95%+ accuracy', 'GPU accelerated', 'Custom CNN'],
+        image: 'https://images.unsplash.com/photo-1555949963-aa79dcee981c?w=400&q=80',
+    },
+    {
+        id: 'portfolio-builder',
+        type: 'web-development',
+        title: 'Portfolio Builder',
+        description: 'Modern portfolio website with 3D animations and dark mode',
+        timeline: '2 months',
+        results: ['3D animations', 'SEO optimized', 'CMS integration'],
+        image: 'https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?w=400&q=80',
+    },
+    {
+        id: 'team-taskboard',
+        type: 'web-development',
+        title: 'Team Taskboard',
+        description: 'Collaborative task management with real-time updates',
+        timeline: '2.5 months',
+        results: ['Real-time sync', 'Drag & drop', 'Team analytics'],
+        image: 'https://images.unsplash.com/photo-1484480974693-6ca0a78fb36b?w=400&q=80',
+    },
+    {
+        id: 'chat-helper',
+        type: 'n8n-automation',
+        title: 'AI Assistant',
+        description: 'AI-powered Telegram bot with Gemini, voice transcription & RAG memory',
+        timeline: '2 months',
+        results: ['Gemini AI Agent', 'Pinecone RAG', 'Voice-to-Text'],
+        image: 'https://images.unsplash.com/photo-1587560699334-cc4ff634909a?w=400&q=80',
+    },
 ];
 
-// Pricing packages
+// Custom Logos matching Pricing Section
+const MiniLogo = () => (
+    <svg width="100%" height="100%" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" className="drop-shadow-lg">
+        <path d="M24 4L6 14V34L24 44L42 34V14L24 4Z" className="fill-slate-800/50 stroke-slate-300" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M6 14L24 24L42 14" className="stroke-slate-300" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M24 44V24" className="stroke-slate-300" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M24 24L32 29M24 24L16 29" className="stroke-slate-400/50" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+);
+
+const MajorLogo = () => (
+    <svg width="100%" height="100%" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" className="drop-shadow-lg">
+        <path d="M8 38H40V42H8V38Z" className="fill-amber-500/20 stroke-amber-400" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M8 38L4 16L16 24L24 8L32 24L44 16L40 38H8Z" className="fill-amber-500/10 stroke-amber-400" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        <circle cx="24" cy="18" r="3" className="fill-amber-200" />
+        <circle cx="16" cy="24" r="2" className="fill-amber-300" />
+        <circle cx="32" cy="24" r="2" className="fill-amber-300" />
+    </svg>
+);
+
+const ResearchLogo = () => (
+    <svg width="100%" height="100%" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" className="drop-shadow-lg">
+        <circle cx="24" cy="24" r="6" className="fill-fuchsia-400/30 stroke-fuchsia-300" strokeWidth="2" />
+        <ellipse cx="24" cy="24" rx="18" ry="8" className="stroke-fuchsia-400/60" strokeWidth="1.5" transform="rotate(45 24 24)" />
+        <ellipse cx="24" cy="24" rx="18" ry="8" className="stroke-purple-400/60" strokeWidth="1.5" transform="rotate(-45 24 24)" />
+        <ellipse cx="24" cy="24" rx="18" ry="8" className="stroke-indigo-400/60" strokeWidth="1.5" />
+        <circle cx="38" cy="10" r="2" className="fill-fuchsia-300 animate-pulse" />
+    </svg>
+);
+
+// Updated Pricing packages
 const packages = [
     {
-        id: 'basic',
+        id: 'mini',
         name: 'Basic',
-        price: 499,
-        description: 'Perfect for small projects and MVPs',
-        icon: Sparkles,
-        color: 'from-emerald-500 to-emerald-600',
+        price: '2,000',
+        description: 'Perfect for semester projects and basic requirements.',
+        icon: MiniLogo,
+        color: 'text-slate-200',
+        gradient: 'from-slate-300 via-slate-100 to-slate-300',
+        glowColor: 'hover:shadow-[0_0_20px_-5px_rgba(148,163,184,0.5)]',
+        hoverBorder: 'hover:border-slate-400',
+        priceSuffix: 'Starting Price',
         features: [
-            'Single page application',
-            'Responsive design',
-            'Basic backend API',
-            '2 weeks development',
-            '1 month support',
+            'Complete Source Code',
+            'Basic Documentation',
+            'Setup Instructions',
+            '3 Days Delivery',
+            'Standard Support',
         ],
     },
     {
-        id: 'professional',
+        id: 'major',
         name: 'Professional',
-        price: 1499,
-        description: 'Best for growing businesses',
-        icon: Zap,
-        color: 'from-violet-500 to-violet-600',
+        price: '3,000',
+        description: 'Comprehensive solution for final year submissions.',
+        icon: MajorLogo,
+        color: 'text-amber-300',
+        gradient: 'from-amber-300 via-yellow-200 to-amber-400',
+        glowColor: 'hover:shadow-[0_0_25px_-5px_rgba(251,191,36,0.6)]',
+        hoverBorder: 'hover:border-amber-400',
         popular: true,
         features: [
-            'Multi-page application',
-            'Advanced UI/UX design',
-            'Full backend with auth',
-            'Database integration',
-            '4 weeks development',
-            '3 months support',
+            'Complete Source Code',
+            'Basic Documentation',
+            'Setup Instructions',
+            '1 Week Delivery',
+            'Priority Support',
+            'Project Report',
+            'PPT Presentation',
+            'Video Walkthrough'
         ],
     },
     {
-        id: 'enterprise',
-        name: 'Enterprise',
-        price: 4999,
-        description: 'Complete solution for large projects',
-        icon: Crown,
-        color: 'from-amber-500 to-amber-600',
+        id: 'research',
+        name: 'Research / Custom',
+        price: '5,000+',
+        description: 'For complex research papers and unique requirements.',
+        icon: ResearchLogo,
+        color: 'text-fuchsia-300',
+        gradient: 'from-fuchsia-400 via-purple-300 to-indigo-400',
+        glowColor: 'hover:shadow-[0_0_20px_-5px_rgba(232,121,249,0.5)]',
+        hoverBorder: 'hover:border-fuchsia-400',
+        priceSuffix: 'varies by complexity',
         features: [
-            'Full-scale application',
-            'Custom architecture',
-            'ML/AI integration',
-            'Cloud deployment',
-            '8+ weeks development',
-            '6 months support',
-            'Dedicated team',
+            'Complete Source Code',
+            'Research Implementation',
+            'Novel Algorithms',
+            'Custom Timeline',
+            '1-on-1 Explanations',
+            'Project Report',
+            'Conference Quality',
         ],
     },
 ];
@@ -178,8 +266,9 @@ function StepProgressBar({ currentStep, completedSteps }: { currentStep: number;
     const steps = [
         { num: 1, label: 'Project Type' },
         { num: 2, label: 'Details' },
-        { num: 3, label: 'Package' },
-        { num: 4, label: 'Contact' },
+        { num: 3, label: 'Selections' },
+        { num: 4, label: 'Package' },
+        { num: 5, label: 'Contact' },
     ];
 
     return (
@@ -190,7 +279,7 @@ function StepProgressBar({ currentStep, completedSteps }: { currentStep: number;
                     <motion.div
                         className="h-full bg-gradient-to-r from-brand-secondary to-brand-accent"
                         initial={{ width: '0%' }}
-                        animate={{ width: `${((currentStep - 1) / 3) * 100}%` }}
+                        animate={{ width: `${((currentStep - 1) / 4) * 100}%` }}
                         transition={{ duration: 0.3 }}
                     />
                 </div>
@@ -429,8 +518,157 @@ function Step2Details({
     );
 }
 
-// Step 3: Choose Package
-function Step3Package({
+// Step 3: Selected Projects (from Wizard Step 2 + Showcase)
+interface WizardProject {
+    id: string;
+    title: string;
+    description: string;
+    image: string;
+    timeline: string;
+    results: string[];
+}
+
+function Step3SelectedProjects({ wizardProject }: { wizardProject: WizardProject | null }) {
+    const { selectedProjects, removeProject, hasProjects } = useShowcaseOptional();
+
+    // Check if we have any projects to display (wizard OR showcase)
+    const hasAnyProjects = hasProjects || wizardProject !== null;
+
+    return (
+        <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            className="space-y-6"
+        >
+            <div className="text-center mb-8">
+                <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-2">
+                    Your Selected Projects
+                </h2>
+                <p className="text-muted-foreground">
+                    {hasAnyProjects
+                        ? 'Review your selections. These will help us understand your requirements.'
+                        : 'You haven\'t selected any projects yet. Go back to choose a reference project or visit the Showcase!'}
+                </p>
+            </div>
+
+            {hasAnyProjects ? (
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-5xl mx-auto">
+                    {/* Wizard Step 2 Selection */}
+                    {wizardProject && (
+                        <motion.div
+                            key={`wizard-${wizardProject.id}`}
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            className="group relative bg-white/5 rounded-2xl border border-brand-secondary/30 overflow-hidden"
+                        >
+                            {/* Reference Badge */}
+                            <div className="absolute top-3 left-3 z-10 px-2 py-1 rounded-full bg-brand-secondary/80 text-white text-xs font-medium">
+                                Reference Project
+                            </div>
+
+                            {/* Project Image */}
+                            <div className="w-full h-32 overflow-hidden">
+                                <img
+                                    src={wizardProject.image}
+                                    alt={wizardProject.title}
+                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                />
+                            </div>
+
+                            {/* Project Info */}
+                            <div className="p-4">
+                                <h3 className="font-semibold text-foreground text-lg mb-1">
+                                    {wizardProject.title}
+                                </h3>
+                                <p className="text-sm text-muted-foreground line-clamp-2">
+                                    {wizardProject.description}
+                                </p>
+                                <div className="flex flex-wrap gap-1 mt-2">
+                                    {wizardProject.results.slice(0, 2).map((result, i) => (
+                                        <span
+                                            key={i}
+                                            className="px-2 py-0.5 bg-brand-secondary/10 text-brand-secondary text-xs rounded-full"
+                                        >
+                                            {result}
+                                        </span>
+                                    ))}
+                                </div>
+                            </div>
+                        </motion.div>
+                    )}
+
+                    {/* Showcase Projects */}
+                    {selectedProjects.map((project) => (
+                        <motion.div
+                            key={project.common}
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.9 }}
+                            className="group relative bg-white/5 rounded-2xl border border-white/10 overflow-hidden hover:border-brand-secondary/30 transition-all"
+                        >
+                            {/* Showcase Badge */}
+                            <div className="absolute top-3 left-3 z-10 px-2 py-1 rounded-full bg-purple-500/80 text-white text-xs font-medium">
+                                From Showcase
+                            </div>
+
+                            {/* Remove Button */}
+                            <button
+                                onClick={() => removeProject(project.common)}
+                                className="absolute top-3 right-3 z-10 p-2 rounded-full bg-black/80 text-white hover:bg-black transition-all"
+                                title="Remove project"
+                            >
+                                <X size={16} />
+                            </button>
+
+                            {/* Project Image */}
+                            {project.photo?.url && (
+                                <div className="w-full h-32 overflow-hidden">
+                                    <img
+                                        src={project.photo.url}
+                                        alt={project.common}
+                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                    />
+                                </div>
+                            )}
+
+                            {/* Project Info */}
+                            <div className="p-4">
+                                <h3 className="font-semibold text-foreground text-lg mb-1">
+                                    {project.common}
+                                </h3>
+                                <p className="text-sm text-muted-foreground line-clamp-2">
+                                    {project.binomial}
+                                </p>
+                            </div>
+                        </motion.div>
+                    ))}
+                </div>
+            ) : (
+                <div className="text-center py-12">
+                    <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-brand-secondary/10 flex items-center justify-center">
+                        <Plus className="w-10 h-10 text-brand-secondary" />
+                    </div>
+                    <p className="text-muted-foreground mb-6">No projects selected yet</p>
+                </div>
+            )}
+
+            {/* Add More Projects Link */}
+            <div className="text-center mt-8">
+                <Link
+                    to="/showcase"
+                    className="inline-flex items-center gap-2 px-6 py-3 rounded-full border border-brand-secondary/30 text-brand-secondary hover:bg-brand-secondary/10 transition-all"
+                >
+                    <Plus size={18} />
+                    {hasAnyProjects ? 'Add More from Showcase' : 'Browse Showcase'}
+                </Link>
+            </div>
+        </motion.div>
+    );
+}
+
+// Step 4: Choose Package
+function Step4Package({
     selectedPackage,
     onSelect,
 }: {
@@ -464,15 +702,16 @@ function Step3Package({
                             whileTap={{ scale: 0.98 }}
                             data-cursor="default"
                             className={cn(
-                                'relative p-6 rounded-2xl border text-left transition-all',
+                                'relative p-6 rounded-2xl border text-left transition-all duration-300 group',
+                                'bg-[#050505] backdrop-blur-md', // Opaque Dark
                                 isSelected
-                                    ? 'border-brand-secondary bg-brand-secondary/10 ring-2 ring-brand-secondary/50'
-                                    : 'border-white/10 bg-white/5 hover:border-white/20',
-                                pkg.popular && !isSelected && 'border-brand-secondary/50'
+                                    ? cn('ring-2 bg-[#0A0A0A]', pkg.hoverBorder ? pkg.hoverBorder.replace('hover:', '') : 'border-brand-secondary') // Active state uses hover border color permanently or brand
+                                    : cn('border-white/10', pkg.hoverBorder), // Default state with hover effect
+                                pkg.glowColor // Outline glow
                             )}
                         >
                             {pkg.popular && (
-                                <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-gradient-to-r from-brand-secondary to-brand-accent rounded-full text-xs font-bold text-white">
+                                <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-gradient-to-r from-brand-secondary to-brand-accent rounded-full text-xs font-bold text-white shadow-lg shadow-brand-secondary/20">
                                     Most Popular
                                 </div>
                             )}
@@ -481,33 +720,59 @@ function Step3Package({
                                 <motion.div
                                     initial={{ scale: 0 }}
                                     animate={{ scale: 1 }}
-                                    className="absolute top-3 right-3 w-6 h-6 rounded-full bg-brand-secondary flex items-center justify-center"
+                                    className="absolute top-3 right-3 w-6 h-6 rounded-full bg-brand-secondary flex items-center justify-center z-10"
                                 >
                                     <Check className="w-4 h-4 text-white" />
                                 </motion.div>
                             )}
 
+                            {/* Icon Container matching Price Section */}
                             <div
                                 className={cn(
-                                    'w-12 h-12 rounded-xl flex items-center justify-center mb-4 bg-gradient-to-r',
-                                    pkg.color
+                                    'w-14 h-14 rounded-xl flex items-center justify-center mb-5 transition-transform duration-500 group-hover:scale-110',
+                                    'bg-[#151515] border border-white/10 shadow-inner'
                                 )}
                             >
-                                <Icon className="w-6 h-6 text-white" />
+                                <div className={cn("w-10 h-10", "bg-clip-text text-transparent bg-gradient-to-br", pkg.gradient)}>
+                                    <Icon />
+                                    {/* Note: Icon component itself has gradients, but wrapper helps sizing */}
+                                </div>
                             </div>
 
-                            <h3 className="text-xl font-bold text-foreground mb-1">{pkg.name}</h3>
+                            <h3 className={cn("text-2xl font-bold mb-1 font-heading tracking-tight bg-clip-text text-transparent bg-gradient-to-br", pkg.gradient)}>
+                                {pkg.name}
+                            </h3>
+
                             <div className="flex items-baseline gap-1 mb-2">
-                                <span className="text-3xl font-bold text-brand-secondary">${pkg.price}</span>
-                                <span className="text-muted-foreground text-sm">starting</span>
+                                <span className="text-2xl text-slate-500 font-serif italic mt-1">₹</span>
+                                <span className="text-4xl font-bold text-white tracking-tighter">
+                                    {pkg.price}
+                                </span>
                             </div>
-                            <p className="text-sm text-muted-foreground mb-4">{pkg.description}</p>
 
-                            <ul className="space-y-2">
+                            {/* Price Suffix */}
+                            {pkg.priceSuffix && (
+                                <p className="text-xs text-slate-500 uppercase tracking-widest font-medium mb-4">
+                                    {pkg.priceSuffix}
+                                </p>
+                            )}
+
+                            <p className="text-sm text-slate-400 mb-6 leading-relaxed">
+                                {pkg.description}
+                            </p>
+
+                            <div className="w-full h-px bg-white/5 mb-6" />
+
+                            <ul className="space-y-3">
                                 {pkg.features.map((feature, i) => (
-                                    <li key={i} className="flex items-center gap-2 text-sm text-muted-foreground">
-                                        <CheckCircle2 className="w-4 h-4 text-green-400 flex-shrink-0" />
-                                        {feature}
+                                    <li key={i} className="flex items-center gap-3 text-sm">
+                                        <div className={cn(
+                                            "flex h-4 w-4 items-center justify-center rounded-full bg-white/5 ring-1 ring-white/10",
+                                            pkg.color
+                                        )}>
+                                            <Check className="w-2.5 h-2.5" />
+                                        </div>
+                                        <span className="text-slate-300">{feature}</span>
                                     </li>
                                 ))}
                             </ul>
@@ -519,8 +784,39 @@ function Step3Package({
     );
 }
 
-// Step 4: Contact Form
-function Step4Contact({
+// Validation helpers
+const validateName = (name: string): string | null => {
+    if (!name.trim()) return 'Name is required';
+    if (name.trim().length < 2) return 'Name must be at least 2 characters';
+    if (!/^[a-zA-Z\s]+$/.test(name.trim())) return 'Name can only contain letters and spaces';
+    return null;
+};
+
+const validateEmail = (email: string): string | null => {
+    if (!email.trim()) return 'Email is required';
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email.trim())) return 'Please enter a valid email address';
+    return null;
+};
+
+const validatePhone = (phone: string): string | null => {
+    if (!phone.trim()) return null; // Phone is optional
+    // Indian phone: +91 followed by 10 digits, or just 10 digits
+    const phoneRegex = /^(\+91[\s-]?)?[6-9]\d{4}[\s-]?\d{5}$/;
+    if (!phoneRegex.test(phone.replace(/\s/g, ''))) {
+        return 'Please enter a valid Indian phone number (e.g., +91 98234 56789)';
+    }
+    return null;
+};
+
+const validateMessage = (message: string): string | null => {
+    if (!message.trim()) return 'Project details are required';
+    if (message.trim().length < 10) return 'Please provide at least 10 characters';
+    return null;
+};
+
+// Step 5: Contact Form
+function Step5Contact({
     formData,
     onChange,
     onSubmit,
@@ -533,6 +829,65 @@ function Step4Contact({
     isSubmitting: boolean;
     isSubmitted: boolean;
 }) {
+    const [touched, setTouched] = useState<Record<string, boolean>>({});
+    const [errors, setErrors] = useState<Record<string, string | null>>({});
+
+    const handleBlur = (field: string) => {
+        setTouched((prev) => ({ ...prev, [field]: true }));
+        validateField(field);
+    };
+
+    const validateField = (field: string) => {
+        let error: string | null = null;
+        switch (field) {
+            case 'name':
+                error = validateName(formData.name);
+                break;
+            case 'email':
+                error = validateEmail(formData.email);
+                break;
+            case 'phone':
+                error = validatePhone(formData.phone);
+                break;
+            case 'message':
+                error = validateMessage(formData.message);
+                break;
+        }
+        setErrors((prev) => ({ ...prev, [field]: error }));
+        return error;
+    };
+
+    const validateAll = (): boolean => {
+        const nameError = validateName(formData.name);
+        const emailError = validateEmail(formData.email);
+        const phoneError = validatePhone(formData.phone);
+        const messageError = validateMessage(formData.message);
+
+        setErrors({
+            name: nameError,
+            email: emailError,
+            phone: phoneError,
+            message: messageError,
+        });
+
+        setTouched({
+            name: true,
+            email: true,
+            phone: true,
+            message: true,
+        });
+
+        return !nameError && !emailError && !phoneError && !messageError;
+    };
+
+    const handleSubmit = () => {
+        if (validateAll()) {
+            onSubmit();
+        }
+    };
+
+    const isFormValid = !validateName(formData.name) && !validateEmail(formData.email) && !validatePhone(formData.phone) && !validateMessage(formData.message);
+
     if (isSubmitted) {
         return (
             <motion.div
@@ -586,10 +941,17 @@ function Step4Contact({
                         type="text"
                         value={formData.name}
                         onChange={(e) => onChange('name', e.target.value)}
+                        onBlur={() => handleBlur('name')}
                         autoComplete="name"
-                        placeholder="John Doe"
-                        className="w-full px-4 py-4 sm:py-3 rounded-xl bg-white/5 border border-white/10 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-brand-secondary/50"
+                        placeholder="Rahul Sharma"
+                        className={cn(
+                            "w-full px-4 py-4 sm:py-3 rounded-xl bg-white/5 border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-brand-secondary/50 transition-colors",
+                            touched.name && errors.name ? 'border-red-500' : 'border-white/10'
+                        )}
                     />
+                    {touched.name && errors.name && (
+                        <p className="mt-1 text-sm text-red-400">{errors.name}</p>
+                    )}
                 </div>
 
                 <div>
@@ -598,10 +960,17 @@ function Step4Contact({
                         type="email"
                         value={formData.email}
                         onChange={(e) => onChange('email', e.target.value)}
+                        onBlur={() => handleBlur('email')}
                         autoComplete="email"
-                        placeholder="john@example.com"
-                        className="w-full px-4 py-4 sm:py-3 rounded-xl bg-white/5 border border-white/10 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-brand-secondary/50"
+                        placeholder="rahul@example.com"
+                        className={cn(
+                            "w-full px-4 py-4 sm:py-3 rounded-xl bg-white/5 border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-brand-secondary/50 transition-colors",
+                            touched.email && errors.email ? 'border-red-500' : 'border-white/10'
+                        )}
                     />
+                    {touched.email && errors.email && (
+                        <p className="mt-1 text-sm text-red-400">{errors.email}</p>
+                    )}
                 </div>
 
                 <div>
@@ -610,10 +979,17 @@ function Step4Contact({
                         type="tel"
                         value={formData.phone}
                         onChange={(e) => onChange('phone', e.target.value)}
+                        onBlur={() => handleBlur('phone')}
                         autoComplete="tel"
-                        placeholder="+1 (555) 000-0000"
-                        className="w-full px-4 py-4 sm:py-3 rounded-xl bg-white/5 border border-white/10 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-brand-secondary/50"
+                        placeholder="+91 98234 56789"
+                        className={cn(
+                            "w-full px-4 py-4 sm:py-3 rounded-xl bg-white/5 border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-brand-secondary/50 transition-colors",
+                            touched.phone && errors.phone ? 'border-red-500' : 'border-white/10'
+                        )}
                     />
+                    {touched.phone && errors.phone && (
+                        <p className="mt-1 text-sm text-red-400">{errors.phone}</p>
+                    )}
                 </div>
 
                 <div>
@@ -621,18 +997,25 @@ function Step4Contact({
                     <textarea
                         value={formData.message}
                         onChange={(e) => onChange('message', e.target.value)}
+                        onBlur={() => handleBlur('message')}
                         placeholder="Tell us about your project requirements, timeline, and any specific features you need..."
                         rows={4}
-                        className="w-full px-4 py-4 sm:py-3 rounded-xl bg-white/5 border border-white/10 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-brand-secondary/50 resize-none"
+                        className={cn(
+                            "w-full px-4 py-4 sm:py-3 rounded-xl bg-white/5 border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-brand-secondary/50 resize-none transition-colors",
+                            touched.message && errors.message ? 'border-red-500' : 'border-white/10'
+                        )}
                     />
+                    {touched.message && errors.message && (
+                        <p className="mt-1 text-sm text-red-400">{errors.message}</p>
+                    )}
                 </div>
 
                 <button
-                    onClick={onSubmit}
-                    disabled={isSubmitting || !formData.name || !formData.email || !formData.message}
+                    onClick={handleSubmit}
+                    disabled={isSubmitting || !isFormValid}
                     className={cn(
                         'w-full flex items-center justify-center gap-2 px-6 py-4 rounded-xl font-semibold text-white transition-all',
-                        isSubmitting || !formData.name || !formData.email || !formData.message
+                        isSubmitting || !isFormValid
                             ? 'bg-gray-500 cursor-not-allowed'
                             : 'bg-gradient-to-r from-brand-secondary to-brand-accent hover:shadow-lg hover:shadow-brand-secondary/25'
                     )}
@@ -665,13 +1048,14 @@ export function StartProject() {
     // Wizard State
     const [currentStep, setCurrentStep] = useState(1);
     const [completedSteps, setCompletedSteps] = useState<number[]>([]);
+    const [cameFromShowcase, setCameFromShowcase] = useState(false); // Track if user entered from showcase cash out
 
     // Step 1 Data
     const [selectedType, setSelectedType] = useState<string | null>(null);
 
     // Step 2 Data
     const [selectedProject, setSelectedProject] = useState<string | null>(null);
-    const [projectTitle, setProjectTitle] = useState<string | null>(null);
+    const [_projectTitle, setProjectTitle] = useState<string | null>(null);
 
     // Step 3 Data
     const [selectedPackage, setSelectedPackage] = useState<string | null>(null);
@@ -686,10 +1070,12 @@ export function StartProject() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isSubmitted, setIsSubmitted] = useState(false);
 
-    // Check URL params for pre-selection
+    // Check URL params for pre-selection and direct step navigation
     useEffect(() => {
         const type = searchParams.get('type');
         const project = searchParams.get('project');
+        const stepParam = searchParams.get('step');
+
         if (type) {
             setSelectedType(type);
         }
@@ -703,6 +1089,24 @@ export function StartProject() {
                 }
             }
         }
+
+        // Direct navigation to a specific step (e.g., from Showcase "Leave Game")
+        if (stepParam) {
+            const targetStep = parseInt(stepParam, 10);
+            if (targetStep >= 1 && targetStep <= 5) {
+                setCurrentStep(targetStep);
+                // If coming directly to step 3, mark as from showcase
+                if (targetStep === 3) {
+                    setCameFromShowcase(true);
+                }
+                // Mark all previous steps as completed
+                const completed = [];
+                for (let i = 1; i < targetStep; i++) {
+                    completed.push(i);
+                }
+                setCompletedSteps(completed);
+            }
+        }
     }, [searchParams]);
 
     const canProceed = () => {
@@ -712,8 +1116,10 @@ export function StartProject() {
             case 2:
                 return selectedProject !== null;
             case 3:
-                return selectedPackage !== null;
+                return true; // Selected projects step - always can proceed
             case 4:
+                return selectedPackage !== null;
+            case 5:
                 return formData.name && formData.email && formData.message;
             default:
                 return false;
@@ -721,7 +1127,7 @@ export function StartProject() {
     };
 
     const nextStep = () => {
-        if (canProceed() && currentStep < 4) {
+        if (canProceed() && currentStep < 5) {
             setCompletedSteps((prev) => (prev.includes(currentStep) ? prev : [...prev, currentStep]));
             setCurrentStep(currentStep + 1);
         }
@@ -729,7 +1135,14 @@ export function StartProject() {
 
     const prevStep = () => {
         if (currentStep > 1) {
-            setCurrentStep(currentStep - 1);
+            // If user came from showcase and is on step 3, go directly to step 1
+            if (cameFromShowcase && currentStep === 3) {
+                setCurrentStep(1);
+                setCompletedSteps([]);
+                setCameFromShowcase(false); // Reset after going back
+            } else {
+                setCurrentStep(currentStep - 1);
+            }
         }
     };
 
@@ -739,7 +1152,7 @@ export function StartProject() {
         await new Promise((resolve) => setTimeout(resolve, 2000));
         setIsSubmitting(false);
         setIsSubmitted(true);
-        setCompletedSteps((prev) => [...prev, 4]);
+        setCompletedSteps((prev) => [...prev, 5]);
     };
 
     return (
@@ -792,15 +1205,25 @@ export function StartProject() {
                             />
                         )}
                         {currentStep === 3 && (
-                            <Step3Package
+                            <Step3SelectedProjects
                                 key="step3"
+                                wizardProject={
+                                    selectedProject && selectedProject !== 'custom'
+                                        ? caseStudyPreviews.find(p => p.id === selectedProject) || null
+                                        : null
+                                }
+                            />
+                        )}
+                        {currentStep === 4 && (
+                            <Step4Package
+                                key="step4"
                                 selectedPackage={selectedPackage}
                                 onSelect={(pkg) => setSelectedPackage(pkg)}
                             />
                         )}
-                        {currentStep === 4 && (
-                            <Step4Contact
-                                key="step4"
+                        {currentStep === 5 && (
+                            <Step5Contact
+                                key="step5"
                                 formData={formData}
                                 onChange={(field, value) =>
                                     setFormData((prev) => ({ ...prev, [field]: value }))
@@ -830,7 +1253,7 @@ export function StartProject() {
                             Back
                         </button>
 
-                        {currentStep < 4 && (
+                        {currentStep < 5 && (
                             <button
                                 onClick={nextStep}
                                 disabled={!canProceed()}
@@ -848,40 +1271,6 @@ export function StartProject() {
                     </div>
                 )}
 
-                {/* Summary Sidebar (visible on step 2+) */}
-                {currentStep >= 2 && !isSubmitted && (
-                    <motion.div
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        className="hidden md:block fixed top-1/2 -translate-y-1/2 right-6 w-64 p-4 rounded-2xl bg-surface-elevated/95 backdrop-blur-lg border border-white/10 shadow-xl z-30"
-                    >
-                        <h4 className="text-sm font-semibold text-foreground mb-3">Your Selection</h4>
-                        <div className="space-y-2 text-sm">
-                            {selectedType && (
-                                <div className="flex justify-between">
-                                    <span className="text-muted-foreground">Project Type:</span>
-                                    <span className="text-foreground font-medium">
-                                        {projectTypes.find((t) => t.id === selectedType)?.title}
-                                    </span>
-                                </div>
-                            )}
-                            {projectTitle && (
-                                <div className="flex justify-between">
-                                    <span className="text-muted-foreground">Reference:</span>
-                                    <span className="text-foreground font-medium">{projectTitle}</span>
-                                </div>
-                            )}
-                            {selectedPackage && (
-                                <div className="flex justify-between">
-                                    <span className="text-muted-foreground">Package:</span>
-                                    <span className="text-brand-secondary font-medium">
-                                        {packages.find((p) => p.id === selectedPackage)?.name}
-                                    </span>
-                                </div>
-                            )}
-                        </div>
-                    </motion.div>
-                )}
             </div>
         </motion.div>
     );

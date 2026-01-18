@@ -1,20 +1,25 @@
-"use client";
-
-import { motion, useInView } from "framer-motion";
-import { useRef } from "react";
+import { useRef, useState, useMemo, useCallback, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { GradientHeadline } from "./ui/gradient-headline";
-import { ProcessCard } from "./ui/process-card";
-import { TimelineNode, TimelineLine } from "./ui/animated-timeline";
-import { ScrollProgressBar } from "./ui/scroll-progress";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import {
-    Send,
-    FileText,
-    Code2,
-    TestTube,
-    CheckCircle2,
-    Rocket
+    Check,
+    ArrowRight,
+    ChevronUp
 } from "lucide-react";
+import { ShineBorder } from "./ui/shine-border";
+import {
+    RequirementsIcon,
+    PlanningIcon,
+    DevelopmentIcon,
+    QAIcon,
+    ReviewIcon,
+    DeliveryIcon
+} from "./ui/process-icons";
+import "./process-storytelling.css";
+
+// Register GSAP plugin
+gsap.registerPlugin(ScrollTrigger);
 
 interface ProcessStep {
     id: number;
@@ -23,234 +28,734 @@ interface ProcessStep {
     icon: React.ReactNode;
     details: string[];
     status: "completed" | "active" | "pending";
+    color: string;
 }
 
-export function ProcessSection() {
-    const ref = useRef(null);
-    const isInView = useInView(ref, { once: true, margin: "-100px" });
+const steps: ProcessStep[] = [
+    {
+        id: 1,
+        title: "Submit Your Requirements",
+        description: "Share your project vision with us. Get a detailed quote within 24 hours—no hidden fees, no surprises.",
+        icon: <RequirementsIcon className="w-full h-full" />,
+        details: [
+            "Simple project request form",
+            "Technology stack preferences",
+            "Deadline & budget clarity",
+            "Detailed quote & timeline"
+        ],
+        status: "completed",
+        color: "#1e3a8a", // Dark Blue
+    },
+    {
+        id: 2,
+        title: "Project Planning & Design",
+        description: "Receive your project blueprint in 2-3 days: technical specs, wireframes, and a milestone timeline you can track.",
+        icon: <PlanningIcon className="w-full h-full" />,
+        details: [
+            "Technical specifications",
+            "Database architecture",
+            "UI/UX wireframes",
+            "Milestone breakdown"
+        ],
+        status: "completed",
+        color: "#990F82", // Magenta
+    },
+    {
+        id: 3,
+        title: "Expert Development",
+        description: "Watch your project come alive with weekly progress demos. Comment on drafts in real-time as we build.",
+        icon: <DevelopmentIcon className="w-full h-full" />,
+        details: [
+            "Clean, documented code",
+            "Regular progress demos",
+            "Git version control",
+            "Industry standards"
+        ],
+        status: "active",
+        color: "#06b6d4", // Cyan
+    },
+    {
+        id: 4,
+        title: "Quality Assurance",
+        description: "We test everything before you see it. Expect a detailed QA report with every milestone delivery.",
+        icon: <QAIcon className="w-full h-full" />,
+        details: [
+            "Unit & integration tests",
+            "Performance optimization",
+            "Cross-platform testing",
+            "Security assessment"
+        ],
+        status: "pending",
+        color: "#22c55e", // Emerald
+    },
+    {
+        id: 5,
+        title: "Review & Refinement",
+        description: "Your feedback shapes the final product. Request changes anytime—unlimited revisions included.",
+        icon: <ReviewIcon className="w-full h-full" />,
+        details: [
+            "Project walkthrough",
+            "Unlimited revisions",
+            "Documentation review",
+            "Training session"
+        ],
+        status: "pending",
+        color: "#f59e0b", // Amber
+    },
+    {
+        id: 6,
+        title: "Delivery & Support",
+        description: "Handoff includes source code, documentation, and a video walkthrough. 30 days of free support included.",
+        icon: <DeliveryIcon className="w-full h-full" />,
+        details: [
+            "Complete source code",
+            "Deployment guide",
+            "Video explanation",
+            "30-day support"
+        ],
+        status: "pending",
+        color: "#f43f5e", // Rose
+    },
+];
 
-    const steps: ProcessStep[] = [
-        {
-            id: 1,
-            title: "Submit Your Requirements",
-            description: "Share your project topic, detailed requirements, and deadline with our team. We analyze your needs and provide a transparent quote within hours.",
-            icon: <Send className="w-6 h-6" />,
-            details: [
-                "Fill out our simple project request form",
-                "Specify your technology stack preferences",
-                "Set your deadline and budget expectations",
-                "Receive detailed quote and timeline"
-            ],
-            status: "completed",
-        },
-        {
-            id: 2,
-            title: "Project Planning & Design",
-            description: "Our experts create a comprehensive project plan, design architecture, and establish clear milestones for your approval.",
-            icon: <FileText className="w-6 h-6" />,
-            details: [
-                "Detailed technical specification document",
-                "System architecture and database design",
-                "UI/UX wireframes and mockups",
-                "Milestone breakdown with deliverables"
-            ],
-            status: "completed",
-        },
-        {
-            id: 3,
-            title: "Expert Development",
-            description: "Once approved, our experienced developers start building your project using cutting-edge technologies and industry best practices.",
-            icon: <Code2 className="w-6 h-6" />,
-            details: [
-                "Clean, maintainable, and well-documented code",
-                "Regular progress updates and demos",
-                "Version control with Git",
-                "Adherence to coding standards"
-            ],
-            status: "active",
-        },
-        {
-            id: 4,
-            title: "Quality Assurance & Testing",
-            description: "Rigorous testing ensures your project is bug-free, performant, and meets all specified requirements before delivery.",
-            icon: <TestTube className="w-6 h-6" />,
-            details: [
-                "Comprehensive unit and integration testing",
-                "Performance optimization",
-                "Cross-browser and device compatibility",
-                "Security vulnerability assessment"
-            ],
-            status: "pending",
-        },
-        {
-            id: 5,
-            title: "Review & Refinement",
-            description: "You review the project, provide feedback, and we make any necessary revisions to ensure it exceeds your expectations.",
-            icon: <CheckCircle2 className="w-6 h-6" />,
-            details: [
-                "Complete project walkthrough session",
-                "Unlimited revisions during review period",
-                "Documentation and code comments",
-                "Training on how to use/maintain the project"
-            ],
-            status: "pending",
-        },
-        {
-            id: 6,
-            title: "Delivery & Support",
-            description: "Receive complete source code, comprehensive documentation, deployment assistance, and ongoing support to ensure your success.",
-            icon: <Rocket className="w-6 h-6" />,
-            details: [
-                "Complete source code with all assets",
-                "Detailed setup and deployment guide",
-                "Video explanation of the codebase",
-                "30-day post-delivery support included"
-            ],
-            status: "pending",
-        },
-    ];
+// Pre-computed dot positions for SVG (static values)
+const DOT_POSITIONS = steps.map((_, i) => {
+    const angle = (i / 6) * 360 - 90; // Start from top
+    const rad = (angle * Math.PI) / 180;
+    return {
+        x: 170 + 160 * Math.cos(rad),
+        y: 170 + 160 * Math.sin(rad)
+    };
+});
+
+export function ProcessSection() {
+    const containerRef = useRef<HTMLDivElement>(null);
+    const heroRef = useRef<HTMLDivElement>(null);
+    const journeyRef = useRef<HTMLDivElement>(null);
+    const stepRefs = useRef<(HTMLDivElement | null)[]>([]);
+    const ctaRef = useRef<HTMLDivElement>(null);
+    const centralVisualRef = useRef<HTMLDivElement>(null);
+    const progressRingRef = useRef<SVGCircleElement>(null);
+    const engineIconRef = useRef<HTMLDivElement>(null);
+
+    // Use ref for currentStep to avoid re-triggering useEffect
+    const currentStepRef = useRef(0);
+    const timelineDotsRef = useRef<NodeListOf<Element> | null>(null);
+
+    const [currentStep, setCurrentStep] = useState(0);
+    const [currentIcon, setCurrentIcon] = useState<React.ReactNode>(steps[0].icon);
+    const [currentColor, setCurrentColor] = useState(steps[0].color);
+    const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+
+    // Memoize engine styles to prevent object recreation
+    const engineCoreStyle = useMemo(() => ({
+        background: `radial-gradient(circle, ${currentColor} 0%, ${currentColor}80 100%)`
+    }), [currentColor]);
+
+    const engineCenterStyle = useMemo(() => ({
+        background: `${currentColor}15`,
+        boxShadow: `0 0 60px ${currentColor}40`,
+        border: `1px solid ${currentColor}60`
+    }), [currentColor]);
+
+    // Memoized scroll-to-step handler
+    const scrollToStep = useCallback((index: number) => {
+        const el = stepRefs.current[index];
+        el?.scrollIntoView({ behavior: prefersReducedMotion ? 'auto' : 'smooth' });
+    }, [prefersReducedMotion]);
+
+    // Memoized back-to-top handler
+    const scrollToTop = useCallback(() => {
+        window.scrollTo({ top: 0, behavior: prefersReducedMotion ? 'auto' : 'smooth' });
+    }, [prefersReducedMotion]);
+
+    // Check for reduced motion preference
+    useEffect(() => {
+        const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+        setPrefersReducedMotion(mediaQuery.matches);
+        const handler = (e: MediaQueryListEvent) => setPrefersReducedMotion(e.matches);
+        mediaQuery.addEventListener('change', handler);
+        return () => mediaQuery.removeEventListener('change', handler);
+    }, []);
+
+    useEffect(() => {
+        let ctx: gsap.Context | null = null;
+        let idleCallbackId: number | null = null;
+
+        // Defer GSAP initialization to allow LCP to complete first
+        const initGSAP = () => {
+            if (!containerRef.current) return;
+
+            // Cache timeline dots once during initialization
+            timelineDotsRef.current = document.querySelectorAll(".timeline-dot");
+
+            const isMobile = window.innerWidth <= 768;
+            const targetOpacity = isMobile ? 0.2 : 1;
+
+            ctx = gsap.context(() => {
+                // ===== HERO ANIMATION =====
+                // Hero is visible by default - animations enhance rather than block LCP
+                // Only animate if reduced motion is not preferred
+                if (!prefersReducedMotion) {
+                    // Initial entrance animation - shorter delays for faster perceived load
+                    gsap.from(".flow-hero-title", {
+                        opacity: 0,
+                        y: 30,
+                        duration: 0.6,
+                        delay: 0.1
+                    });
+                    gsap.from(".flow-hero-subtitle", {
+                        opacity: 0,
+                        y: 20,
+                        duration: 0.5,
+                        delay: 0.15
+                    });
+                    gsap.from(".how-it-works-strip", {
+                        opacity: 0,
+                        y: 15,
+                        duration: 0.4,
+                        delay: 0.2
+                    });
+                    gsap.from(".flow-scroll-indicator", {
+                        opacity: 0,
+                        duration: 0.4,
+                        delay: 0.25
+                    });
+
+                    // Hero fade out/in based on scroll position
+                    ScrollTrigger.create({
+                        trigger: heroRef.current,
+                        start: "top top",
+                        end: "bottom 20%",
+                        onLeave: () => {
+                            gsap.to(".flow-hero-title, .flow-hero-subtitle, .flow-scroll-indicator", {
+                                opacity: 0,
+                                y: -30,
+                                duration: 0.4,
+                                stagger: 0.05
+                            });
+                        },
+                        onEnterBack: () => {
+                            gsap.to(".flow-hero-title, .flow-hero-subtitle, .flow-scroll-indicator", {
+                                opacity: 1,
+                                y: 0,
+                                duration: 0.5,
+                                stagger: 0.05
+                            });
+                        }
+                    });
+
+                    // ===== CENTRAL VISUAL VISIBILITY =====
+                    // Set initial state (hidden with visibility: hidden)
+                    if (centralVisualRef.current) {
+                        gsap.set(centralVisualRef.current, { autoAlpha: 0 });
+                    }
+
+                    ScrollTrigger.create({
+                        trigger: journeyRef.current,
+                        start: "top 70%",
+                        end: "bottom 20%",
+                        onEnter: () => {
+                            gsap.to(centralVisualRef.current, {
+                                autoAlpha: targetOpacity,
+                                duration: 1.0,
+                                ease: "sine.inOut"
+                            });
+                            centralVisualRef.current?.classList.add("visible");
+                        },
+                        onLeave: () => {
+                            gsap.to(centralVisualRef.current, {
+                                autoAlpha: 0,
+                                duration: 1.0,
+                                ease: "sine.inOut"
+                            });
+                            centralVisualRef.current?.classList.remove("visible");
+                        },
+                        onEnterBack: () => {
+                            gsap.to(centralVisualRef.current, {
+                                autoAlpha: targetOpacity,
+                                duration: 1.0,
+                                ease: "sine.inOut"
+                            });
+                            centralVisualRef.current?.classList.add("visible");
+                        },
+                        onLeaveBack: () => {
+                            gsap.to(centralVisualRef.current, {
+                                autoAlpha: 0,
+                                duration: 1.0,
+                                ease: "sine.inOut"
+                            });
+                            centralVisualRef.current?.classList.remove("visible");
+                        }
+                    });
+
+                    // ===== MAIN JOURNEY SCROLL PROGRESS =====
+                    ScrollTrigger.create({
+                        trigger: journeyRef.current,
+                        start: "top top",
+                        end: "bottom bottom",
+                        onUpdate: (self) => {
+                            const progress = self.progress;
+
+                            // Update circular progress ring (SVG strokeDashoffset)
+                            // Circle circumference = 2 * PI * r = 2 * 3.14159 * 160 = 1005.3
+                            if (progressRingRef.current) {
+                                const circumference = 1005.3;
+                                const offset = circumference * (1 - progress);
+                                progressRingRef.current.style.strokeDashoffset = String(offset);
+                            }
+
+                            // Calculate current step (1-6)
+                            const stepIndex = Math.min(5, Math.floor(progress * 6));
+                            if (stepIndex !== currentStepRef.current) {
+                                currentStepRef.current = stepIndex;
+                                setCurrentStep(stepIndex);
+                                setCurrentIcon(steps[stepIndex].icon);
+                                setCurrentColor(steps[stepIndex].color);
+
+                                // Update progress ring color
+                                if (progressRingRef.current) {
+                                    progressRingRef.current.style.stroke = steps[stepIndex].color;
+                                }
+
+                                // Update timeline dots using cached reference
+                                if (timelineDotsRef.current) {
+                                    timelineDotsRef.current.forEach((dot, i) => {
+                                        dot.classList.remove("active", "completed");
+                                        if (i < stepIndex) {
+                                            dot.classList.add("completed");
+                                        } else if (i === stepIndex) {
+                                            dot.classList.add("active");
+                                        }
+                                    });
+                                }
+                            }
+                        }
+                    });
+
+                    // ===== STEP PANELS - PROPER ENTRANCE/EXIT WITH REVERSE =====
+                    stepRefs.current.forEach((stepEl) => {
+                        if (!stepEl) return;
+
+                        const panel = stepEl.querySelector(".flow-step-panel");
+                        const features = stepEl.querySelectorAll(".step-feature");
+
+                        // Set initial states
+                        gsap.set(panel, { opacity: 0, y: 60 });
+                        gsap.set(features, { opacity: 0, x: -20 });
+
+                        // Panel entrance - appears when step enters viewport
+                        ScrollTrigger.create({
+                            trigger: stepEl,
+                            start: "top 75%",
+                            end: "bottom 25%",
+                            onEnter: () => {
+                                gsap.to(panel, {
+                                    opacity: 1,
+                                    y: 0,
+                                    duration: 0.8,
+                                    ease: "power2.out"
+                                });
+                                gsap.to(features, {
+                                    opacity: 1,
+                                    x: 0,
+                                    stagger: 0.1,
+                                    duration: 0.5,
+                                    delay: 0.3,
+                                    ease: "power2.out"
+                                });
+                            },
+                            onLeave: () => {
+                                gsap.to(panel, {
+                                    opacity: 0,
+                                    y: -40,
+                                    duration: 0.6,
+                                    ease: "power2.in"
+                                });
+                            },
+                            onEnterBack: () => {
+                                gsap.to(panel, {
+                                    opacity: 1,
+                                    y: 0,
+                                    duration: 0.6,
+                                    ease: "power2.out"
+                                });
+                                gsap.to(features, {
+                                    opacity: 1,
+                                    x: 0,
+                                    stagger: 0.05,
+                                    duration: 0.4,
+                                    ease: "power2.out"
+                                });
+                            },
+                            onLeaveBack: () => {
+                                gsap.to(panel, {
+                                    opacity: 0,
+                                    y: 60,
+                                    duration: 0.5,
+                                    ease: "power2.in"
+                                });
+                                gsap.to(features, {
+                                    opacity: 0,
+                                    x: -20,
+                                    duration: 0.3
+                                });
+                            }
+                        });
+                    });
+
+                    // ===== CENTRAL ENGINE ROTATION - 2 FULL ROTATIONS =====
+                    gsap.fromTo(".central-engine",
+                        { rotation: 0 },
+                        {
+                            scrollTrigger: {
+                                trigger: journeyRef.current,
+                                start: "top top",
+                                end: "bottom bottom",
+                                scrub: 1
+                            },
+                            rotation: 720,
+                            ease: "none"
+                        }
+                    );
+
+                    // Engine rings - subtle scale animation (no expansion on mobile for cleaner look)
+                    const isMobile = window.innerWidth <= 768;
+                    const ringScale1 = isMobile ? 1 : 1.15;
+                    const ringScale2 = isMobile ? 1 : 1.1;
+                    const ringScale3 = isMobile ? 1 : 1.05;
+
+                    gsap.fromTo(".engine-ring-1",
+                        { scale: 1, opacity: 0.3, rotation: 0 },
+                        {
+                            scrollTrigger: {
+                                trigger: journeyRef.current,
+                                start: "top top",
+                                end: "bottom bottom",
+                                scrub: 1
+                            },
+                            scale: ringScale1,
+                            opacity: 0.5,
+                            rotation: 360
+                        }
+                    );
+
+                    gsap.fromTo(".engine-ring-2",
+                        { scale: 1, opacity: 0.3, rotation: 0 },
+                        {
+                            scrollTrigger: {
+                                trigger: journeyRef.current,
+                                start: "top top",
+                                end: "bottom bottom",
+                                scrub: 1
+                            },
+                            scale: ringScale2,
+                            opacity: 0.4,
+                            rotation: -360
+                        }
+                    );
+
+                    gsap.fromTo(".engine-ring-3",
+                        { scale: 1, opacity: 0.3, rotation: 0 },
+                        {
+                            scrollTrigger: {
+                                trigger: journeyRef.current,
+                                start: "top top",
+                                end: "bottom bottom",
+                                scrub: 1
+                            },
+                            scale: ringScale3,
+                            opacity: 0.35,
+                            rotation: 180
+                        }
+                    );
+
+                    // ===== FADE OUT ENGINE AFTER LAST STEP =====
+                    // Smooth scrub-based fade out as user scrolls from last step to CTA
+                    gsap.fromTo(centralVisualRef.current,
+                        { opacity: 1, scale: 1, filter: "blur(0px)" },
+                        {
+                            scrollTrigger: {
+                                trigger: ctaRef.current,
+                                start: "top 100%",
+                                end: "top 40%",
+                                scrub: 0.5
+                            },
+                            opacity: 0,
+                            scale: 0.7,
+                            filter: "blur(10px)",
+                            ease: "power2.inOut"
+                        }
+                    );
+
+                    // ===== CTA SECTION - Ensure text is always visible =====
+                    // Set initial states
+                    gsap.set(".cta-title", { opacity: 0, y: 40 });
+                    gsap.set(".cta-subtitle", { opacity: 0, y: 30 });
+                    gsap.set(".cta-button", { opacity: 0, scale: 0.9 });
+
+                    // Check if user is already scrolled to CTA (e.g., page refresh at bottom)
+                    if (ctaRef.current) {
+                        const ctaRect = ctaRef.current.getBoundingClientRect();
+                        if (ctaRect.top < window.innerHeight * 0.85) {
+                            // Already in view, show immediately
+                            gsap.set(".cta-title", { opacity: 1, y: 0 });
+                            gsap.set(".cta-subtitle", { opacity: 1, y: 0 });
+                            gsap.set(".cta-button", { opacity: 1, scale: 1 });
+                        }
+                    }
+
+                    ScrollTrigger.create({
+                        trigger: ctaRef.current,
+                        start: "top 85%",
+                        end: "bottom top",
+                        onEnter: () => {
+                            gsap.to(".cta-title", {
+                                opacity: 1,
+                                y: 0,
+                                duration: 0.8,
+                                ease: "power2.out"
+                            });
+                            gsap.to(".cta-subtitle", {
+                                opacity: 1,
+                                y: 0,
+                                duration: 0.6,
+                                delay: 0.2,
+                                ease: "power2.out"
+                            });
+                            gsap.to(".cta-button", {
+                                opacity: 1,
+                                scale: 1,
+                                duration: 0.6,
+                                delay: 0.4,
+                                ease: "back.out(2)"
+                            });
+                        },
+                        onEnterBack: () => {
+                            // Also show when scrolling back up into CTA section
+                            gsap.to(".cta-title", {
+                                opacity: 1,
+                                y: 0,
+                                duration: 0.5,
+                                ease: "power2.out"
+                            });
+                            gsap.to(".cta-subtitle", {
+                                opacity: 1,
+                                y: 0,
+                                duration: 0.4,
+                                ease: "power2.out"
+                            });
+                            gsap.to(".cta-button", {
+                                opacity: 1,
+                                scale: 1,
+                                duration: 0.4,
+                                ease: "power2.out"
+                            });
+                        },
+                        onLeave: () => {
+                            // Only hide if scrolling past the CTA (shouldn't happen often)
+                            gsap.to(".cta-title, .cta-subtitle, .cta-button", {
+                                opacity: 0,
+                                duration: 0.3
+                            });
+                        },
+                        onLeaveBack: () => {
+                            gsap.to(".cta-title", { opacity: 0, y: 40, duration: 0.4 });
+                            gsap.to(".cta-subtitle", { opacity: 0, y: 30, duration: 0.3 });
+                            gsap.to(".cta-button", { opacity: 0, scale: 0.9, duration: 0.3 });
+                        }
+                    });
+
+                } // End of if (!prefersReducedMotion)
+
+            }, containerRef);
+        };
+
+        // Use requestIdleCallback to defer GSAP initialization until after first paint
+        // This allows LCP to complete before heavy animation setup runs
+        if ('requestIdleCallback' in window) {
+            idleCallbackId = window.requestIdleCallback(initGSAP, { timeout: 100 });
+        } else {
+            // Fallback for Safari - use setTimeout
+            idleCallbackId = setTimeout(initGSAP, 50) as unknown as number;
+        }
+
+        return () => {
+            if (idleCallbackId) {
+                if ('cancelIdleCallback' in window) {
+                    window.cancelIdleCallback(idleCallbackId);
+                } else {
+                    clearTimeout(idleCallbackId);
+                }
+            }
+            if (ctx) ctx.revert();
+        };
+    }, [prefersReducedMotion]); // Removed currentStep from dependencies
 
     return (
-        <section id="process" className="relative py-20 md:py-32 bg-transparent overflow-hidden">
-            {/* Scroll Progress Indicator */}
-            <ScrollProgressBar />
-
-            <div className="container mx-auto px-4 md:px-6">
-                <motion.div
-                    ref={ref}
-                    initial={{ opacity: 0, y: 50 }}
-                    animate={isInView ? { opacity: 1, y: 0 } : {}}
-                    transition={{ duration: 0.8 }}
-                    className="max-w-7xl mx-auto"
-                >
-                    {/* Section Header */}
-                    <div className="text-center mb-16 md:mb-24">
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={isInView ? { opacity: 1, y: 0 } : {}}
-                            transition={{ delay: 0.2 }}
-                            className="mb-4"
-                        >
-                            <span className="inline-block px-4 py-2 rounded-full bg-brand-accent/10 border border-brand-accent/20 text-brand-accent text-sm font-medium mb-6">
-                                Our Process
-                            </span>
-                        </motion.div>
-
-                        <div className="mb-6">
-                            <GradientHeadline
-                                text="How It Works"
-                                className="text-4xl md:text-5xl lg:text-6xl"
+        <div className="process-flow" ref={containerRef}>
+            {/* FIXED CENTRAL VISUAL (Engine) with Progress Ring */}
+            <div className="flow-central-visual" ref={centralVisualRef} style={{ opacity: 0 }}>
+                {/* SVG Progress Ring */}
+                <svg className="progress-ring" viewBox="0 0 340 340">
+                    {/* Background ring */}
+                    <circle
+                        className="progress-ring-bg"
+                        cx="170"
+                        cy="170"
+                        r="160"
+                        fill="none"
+                        strokeWidth="4"
+                    />
+                    {/* Progress ring */}
+                    <circle
+                        ref={progressRingRef}
+                        className="progress-ring-fill"
+                        cx="170"
+                        cy="170"
+                        r="160"
+                        fill="none"
+                        strokeWidth="4"
+                        strokeDasharray="1005.3"
+                        strokeDashoffset="1005.3"
+                        transform="rotate(-90 170 170)"
+                    />
+                    {/* Step indicator dots around the ring - using pre-computed positions */}
+                    {steps.map((step, i) => {
+                        const { x, y } = DOT_POSITIONS[i];
+                        const isCompleted = i < currentStep;
+                        const isActive = i === currentStep;
+                        return (
+                            <circle
+                                key={step.id}
+                                className={`progress-dot ${isCompleted ? 'completed' : ''} ${isActive ? 'active' : ''}`}
+                                cx={x}
+                                cy={y}
+                                r="6"
+                                fill={isCompleted || isActive ? step.color : undefined}
+                                filter={isActive ? `drop-shadow(0 0 10px ${step.color}80)` : undefined}
                             />
-                        </div>
+                        );
+                    })}
+                </svg>
 
-                        <motion.p
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={isInView ? { opacity: 1, y: 0 } : {}}
-                            transition={{ delay: 0.4 }}
-                            className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto"
-                        >
-                            From concept to completion, our streamlined 6-step process ensures your project
-                            is delivered on time, within budget, and exceeds expectations.
-                        </motion.p>
-                    </div>
-
-                    {/* Timeline with alternating cards */}
-                    <div className="relative">
-                        {/* Center timeline line - hidden on mobile, visible on md+ */}
-                        <div className="hidden md:block absolute left-1/2 top-0 bottom-0 w-0.5 -ml-px">
-                            <TimelineLine active={true} className="h-full" />
-                        </div>
-
-                        {/* Mobile timeline line - visible only on mobile */}
-                        <div className="md:hidden absolute left-6 top-0 bottom-0 w-0.5">
-                            <TimelineLine active={true} className="h-full" />
-                        </div>
-
-                        {/* Steps */}
-                        <div className="space-y-12 md:space-y-24">
-                            {steps.map((step, index) => {
-                                const isLeft = index % 2 === 0;
-
-                                return (
-                                    <div
-                                        key={step.id}
-                                        className="relative flex flex-col md:flex-row items-center gap-8"
-                                    >
-                                        {/* Desktop layout - alternating sides */}
-                                        <div className="hidden md:block md:w-1/2">
-                                            {isLeft && (
-                                                <ProcessCard
-                                                    {...step}
-                                                    index={index}
-                                                    position="left"
-                                                    delay={0.1 * index}
-                                                />
-                                            )}
-                                        </div>
-
-                                        {/* Timeline node - centered on desktop, left on mobile */}
-                                        <div className="absolute md:relative left-0 md:left-auto flex-shrink-0 z-10">
-                                            <TimelineNode
-                                                status={step.status}
-                                                icon={step.icon}
-                                            />
-                                        </div>
-
-                                        {/* Desktop layout - alternating sides */}
-                                        <div className="hidden md:block md:w-1/2">
-                                            {!isLeft && (
-                                                <ProcessCard
-                                                    {...step}
-                                                    index={index}
-                                                    position="right"
-                                                    delay={0.1 * index}
-                                                />
-                                            )}
-                                        </div>
-
-                                        {/* Mobile layout - all cards on the right side */}
-                                        <div className="md:hidden w-full pl-20">
-                                            <ProcessCard
-                                                {...step}
-                                                index={index}
-                                                position="right"
-                                                delay={0.05 * index}
-                                            />
-                                        </div>
-                                    </div>
-                                );
-                            })}
+                <div className="central-engine">
+                    <div className="engine-ring engine-ring-1" />
+                    <div className="engine-ring engine-ring-2" />
+                    <div className="engine-ring engine-ring-3" />
+                    <div className="engine-core" style={engineCoreStyle} />
+                    <div className="engine-center" style={engineCenterStyle}>
+                        <div ref={engineIconRef} className="engine-icon">
+                            {currentIcon}
                         </div>
                     </div>
-
-                    {/* Bottom CTA */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 30 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ delay: 0.3 }}
-                        className="mt-20 text-center"
-                    >
-                        <p className="text-lg text-muted-foreground mb-6">
-                            Ready to get started on your project?
-                        </p>
-                        <Link to="/contact">
-                            <motion.button
-                                whileHover={{ scale: 1.05 }}
-                                whileTap={{ scale: 0.95 }}
-                                className="px-8 py-4 bg-gradient-to-r from-brand-accent to-brand-primary text-white font-semibold rounded-xl shadow-lg hover:shadow-xl hover:shadow-brand-accent/50 transition-all duration-300"
-                            >
-                                Start Your Project Today
-                            </motion.button>
-                        </Link>
-                    </motion.div>
-                </motion.div>
+                </div>
             </div>
 
-            {/* Enhanced background decorative elements with animated gradients */}
-            <div className="absolute top-20 left-10 w-72 h-72 bg-gradient-to-br from-brand-accent/10 via-brand-primary/10 to-brand-secondary/10 rounded-full blur-2xl -z-10 gradient-animated" />
-            <div className="absolute bottom-20 right-10 w-96 h-96 bg-gradient-to-br from-brand-accent/10 via-brand-primary/10 to-brand-secondary/10 rounded-full blur-2xl -z-10 gradient-animated" />
-            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-r from-brand-accent/5 to-transparent rounded-full blur-3xl -z-20" />
-        </section>
+
+
+            {/* BACK TO TOP BUTTON (Mobile) */}
+            <button
+                className="back-to-top-btn"
+                onClick={scrollToTop}
+                aria-label="Back to top"
+            >
+                <ChevronUp size={20} />
+            </button>
+
+            {/* HERO SECTION */}
+            <section className="flow-hero" ref={heroRef}>
+                <h1 className="flow-hero-title">The Journey</h1>
+                <p className="flow-hero-subtitle">
+                    From your first idea to a fully deployed solution—follow our seamless
+                    6-step process that transforms concepts into reality.
+                </p>
+
+                {/* HOW IT WORKS - Quick Strip */}
+                <div className="how-it-works-strip">
+                    {steps.map((step, i) => (
+                        <button
+                            key={step.id}
+                            className="how-it-works-item"
+                            onClick={() => scrollToStep(i)}
+                        >
+                            <div className="how-it-works-icon" style={{
+                                background: `${step.color}10`,
+                                border: `1px solid ${step.color}80`,
+                                boxShadow: `0 0 15px ${step.color}40, inset 0 0 10px ${step.color}20`
+                            }}>
+                                {step.icon}
+                            </div>
+                            <span className="how-it-works-label">{i + 1}. {step.title.split(' ')[0]}</span>
+                        </button>
+                    ))}
+                </div>
+
+                <div className="flow-scroll-indicator">
+                    <span>Scroll to begin</span>
+                    <div className="scroll-line" />
+                </div>
+            </section>
+
+            {/* JOURNEY - ALL STEPS */}
+            <div className="flow-journey" ref={journeyRef}>
+                {steps.map((step, index) => (
+                    <section
+                        key={step.id}
+                        className="flow-step"
+                        ref={el => { stepRefs.current[index] = el as HTMLDivElement; }}
+                    >
+                        <ShineBorder
+                            borderRadius={16}
+                            borderWidth={2}
+                            duration={10}
+                            color={[step.color, `${step.color}80`, step.color]}
+                            className="flow-step-panel !bg-[rgba(15,17,26,0.95)] !p-0"
+                        >
+                            <div
+                                className="step-panel-content"
+                                style={{
+                                    padding: '40px 32px 32px 32px',
+                                    width: '100%'
+                                }}
+                            >
+                                <h2 className="step-title" style={{ marginTop: 0 }}>{step.title}</h2>
+                                <p className="step-description">{step.description}</p>
+                                <div className="step-features">
+                                    {step.details.map((detail, i) => (
+                                        <div
+                                            key={i}
+                                            className="step-feature"
+                                            style={{ borderColor: `${step.color}15` }}
+                                        >
+                                            <Check
+                                                className="step-feature-icon"
+                                                size={18}
+                                                style={{ color: step.color }}
+                                            />
+                                            <span>{detail}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </ShineBorder>
+                    </section>
+                ))}
+            </div>
+
+            {/* CTA SECTION */}
+            <section className="flow-cta" ref={ctaRef}>
+                <h2 className="cta-title">Ready to Start Your Journey?</h2>
+                <p className="cta-subtitle">
+                    Let's transform your vision into reality with our proven process.
+                </p>
+                <Link to="/contact">
+                    <button className="cta-button">
+                        Begin Your Project
+                        <ArrowRight size={20} />
+                    </button>
+                </Link>
+            </section>
+        </div>
     );
 }

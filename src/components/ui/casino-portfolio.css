@@ -1,0 +1,1491 @@
+/* Casino Portfolio Styles */
+.casino-table-container {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    overflow: hidden;
+    /* High Fidelity Felt Texture - DEFAULT GREEN (only shown before first shuffle) */
+    background-color: #0f3822;
+    /* Dark Green Base */
+    background-image:
+        /* Noise Texture */
+        url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.15'/%3E%3C/svg%3E"),
+        /* Gradient Vignette */
+        radial-gradient(circle at 50% 50%, transparent 20%, #05140b 100%);
+    display: flex;
+    flex-direction: column;
+    perspective: 1200px;
+    /* Stronger perspective */
+    --mouse-x: 50%;
+    --mouse-y: 50%;
+    /* Smooth color transitions */
+    transition: background-color 0.6s ease;
+}
+
+/* Table color change during ripple - PERMANENT until refresh */
+.casino-table-container.table-ripple-active {
+    background-color: #0d4a35 !important;
+    /* Brighter emerald-teal - matches ripple */
+    background-image:
+        /* Noise Texture */
+        url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.15'/%3E%3C/svg%3E"),
+        /* Gradient Vignette - with emerald tint */
+        radial-gradient(circle at 50% 50%, rgba(16, 185, 129, 0.05) 0%, rgba(6, 182, 212, 0.03) 20%, #05140b 100%) !important;
+}
+
+/* ============================================
+   BRAND COLOR SCHEMES - Dark Blue & Premium Red
+   Use !important to fully override default green
+   ============================================ */
+
+/* DARK BLUE TABLE - Odd Shuffles (1, 3, 5...) */
+.casino-table-container.table-ripple-blue {
+    background-color: #0a1628 !important;
+    /* Deep navy blue base */
+    background-image:
+        /* Noise Texture */
+        url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.12'/%3E%3C/svg%3E"),
+        /* Gradient Vignette - with dark blue tint */
+        radial-gradient(circle at 50% 50%, rgba(30, 64, 175, 0.08) 0%, rgba(59, 130, 246, 0.04) 25%, #050a14 100%) !important;
+}
+
+/* PREMIUM RED TABLE - Even Shuffles (2, 4, 6...) */
+.casino-table-container.table-ripple-red {
+    background-color: #1a0a0a !important;
+    /* Deep crimson base */
+    background-image:
+        /* Noise Texture */
+        url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.12'/%3E%3C/svg%3E"),
+        /* Gradient Vignette - with premium red tint */
+        radial-gradient(circle at 50% 50%, rgba(185, 28, 28, 0.08) 0%, rgba(239, 68, 68, 0.04) 25%, #0a0505 100%) !important;
+}
+
+/* Global Spotlight follower */
+.table-spotlight {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(600px circle at var(--mouse-x) var(--mouse-y),
+            rgba(255, 255, 255, 0.08),
+            transparent 40%);
+    z-index: 10;
+}
+
+/* Wood trim at bottom */
+.table-trim {
+    position: absolute;
+    bottom: -40px;
+    left: -10%;
+    width: 120%;
+    height: 120px;
+    background:
+        linear-gradient(to bottom, #4a3b32, #2d241e),
+        url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='wood'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.05' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23wood)' opacity='0.1'/%3E%3C/svg%3E");
+    border-top: 6px solid #6b5446;
+    border-radius: 50% 50% 0 0;
+    box-shadow: 0 -20px 50px rgba(0, 0, 0, 0.6);
+    z-index: 9;
+    pointer-events: none;
+}
+
+/* Card Styling - Premium 3D Thickness */
+.poker-card {
+    position: absolute;
+    width: 260px;
+    height: 360px;
+    border-radius: 16px;
+    cursor: pointer;
+    will-change: transform;
+    transform-style: preserve-3d;
+    /* 3D Thickness Effect - Layered shadows create physical depth */
+    box-shadow:
+        /* Top edge highlight */
+        inset 0 1px 0 rgba(255, 255, 255, 0.08),
+        /* Card edge layers (stacked for thickness) */
+        0 2px 0 #1a1a1f,
+        0 4px 0 #151518,
+        0 6px 0 #101013,
+        0 8px 0 #0a0a0c,
+        /* Soft ambient shadow */
+        0 12px 20px rgba(0, 0, 0, 0.4),
+        /* Deep shadow for depth */
+        0 25px 50px rgba(0, 0, 0, 0.5);
+    transition: box-shadow 0.3s ease, transform 0.3s ease;
+    opacity: 0;
+    /* Default invisible, controlled by GSAP */
+}
+
+/* Hover state - Lift and glow */
+.poker-card.interactive:hover {
+    box-shadow:
+        /* Top edge highlight - brighter on hover */
+        inset 0 1px 0 rgba(255, 255, 255, 0.12),
+        /* Card edge layers */
+        0 2px 0 #1a1a1f,
+        0 4px 0 #151518,
+        0 6px 0 #101013,
+        0 8px 0 #0a0a0c,
+        /* Lifted shadow */
+        0 20px 40px rgba(0, 0, 0, 0.5),
+        /* Deeper shadow for more lift */
+        0 40px 80px rgba(0, 0, 0, 0.4),
+        /* Emerald glow */
+        0 0 60px rgba(16, 185, 129, 0.15);
+}
+
+/* Focused/Inspected card - Maximum presence */
+.poker-card[data-focused="true"],
+.poker-card.focused {
+    box-shadow:
+        /* Top edge highlight - brightest */
+        inset 0 1px 0 rgba(255, 255, 255, 0.15),
+        /* Card edge layers */
+        0 2px 0 #1a1a1f,
+        0 4px 0 #151518,
+        0 6px 0 #101013,
+        0 8px 0 #0a0a0c,
+        /* Massive lifted shadow */
+        0 40px 80px rgba(0, 0, 0, 0.6),
+        /* Emerald spotlight glow */
+        0 0 100px rgba(16, 185, 129, 0.25),
+        0 0 150px rgba(16, 185, 129, 0.1);
+}
+
+/* Tilt Container - The actual 3D object */
+.card-tilt-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    border-radius: 16px;
+    transform-style: preserve-3d;
+    transition: box-shadow 0.3s ease;
+    /* Prevent black flash during rapid card flips - show consistent background when both faces hidden at 90deg */
+    background: linear-gradient(135deg, #1e1e24 0%, #12121a 100%);
+}
+
+.poker-card.interactive:hover .card-tilt-inner {
+    box-shadow:
+        0 30px 60px rgba(0, 0, 0, 0.6),
+        0 0 40px rgba(16, 185, 129, 0.1);
+}
+
+/* Card Faces - Premium Materials */
+.card-face {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 16px;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    overflow: hidden;
+    /* Premium border with subtle gradient */
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background-color: #1a1a20;
+    /* Inner shadow for depth */
+    box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.3);
+}
+
+/* Front Face (Details) - Premium Dark */
+.card-front {
+    transform: rotateY(180deg);
+    background:
+        /* Subtle noise texture */
+        url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E"),
+        linear-gradient(135deg, #1e1e24 0%, #12121a 100%);
+    /* Top accent line */
+    border-top: 2px solid rgba(16, 185, 129, 0.4);
+}
+
+.card-front-content {
+    padding: 1.5rem;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Back Face (Image/Logo) - Initial View with Gold Foil Pattern */
+.card-back {
+    background:
+        /* Diamond pattern overlay */
+        repeating-linear-gradient(45deg,
+            rgba(255, 215, 0, 0.02) 0,
+            rgba(255, 215, 0, 0.02) 1px,
+            transparent 1px,
+            transparent 8px),
+        repeating-linear-gradient(-45deg,
+            rgba(255, 215, 0, 0.02) 0,
+            rgba(255, 215, 0, 0.02) 1px,
+            transparent 1px,
+            transparent 8px),
+        /* Base gradient */
+        linear-gradient(135deg, #1e1e24 0%, #0f0f12 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    /* Premium frame border */
+    border: 1px solid rgba(255, 215, 0, 0.08);
+}
+
+/* PREMIUM GLARE - Enhanced Holographic Effect */
+.card-glare-overlay {
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    /* Multi-layer holographic effect */
+    background:
+        /* Rainbow shimmer layer */
+        linear-gradient(105deg,
+            rgba(255, 100, 100, 0.08) 0%,
+            rgba(255, 255, 100, 0.08) 20%,
+            rgba(100, 255, 100, 0.08) 40%,
+            rgba(100, 255, 255, 0.08) 60%,
+            rgba(100, 100, 255, 0.08) 80%,
+            rgba(255, 100, 255, 0.08) 100%),
+        /* Primary light spot */
+        radial-gradient(circle at var(--glare-x, 50%) var(--glare-y, 50%),
+            rgba(255, 255, 255, 0.5) 0%,
+            rgba(16, 185, 129, 0.15) 25%,
+            transparent 50%);
+    opacity: 0;
+    pointer-events: none;
+    mix-blend-mode: overlay;
+    /* NOTE: No CSS transition - GSAP handles all opacity changes to prevent glare glitch on fold */
+    z-index: 10;
+}
+
+/* Glare visibility is now fully controlled by GSAP animations, not CSS selectors.
+   This prevents the dark glare glitch that occurred when cards folded and the
+   CSS transition slowly faded the glare. */
+
+/* GAMIFIED EFFECTS (Juice) */
+
+/* Impact Ripple for Play Animation */
+.impact-ripple {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+    height: 100%;
+    border-radius: 12px;
+    border: 4px solid #10b981;
+    /* Emerald */
+    opacity: 0;
+    pointer-events: none;
+    z-index: 2;
+    box-shadow: 0 0 30px rgba(16, 185, 129, 0.6);
+}
+
+/* Focused Card Pulse - "Power Up" Feel */
+@keyframes pulse-emerald {
+    0% {
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4),
+            0 20px 50px rgba(0, 0, 0, 0.5);
+    }
+
+    70% {
+        box-shadow: 0 0 0 10px rgba(16, 185, 129, 0),
+            0 20px 50px rgba(0, 0, 0, 0.5);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0),
+            0 20px 50px rgba(0, 0, 0, 0.5);
+    }
+}
+
+.poker-card.focused {
+    animation: pulse-emerald 2s infinite;
+    z-index: 100 !important;
+    /* Always on top */
+}
+
+/* Deck Placeholder */
+.deck-placeholder {
+    position: absolute;
+    top: 15%;
+    right: 10%;
+    width: 260px;
+    height: 360px;
+    border: 2px dashed rgba(255, 255, 255, 0.15);
+    border-radius: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255, 255, 255, 0.3);
+    font-weight: bold;
+    letter-spacing: 2px;
+    transition: all 0.3s ease;
+}
+
+.deck-placeholder:hover {
+    border-color: rgba(16, 185, 129, 0.5);
+    background: rgba(16, 185, 129, 0.05);
+    transform: scale(1.02);
+}
+
+.deck-text {
+    font-size: 1.5rem;
+}
+
+.deck-count {
+    font-size: 3rem;
+    color: rgba(255, 255, 255, 0.1);
+}
+
+/* Active Slot */
+.active-slot {
+    position: absolute;
+    top: 50%;
+    left: calc((100% - 500px) / 2);
+    transform: translate(-50%, -50%);
+    width: 260px;
+    height: 360px;
+    border: 2px dashed rgba(255, 215, 0, 0.3);
+    border-radius: 16px;
+    box-shadow: inset 0 0 50px rgba(255, 215, 0, 0.05);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.active-slot.visible {
+    opacity: 1;
+}
+
+/* Details Panel */
+.details-panel {
+    position: absolute;
+    top: 0;
+    right: -50%;
+    width: 500px;
+    height: 100%;
+    background: rgba(10, 10, 15, 0.95);
+    backdrop-filter: blur(20px);
+    border-left: 1px solid rgba(255, 255, 255, 0.1);
+    z-index: 50;
+    padding: 3rem;
+    overflow-y: auto;
+    box-shadow: -20px 0 80px rgba(0, 0, 0, 0.8);
+}
+
+/* ===== TABLET (768px - 1023px) - iPad Mini/Air/Pro ===== */
+@media (min-width: 768px) and (max-width: 1023px) {
+    .poker-card {
+        width: 200px;
+        height: 280px;
+        border-radius: 15px;
+        box-shadow:
+            inset 0 1px 0 rgba(255, 255, 255, 0.1),
+            0 2px 0 #1a1a1f,
+            0 4px 0 #151518,
+            0 6px 0 #101013,
+            0 10px 20px rgba(0, 0, 0, 0.45),
+            0 20px 40px rgba(0, 0, 0, 0.35);
+    }
+
+    .poker-card.interactive:hover {
+        transform: translateY(-10px);
+    }
+
+    .poker-card.focused {
+        box-shadow:
+            inset 0 1px 0 rgba(255, 255, 255, 0.12),
+            0 2px 0 #1a1a1f,
+            0 4px 0 #151518,
+            0 30px 60px rgba(0, 0, 0, 0.5),
+            0 0 80px rgba(16, 185, 129, 0.2);
+    }
+
+    .card-face {
+        border-radius: 15px;
+    }
+
+    .card-tilt-inner {
+        border-radius: 15px;
+    }
+
+    .active-slot {
+        width: 200px;
+        height: 280px;
+    }
+
+    /* Tablet pile sizing */
+    .deck-stack {
+        width: 180px !important;
+        height: 260px !important;
+    }
+
+    .details-panel {
+        width: 400px;
+        padding: 2rem;
+    }
+}
+
+/* ===== MOBILE (<768px) ===== */
+@media (max-width: 767px) {
+    .poker-card {
+        width: 165px;
+        height: 225px;
+        border-radius: 14px;
+        /* Enhanced shadow for better visibility */
+        box-shadow:
+            inset 0 1px 0 rgba(255, 255, 255, 0.1),
+            0 2px 0 #1a1a1f,
+            0 4px 0 #151518,
+            0 8px 16px rgba(0, 0, 0, 0.5),
+            0 16px 32px rgba(0, 0, 0, 0.4);
+    }
+
+    .poker-card.interactive:hover {
+        transform: translateY(-8px);
+    }
+
+    .active-slot {
+        left: 50%;
+        top: 20%;
+        width: 165px;
+        height: 225px;
+    }
+
+    .details-panel {
+        width: 100%;
+        height: 50%;
+        top: auto;
+        bottom: -50%;
+        right: 0;
+        border-left: none;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        padding: 1rem 1.25rem;
+        border-radius: 20px 20px 0 0;
+    }
+
+    /* Hide table trim on mobile for more space */
+    .table-trim {
+        display: none;
+    }
+
+    /* Card face adjustments for mobile */
+    .card-face {
+        border-radius: 14px;
+    }
+
+    .card-tilt-inner {
+        border-radius: 14px;
+    }
+}
+
+/* --- VADER / SITH LORD HYBRID FX --- */
+
+/* Anticipation: Dark Shadow (Choke) */
+.sith-shadow {
+    position: absolute;
+    width: 280px;
+    height: 380px;
+    border-radius: 16px;
+    pointer-events: none;
+    z-index: 3;
+    opacity: 0;
+
+    /* Vader's presence */
+    background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.95) 0%, rgba(20, 0, 0, 0.6) 50%, transparent 80%);
+    filter: blur(18px);
+}
+
+/* Anticipation: Red Plasma Instability (Ignition) */
+.sith-plasma {
+    position: absolute;
+    width: 260px;
+    height: 360px;
+    border-radius: 14px;
+    pointer-events: none;
+    z-index: 4;
+    opacity: 0;
+
+    /* Unstable kyber crystal energy */
+    background: radial-gradient(circle at center, rgba(255, 0, 0, 0.5) 0%, transparent 60%);
+    box-shadow: 0 0 40px rgba(255, 0, 0, 0.4), inset 0 0 30px rgba(255, 0, 0, 0.3);
+}
+
+.sith-plasma::before {
+    content: '';
+    position: absolute;
+    inset: -8px;
+    border-radius: 18px;
+    border: 2px solid transparent;
+    background: linear-gradient(45deg, transparent 40%, rgba(255, 0, 0, 0.9) 50%, transparent 60%);
+    background-size: 200% 200%;
+    filter: blur(3px);
+    animation: sith-crackle 0.08s infinite steps(2);
+}
+
+@keyframes sith-crackle {
+    0% {
+        opacity: 0.4;
+        transform: scale(0.97) skew(1deg);
+    }
+
+    50% {
+        opacity: 0.9;
+        transform: scale(1.03) skew(-1deg);
+    }
+
+    100% {
+        opacity: 0.5;
+        transform: scale(0.99) skew(0.5deg);
+    }
+}
+
+/* Impact: RED Sith Sparks */
+.sith-spark {
+    position: absolute;
+    width: 3px;
+    height: 10px;
+    background: linear-gradient(to bottom, #fff 0%, #ff2200 40%, #cc0000 100%);
+    border-radius: 2px;
+    pointer-events: none;
+    z-index: 70;
+    opacity: 0;
+    will-change: transform, opacity;
+    box-shadow: 0 0 10px #ff0000, 0 0 15px #cc0000;
+}
+
+/* Card Aftermath: Sith Aura */
+.card-sith {
+    box-shadow: 0 0 20px rgba(255, 0, 0, 0.5), 0 0 40px rgba(150, 0, 0, 0.3), inset 0 0 15px rgba(100, 0, 0, 0.4) !important;
+    border: 1px solid rgba(255, 50, 50, 0.6) !important;
+    filter: brightness(0.9) saturate(1.1);
+}
+
+/* Impact: Dark ripple under card - BIGGER */
+.sith-impact {
+    position: absolute;
+    width: 400px;
+    height: 120px;
+    border-radius: 50%;
+    background: radial-gradient(ellipse at center, rgba(255, 0, 0, 0.7) 0%, rgba(200, 0, 0, 0.4) 30%, rgba(100, 0, 0, 0.2) 50%, transparent 70%);
+    filter: blur(15px);
+    pointer-events: none;
+    z-index: 2;
+    opacity: 0;
+}
+
+/* Mobile overrides for Sith FX - MUST come after base styles */
+/* Mobile card size is 165px x 225px */
+@media (max-width: 768px) {
+    .sith-shadow {
+        width: 175px;
+        /* Card width + 10px for glow spread */
+        height: 235px;
+        /* Card height + 10px for glow spread */
+        border-radius: 14px;
+        filter: blur(12px);
+        /* Slightly less blur on mobile */
+    }
+
+    .sith-plasma {
+        width: 165px;
+        /* Exact card width */
+        height: 225px;
+        /* Exact card height */
+        border-radius: 14px;
+        box-shadow: 0 0 25px rgba(255, 0, 0, 0.4), inset 0 0 20px rgba(255, 0, 0, 0.3);
+    }
+
+    .sith-plasma::before {
+        inset: -4px;
+        border-radius: 16px;
+    }
+
+    .sith-impact {
+        width: 180px;
+        /* Slightly wider than card */
+        height: 50px;
+        filter: blur(10px);
+    }
+
+    .sith-spark {
+        width: 2px;
+        height: 6px;
+    }
+}
+
+/* --- GAMBIT CHARGE FX --- */
+
+/* The Charged Card State */
+.gambit-charged {
+    /* Intense Magenta/Pink Glow */
+    box-shadow:
+        0 0 20px #ff00ff,
+        0 0 40px #ff00ff,
+        0 0 80px rgba(255, 0, 255, 0.6),
+        inset 0 0 30px rgba(255, 0, 255, 0.5) !important;
+    border: 1px solid #ff55ff !important;
+    filter: brightness(1.2) contrast(1.1);
+    z-index: 100 !important;
+}
+
+/* Kinetic Energy Particles (Sparks) */
+.gambit-particle {
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    background: #ff00ff;
+    border-radius: 50%;
+    pointer-events: none;
+    box-shadow: 0 0 10px #ff00ff, 0 0 20px #ff00ff;
+    z-index: 101;
+}
+
+/* Trailing Light Ribbon */
+.gambit-trail {
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    /* Matches card width approximately */
+    background: linear-gradient(90deg, transparent, rgba(255, 0, 255, 0.5), #ff00ff);
+    filter: blur(8px);
+    opacity: 0.6;
+    pointer-events: none;
+    transform-origin: left center;
+    z-index: 99;
+}
+
+/* Explosive Impact Shockwave */
+.gambit-shockwave {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 4px solid #ff00ff;
+    box-shadow: 0 0 50px #ff00ff, inset 0 0 20px #ff00ff;
+    pointer-events: none;
+    z-index: 102;
+    opacity: 0;
+}
+
+/* Vibration Animation */
+@keyframes gambit-vibrate {
+    0% {
+        transform: translate(0, 0) rotate(0deg);
+    }
+
+    20% {
+        transform: translate(-2px, 2px) rotate(-1deg);
+    }
+
+    40% {
+        transform: translate(2px, -2px) rotate(1deg);
+    }
+
+    60% {
+        transform: translate(-2px, -2px) rotate(0deg);
+    }
+
+    80% {
+        transform: translate(2px, 2px) rotate(-1deg);
+    }
+
+    100% {
+        transform: translate(0, 0) rotate(0deg);
+    }
+}
+
+.gambit-vibrating {
+    animation: gambit-vibrate 0.1s infinite;
+}
+
+/* --- BLUE DISSOLUTION FX (for Interested/Play) --- */
+
+/* Base Particle Styles */
+.gold-particle {
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 200;
+    will-change: transform, opacity;
+}
+
+/* Core Dust - Blue particles */
+.gold-particle-core {
+    width: 6px;
+    height: 6px;
+    background: radial-gradient(circle, #fff 0%, #3b82f6 40%, #1e40af 100%);
+    box-shadow:
+        0 0 6px #3b82f6,
+        0 0 12px rgba(59, 130, 246, 0.8),
+        0 0 20px rgba(59, 130, 246, 0.4);
+}
+
+/* Spark Trail - Blue fast particles */
+.gold-particle-spark {
+    width: 3px;
+    height: 3px;
+    background: #fff;
+    box-shadow: 0 0 4px #3b82f6, 0 0 8px rgba(59, 130, 246, 0.6);
+}
+
+/* Ember Glow - Blue soft background */
+.gold-particle-ember {
+    width: 14px;
+    height: 14px;
+    background: radial-gradient(circle, rgba(59, 130, 246, 0.7) 0%, rgba(30, 64, 175, 0.3) 40%, transparent 70%);
+    filter: blur(3px);
+    box-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
+}
+
+/* Blue trail streaks */
+.gold-particle-trail {
+    position: absolute;
+    width: 2px;
+    height: 25px;
+    background: linear-gradient(to bottom, rgba(59, 130, 246, 0.9), rgba(59, 130, 246, 0.3), transparent);
+    border-radius: 2px;
+    transform-origin: top center;
+    filter: blur(1px);
+    pointer-events: none;
+    z-index: 199;
+}
+
+/* Blue charged glow for card before dissolution */
+.gold-charged {
+    box-shadow:
+        0 0 30px rgba(59, 130, 246, 0.7),
+        0 0 60px rgba(59, 130, 246, 0.5),
+        0 0 100px rgba(59, 130, 246, 0.3),
+        inset 0 0 25px rgba(59, 130, 246, 0.4) !important;
+    border: 1px solid rgba(96, 165, 250, 0.6) !important;
+    filter: brightness(1.15) saturate(1.3);
+}
+
+/* Blue impact burst when particles collide with discard pile */
+.gold-impact-burst {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.9) 0%, rgba(59, 130, 246, 0.8) 30%, transparent 70%);
+    pointer-events: none;
+    z-index: 201;
+    will-change: transform, opacity;
+}
+
+/* Blue shockwave ring on discard pile */
+.gold-shockwave {
+    position: absolute;
+    /* Width/height set by JS to match pile dimensions */
+    border: 3px solid rgba(59, 130, 246, 0.9);
+    background: transparent;
+    box-shadow: 0 0 30px rgba(59, 130, 246, 0.7), 0 0 60px rgba(59, 130, 246, 0.4), inset 0 0 20px rgba(59, 130, 246, 0.2);
+    pointer-events: none;
+    z-index: 202;
+    will-change: transform, opacity;
+}
+
+/* Blue ghost card reformation effect */
+.gold-reform-ghost {
+    position: absolute;
+    opacity: 0;
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(255, 255, 255, 0.08));
+    border: 2px solid rgba(59, 130, 246, 0.5);
+    border-radius: 12px;
+    backdrop-filter: blur(4px);
+    pointer-events: none;
+    z-index: 198;
+    box-shadow: 0 0 30px rgba(59, 130, 246, 0.4);
+}
+
+/* Blue reformation glow on discard pile */
+.gold-reformation-glow {
+    box-shadow:
+        0 0 50px rgba(59, 130, 246, 0.9),
+        0 0 100px rgba(59, 130, 246, 0.6),
+        0 0 150px rgba(59, 130, 246, 0.3);
+    animation: blue-pulse 0.6s ease-out;
+}
+
+@keyframes blue-pulse {
+    0% {
+        box-shadow:
+            0 0 80px rgba(59, 130, 246, 1),
+            0 0 150px rgba(59, 130, 246, 0.8),
+            0 0 200px rgba(59, 130, 246, 0.5);
+    }
+
+    100% {
+        box-shadow:
+            0 0 20px rgba(59, 130, 246, 0.4),
+            0 0 40px rgba(59, 130, 246, 0.2);
+    }
+}
+
+/* DEALER'S FLOURISH ANIMATION */
+
+/* Ghost Trail for Discard Animation */
+.dealer-ghost {
+    position: absolute;
+    /* Width/Height set by JS for responsiveness */
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0));
+    backdrop-filter: blur(2px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 12px;
+    pointer-events: none;
+    z-index: 100;
+    opacity: 0.6;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    transform-origin: center center;
+    mix-blend-mode: screen;
+    /* Add this for a "light" trail effect */
+}
+
+/* Landing Ripple for Dealer's Flourish */
+.dealer-impact-ripple {
+    position: absolute;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 5;
+    opacity: 0;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    z-index: 100;
+    opacity: 0.4;
+    filter: blur(2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    transform-origin: center center;
+}
+
+/* Slight motion blur stretch */
+@keyframes ghost-fade {
+    to {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+}
+
+/* ============================================
+   PREMIUM TABLE RIPPLE EFFECT (Shuffle Phase)
+   ============================================ */
+
+/* Ripple overlay container */
+.table-ripple-layer {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 5;
+    overflow: hidden;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.table-ripple-layer.active {
+    opacity: 1;
+}
+
+/* Central glow origin */
+.ripple-center-glow {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    background: radial-gradient(circle,
+            rgba(16, 185, 129, 0.6) 0%,
+            rgba(6, 182, 212, 0.4) 30%,
+            rgba(16, 185, 129, 0.2) 60%,
+            transparent 100%);
+    filter: blur(30px);
+    animation: center-pulse 0.4s ease-out;
+}
+
+/* Dark Blue ripple center glow */
+.ripple-blue .ripple-center-glow {
+    background: radial-gradient(circle,
+            rgba(59, 130, 246, 0.7) 0%,
+            rgba(30, 64, 175, 0.5) 30%,
+            rgba(59, 130, 246, 0.2) 60%,
+            transparent 100%);
+}
+
+/* Premium Red ripple center glow */
+.ripple-red .ripple-center-glow {
+    background: radial-gradient(circle,
+            rgba(239, 68, 68, 0.7) 0%,
+            rgba(185, 28, 28, 0.5) 30%,
+            rgba(239, 68, 68, 0.2) 60%,
+            transparent 100%);
+}
+
+@keyframes center-pulse {
+    0% {
+        transform: translate(-50%, -50%) scale(0.3);
+        opacity: 0;
+    }
+
+    20% {
+        opacity: 1;
+    }
+
+    100% {
+        transform: translate(-50%, -50%) scale(3);
+        opacity: 0;
+    }
+}
+
+/* Ripple wave rings */
+.ripple-wave {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    border-radius: 50%;
+    pointer-events: none;
+    opacity: 0;
+}
+
+/* First wave - Emerald core (FAST - finger snap) */
+.ripple-wave-1 {
+    width: 100px;
+    height: 100px;
+    border: 3px solid rgba(16, 185, 129, 0.8);
+    box-shadow:
+        0 0 30px rgba(16, 185, 129, 0.6),
+        0 0 60px rgba(16, 185, 129, 0.3),
+        inset 0 0 20px rgba(16, 185, 129, 0.2);
+    animation: ripple-expand 0.5s ease-out 0s forwards;
+}
+
+/* Second wave - Teal blend */
+.ripple-wave-2 {
+    width: 100px;
+    height: 100px;
+    border: 2px solid rgba(6, 182, 212, 0.7);
+    box-shadow:
+        0 0 25px rgba(6, 182, 212, 0.5),
+        0 0 50px rgba(6, 182, 212, 0.25);
+    animation: ripple-expand 0.5s ease-out 0.05s forwards;
+}
+
+/* Third wave - Emerald secondary */
+.ripple-wave-3 {
+    width: 100px;
+    height: 100px;
+    border: 2px solid rgba(16, 185, 129, 0.5);
+    box-shadow:
+        0 0 20px rgba(16, 185, 129, 0.4),
+        0 0 40px rgba(16, 185, 129, 0.2);
+    animation: ripple-expand 0.5s ease-out 0.1s forwards;
+}
+
+/* Fourth wave - Subtle cyan */
+.ripple-wave-4 {
+    width: 100px;
+    height: 100px;
+    border: 1px solid rgba(34, 211, 238, 0.4);
+    box-shadow:
+        0 0 15px rgba(34, 211, 238, 0.3),
+        0 0 30px rgba(34, 211, 238, 0.15);
+    animation: ripple-expand 0.5s ease-out 0.15s forwards;
+}
+
+/* Fifth wave - Final fade */
+.ripple-wave-5 {
+    width: 100px;
+    height: 100px;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.2);
+    animation: ripple-expand 0.5s ease-out 0.2s forwards;
+}
+
+/* ============================================
+   DARK BLUE RIPPLE WAVES - First Shuffle
+   ============================================ */
+
+.ripple-blue .ripple-wave-1 {
+    border-color: rgba(59, 130, 246, 0.9);
+    box-shadow:
+        0 0 30px rgba(59, 130, 246, 0.7),
+        0 0 60px rgba(59, 130, 246, 0.4),
+        inset 0 0 20px rgba(59, 130, 246, 0.3);
+}
+
+.ripple-blue .ripple-wave-2 {
+    border-color: rgba(30, 64, 175, 0.8);
+    box-shadow:
+        0 0 25px rgba(30, 64, 175, 0.6),
+        0 0 50px rgba(30, 64, 175, 0.3);
+}
+
+.ripple-blue .ripple-wave-3 {
+    border-color: rgba(59, 130, 246, 0.6);
+    box-shadow:
+        0 0 20px rgba(59, 130, 246, 0.5),
+        0 0 40px rgba(59, 130, 246, 0.25);
+}
+
+.ripple-blue .ripple-wave-4 {
+    border-color: rgba(96, 165, 250, 0.5);
+    box-shadow:
+        0 0 15px rgba(96, 165, 250, 0.4),
+        0 0 30px rgba(96, 165, 250, 0.2);
+}
+
+.ripple-blue .ripple-wave-5 {
+    border-color: rgba(59, 130, 246, 0.4);
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+}
+
+/* ============================================
+   PREMIUM RED RIPPLE WAVES - Second Shuffle
+   ============================================ */
+
+.ripple-red .ripple-wave-1 {
+    border-color: rgba(239, 68, 68, 0.9);
+    box-shadow:
+        0 0 30px rgba(239, 68, 68, 0.7),
+        0 0 60px rgba(239, 68, 68, 0.4),
+        inset 0 0 20px rgba(239, 68, 68, 0.3);
+}
+
+.ripple-red .ripple-wave-2 {
+    border-color: rgba(185, 28, 28, 0.8);
+    box-shadow:
+        0 0 25px rgba(185, 28, 28, 0.6),
+        0 0 50px rgba(185, 28, 28, 0.3);
+}
+
+.ripple-red .ripple-wave-3 {
+    border-color: rgba(239, 68, 68, 0.6);
+    box-shadow:
+        0 0 20px rgba(239, 68, 68, 0.5),
+        0 0 40px rgba(239, 68, 68, 0.25);
+}
+
+.ripple-red .ripple-wave-4 {
+    border-color: rgba(248, 113, 113, 0.5);
+    box-shadow:
+        0 0 15px rgba(248, 113, 113, 0.4),
+        0 0 30px rgba(248, 113, 113, 0.2);
+}
+
+.ripple-red .ripple-wave-5 {
+    border-color: rgba(239, 68, 68, 0.4);
+    box-shadow: 0 0 20px rgba(239, 68, 68, 0.3);
+}
+
+@keyframes ripple-expand {
+    0% {
+        transform: translate(-50%, -50%) scale(0);
+        opacity: 0;
+    }
+
+    15% {
+        opacity: 1;
+    }
+
+    100% {
+        transform: translate(-50%, -50%) scale(25);
+        opacity: 0;
+    }
+}
+
+/* Table color shift overlay */
+.table-color-shift {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0;
+    background: radial-gradient(ellipse at 50% 50%,
+            rgba(16, 185, 129, 0.15) 0%,
+            rgba(6, 182, 212, 0.1) 30%,
+            rgba(16, 185, 129, 0.05) 50%,
+            transparent 70%);
+    animation: color-wave 1.8s ease-out forwards;
+}
+
+/* Dark Blue color shift */
+.ripple-blue .table-color-shift {
+    background: radial-gradient(ellipse at 50% 50%,
+            rgba(59, 130, 246, 0.2) 0%,
+            rgba(30, 64, 175, 0.12) 30%,
+            rgba(59, 130, 246, 0.06) 50%,
+            transparent 70%);
+}
+
+/* Premium Red color shift */
+.ripple-red .table-color-shift {
+    background: radial-gradient(ellipse at 50% 50%,
+            rgba(239, 68, 68, 0.2) 0%,
+            rgba(185, 28, 28, 0.12) 30%,
+            rgba(239, 68, 68, 0.06) 50%,
+            transparent 70%);
+}
+
+@keyframes color-wave {
+    0% {
+        opacity: 0;
+        transform: scale(0.5);
+    }
+
+    20% {
+        opacity: 1;
+    }
+
+    60% {
+        opacity: 0.8;
+    }
+
+    100% {
+        opacity: 0;
+        transform: scale(2.5);
+    }
+}
+
+/* Shimmer particles during ripple */
+.ripple-shimmer {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 0 6px rgba(16, 185, 129, 0.8), 0 0 12px rgba(6, 182, 212, 0.6);
+    pointer-events: none;
+    opacity: 0;
+}
+
+/* Dark Blue shimmer */
+.ripple-blue .ripple-shimmer {
+    box-shadow: 0 0 6px rgba(59, 130, 246, 0.9), 0 0 12px rgba(30, 64, 175, 0.7);
+}
+
+/* Premium Red shimmer */
+.ripple-red .ripple-shimmer {
+    box-shadow: 0 0 6px rgba(239, 68, 68, 0.9), 0 0 12px rgba(185, 28, 28, 0.7);
+}
+
+/* Luxury accent lines radiating from center */
+.ripple-ray {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 2px;
+    height: 0;
+    background: linear-gradient(to bottom,
+            rgba(16, 185, 129, 0.8),
+            rgba(6, 182, 212, 0.5),
+            transparent);
+    transform-origin: top center;
+    opacity: 0;
+    filter: blur(1px);
+}
+
+/* Dark Blue rays */
+.ripple-blue .ripple-ray {
+    background: linear-gradient(to bottom,
+            rgba(59, 130, 246, 0.9),
+            rgba(30, 64, 175, 0.6),
+            transparent);
+}
+
+/* Premium Red rays */
+.ripple-red .ripple-ray {
+    background: linear-gradient(to bottom,
+            rgba(239, 68, 68, 0.9),
+            rgba(185, 28, 28, 0.6),
+            transparent);
+}
+
+@keyframes ray-expand {
+    0% {
+        height: 0;
+        opacity: 0;
+    }
+
+    30% {
+        opacity: 0.8;
+    }
+
+    100% {
+        height: 100vh;
+        opacity: 0;
+    }
+}
+
+/* Action Buttons - Ensure clickability */
+.action-buttons {
+    position: relative;
+    z-index: 10;
+    pointer-events: auto;
+}
+
+.action-buttons button {
+    pointer-events: auto;
+    cursor: pointer;
+}
+
+/* Show action buttons when card is focused/flipped */
+.poker-card[data-focused="true"] .action-buttons,
+.poker-card.focused .action-buttons {
+    opacity: 1;
+    transition: opacity 0.3s ease 0.2s;
+}
+
+/* Enable pointer events on card-front when focused so buttons work */
+.poker-card[data-focused="true"] .card-front,
+.poker-card.focused .card-front {
+    pointer-events: auto;
+}
+
+/* Disable pointer events on card-back when focused - prevents blocking front face buttons */
+.poker-card[data-focused="true"] .card-back,
+.poker-card.focused .card-back {
+    pointer-events: none;
+}
+
+/* Also disable the tilt-inner from capturing events, let them pass to children */
+.poker-card[data-focused="true"] .card-tilt-inner,
+.poker-card.focused .card-tilt-inner {
+    pointer-events: none;
+}
+
+/* Re-enable on front face content */
+.poker-card[data-focused="true"] .card-front-content,
+.poker-card.focused .card-front-content {
+    pointer-events: auto;
+}
+
+/* Ensure buttons are always clickable with high z-index */
+.poker-card[data-focused="true"] .action-buttons,
+.poker-card.focused .action-buttons {
+    position: relative;
+    z-index: 100;
+    pointer-events: auto;
+}
+
+.poker-card[data-focused="true"] .action-buttons button,
+.poker-card.focused .action-buttons button {
+    pointer-events: auto;
+    cursor: pointer;
+    position: relative;
+    z-index: 101;
+}
+
+/* ===== GAME OVER MODAL ===== */
+.game-over-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.game-over-modal {
+    background: linear-gradient(145deg, rgba(30, 30, 40, 0.95), rgba(15, 15, 25, 0.98));
+    border-radius: 24px;
+    padding: 2.5rem 2rem 2rem;
+    width: 90%;
+    max-width: 400px;
+    text-align: center;
+    position: relative;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow:
+        0 0 0 1px rgba(255, 255, 255, 0.05),
+        0 25px 80px rgba(0, 0, 0, 0.6),
+        0 0 100px rgba(16, 185, 129, 0.15);
+    animation: modalSlideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes modalSlideUp {
+    from {
+        opacity: 0;
+        transform: translateY(40px) scale(0.95);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.game-over-border {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60%;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, #10b981, transparent);
+    border-radius: 0 0 3px 3px;
+}
+
+.game-over-title {
+    font-size: 2rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #fff 0%, #a7a7a7 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 1.5rem;
+}
+
+.game-over-stats {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.stat-item .stat-value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.stat-item.saved .stat-value {
+    color: #10b981;
+    text-shadow: 0 0 20px rgba(16, 185, 129, 0.5);
+}
+
+.stat-item.total .stat-value {
+    color: #6b7280;
+}
+
+.stat-item .stat-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: rgba(255, 255, 255, 0.4);
+    margin-top: 0.25rem;
+}
+
+.stat-divider {
+    width: 1px;
+    height: 40px;
+    background: linear-gradient(180deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+}
+
+.game-over-message {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.95rem;
+    margin-bottom: 2rem;
+    line-height: 1.5;
+}
+
+.game-over-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.game-over-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.875rem 1.5rem;
+    border-radius: 12px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+}
+
+.game-over-btn.restart {
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.game-over-btn.restart:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: #fff;
+    transform: translateY(-2px);
+}
+
+.game-over-btn.primary {
+    padding: 1rem 1.5rem;
+    font-size: 1rem;
+}
+
+.game-over-btn.primary.cash-out {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: #fff;
+    box-shadow: 0 4px 20px rgba(16, 185, 129, 0.4);
+}
+
+.game-over-btn.primary.cash-out:hover {
+    background: linear-gradient(135deg, #34d399, #10b981);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 30px rgba(16, 185, 129, 0.5);
+}
+
+.game-over-btn.primary.leave {
+    background: linear-gradient(135deg, #6b7280, #4b5563);
+    color: #fff;
+}
+
+.game-over-btn.primary.leave:hover {
+    background: linear-gradient(135deg, #9ca3af, #6b7280);
+    transform: translateY(-2px);
+}
+
+/* Mobile adjustments */
+@media (max-width: 767px) {
+    .game-over-modal {
+        padding: 2rem 1.5rem 1.5rem;
+        margin: 1rem;
+    }
+
+    .game-over-title {
+        font-size: 1.5rem;
+    }
+
+    .stat-item .stat-value {
+        font-size: 2rem;
+    }
+
+    .game-over-message {
+        font-size: 0.875rem;
+    }
+
+    .game-over-btn {
+        padding: 0.75rem 1rem;
+        font-size: 0.875rem;
+    }
+
+    .game-over-btn.primary {
+        padding: 0.875rem 1rem;
+    }
+}

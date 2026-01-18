@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { motion, useReducedMotion } from "framer-motion";
+import { useReducedMotion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 interface BeamsBackgroundProps {
@@ -173,7 +173,7 @@ export function BeamsBackground({
             }
 
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.filter = "blur(35px)";
+            // Note: Blur now handled by CSS filter on canvas element for better performance
 
             const totalBeams = beamsRef.current.length;
             beamsRef.current.forEach((beam, index) => {
@@ -224,23 +224,7 @@ export function BeamsBackground({
             <canvas
                 ref={canvasRef}
                 className="absolute inset-0"
-                style={{ filter: "blur(15px)" }}
-            />
-
-            {/* Subtle overlay for depth */}
-            <motion.div
-                className="absolute inset-0 bg-background/5"
-                animate={{
-                    opacity: [0.05, 0.1, 0.05],
-                }}
-                transition={{
-                    duration: 10,
-                    ease: "easeInOut",
-                    repeat: Infinity,
-                }}
-                style={{
-                    backdropFilter: "blur(50px)",
-                }}
+                style={{ filter: "blur(50px)" }}
             />
         </div>
     );

@@ -15,7 +15,8 @@ const pageOrder = [
 ];
 
 // Pages that need zone-based swipe (have interactive content that shouldn't trigger nav)
-const zoneBasedPages = ["/showcase"];
+// Currently empty - all pages use standard swipe sensitivity
+const zoneBasedPages: string[] = [];
 
 interface SwipeNavigationProps {
     children: ReactNode;
@@ -53,16 +54,24 @@ export function SwipeNavigation({ children }: SwipeNavigationProps) {
 
     const handleDragStart = useCallback(
         (event: MouseEvent | TouchEvent | PointerEvent) => {
-            // For zone-based pages, check if swipe started in a swipeable zone
+            // For zone-based pages, use edge-based detection
             if (isZoneBasedPage) {
-                const target = event.target as HTMLElement;
-                // Check if the target or any parent has data-swipeable attribute
-                const swipeableZone = target.closest('[data-swipeable="true"]');
-                // Check if the target is inside a no-swipe zone (like the gallery)
-                const noSwipeZone = target.closest('[data-no-swipe="true"]');
+                // Get the starting X position
+                let startX = 0;
+                if ('touches' in event && event.touches.length > 0) {
+                    startX = event.touches[0].clientX;
+                } else if ('clientX' in event) {
+                    startX = event.clientX;
+                }
 
-                // Allow swipe only if in swipeable zone and not in no-swipe zone
-                setCanNavigate(!!swipeableZone && !noSwipeZone);
+                const screenWidth = window.innerWidth;
+                const edgeThreshold = 60; // px from edge
+
+                // Allow swipe only if started from left or right edge
+                const isFromLeftEdge = startX < edgeThreshold;
+                const isFromRightEdge = startX > screenWidth - edgeThreshold;
+
+                setCanNavigate(isFromLeftEdge || isFromRightEdge);
             } else {
                 setCanNavigate(true);
             }

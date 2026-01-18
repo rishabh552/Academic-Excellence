@@ -33,12 +33,12 @@ export function Home() {
         >
             {/* Mobile Hero - visible below 1024px (phones + tablets) */}
             <motion.div variants={itemVariants} className="block lg:hidden">
-                <MobileHero title="Academic Excellence" />
+                <MobileHero title="aqro for Students" />
             </motion.div>
 
             {/* Desktop Hero - visible at 1024px and above (laptops + desktops) */}
             <motion.div variants={itemVariants} className="hidden lg:block">
-                <BackgroundPaths title="Academic Excellence" />
+                <BackgroundPaths title="aqro for Students" />
             </motion.div>
         </motion.div>
     );

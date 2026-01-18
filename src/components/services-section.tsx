@@ -7,7 +7,7 @@ import { Link } from "react-router-dom";
 import SpotlightCard from "./ui/spotlight-card";
 import { MagneticButton } from "./ui/magnetic-button";
 import { GradientHeadline } from "./ui/gradient-headline";
-import { Code2, Brain, Network, MessageSquare, Smartphone } from "lucide-react";
+import { Code2, Brain, Network, MessageSquare, Smartphone, Workflow } from "lucide-react";
 
 export function ServicesSection() {
   const ref = useRef(null);
@@ -48,6 +48,13 @@ export function ServicesSection() {
       title: "Mobile Applications",
       description: "Native and cross-platform mobile apps for iOS and Android using React Native or Flutter.",
       features: ["Cross-platform Dev", "Native Performance", "API Integration", "App Store Ready"],
+    },
+    {
+      id: "n8n-automation",
+      icon: <Workflow className="w-12 h-12 text-status-info" />,
+      title: "n8n Automation",
+      description: "Powerful workflow automation using n8n for seamless integrations, data pipelines, and business process automation.",
+      features: ["Custom Workflows", "API Integrations", "Data Pipelines", "Business Automation"],
     },
   ];
 
