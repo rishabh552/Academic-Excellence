@@ -1,6 +1,28 @@
 import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
-import { Suspense, lazy } from "react";
+import { Suspense, lazy, useEffect } from "react";
+import gsap from "gsap";
+import { ScrollToPlugin } from "gsap/ScrollToPlugin";
+
+// Register GSAP plugins
+gsap.registerPlugin(ScrollToPlugin);
+
+// Smooth scroll to top on route change using GSAP
+function ScrollToTop() {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    // Small delay to let exit animation complete (0.3s exit duration)
+    // Then instant scroll to avoid conflicts with enter animation
+    const timeout = setTimeout(() => {
+      window.scrollTo(0, 0);
+    }, 50);
+
+    return () => clearTimeout(timeout);
+  }, [pathname]);
+
+  return null;
+}
 import { ModernNavbar } from "./components/ui/modern-navbar";
 import { SwipeNavigation } from "./components/ui/swipe-navigation";
 import { PageTransition } from "./components/ui/page-transition";
@@ -48,6 +70,9 @@ function AppContent() {
 
   return (
     <div className="relative min-h-screen">
+      {/* Scroll restoration */}
+      <ScrollToTop />
+
       {/* Sticky Navigation */}
       <ModernNavbar />
 
