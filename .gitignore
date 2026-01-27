@@ -48,6 +48,16 @@ Thumbs.db
 # Testing
 coverage/
 
+# Documentation & Planning (optional - uncomment to exclude from git)
+# docs/
+# plan/
+# seo-validator.js
+
+# Temporary files
+*.tmp
+*.temp
+~*
+
 # Misc
 .cache/
 .temp/

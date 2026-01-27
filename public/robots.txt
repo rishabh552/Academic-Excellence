@@ -1,0 +1,32 @@
+# robots.txt for aqro
+
+User-agent: *
+Allow: /
+
+# Disallow admin or private areas (if any in future)
+# Disallow: /admin/
+# Disallow: /private/
+
+# Sitemap location
+Sitemap: https://aqro.vercel.app/sitemap.xml
+
+# Crawl-delay for good behavior
+Crawl-delay: 1
+
+# Google bot specific
+User-agent: Googlebot
+Allow: /
+
+# Bing bot specific
+User-agent: Bingbot
+Allow: /
+
+# Allow social media crawlers
+User-agent: facebookexternalhit
+Allow: /
+
+User-agent: Twitterbot
+Allow: /
+
+User-agent: LinkedInBot
+Allow: /

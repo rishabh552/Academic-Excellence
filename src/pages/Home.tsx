@@ -1,5 +1,6 @@
 import { BackgroundPaths } from "@/components/background-paths";
 import { MobileHero } from "@/components/mobile-hero";
+import { SEO, pageSEO } from "@/components/SEO";
 import { motion } from "framer-motion";
 
 const pageVariants = {
@@ -23,11 +24,13 @@ const itemVariants = {
 
 export function Home() {
     return (
-        <motion.div
-            id="home"
-            variants={pageVariants}
-            initial="initial"
-            animate="enter"
+        <>
+            <SEO {...pageSEO.home} />
+            <motion.div
+                id="home"
+                variants={pageVariants}
+                initial="initial"
+                animate="enter"
             exit="exit"
             className="relative"
         >
@@ -41,5 +44,6 @@ export function Home() {
                 <BackgroundPaths title="aqro for Students" />
             </motion.div>
         </motion.div>
+        </>
     );
 }
