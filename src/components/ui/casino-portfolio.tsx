@@ -37,6 +37,7 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
     }); // Track shuffle number for color alternation
     const [isGameOver, setIsGameOver] = useState(false); // Track game-over state
     const [reshuffledCardIds, setReshuffledCardIds] = useState<Set<string>>(new Set()); // Track cards that have been reshuffled once
+    const [recycleCounts, setRecycleCounts] = useState<Record<string, number>>({}); // Track how many times each project ID has been recycled
     const [isFirstShuffle, setIsFirstShuffle] = useState(true); // Track if this is the first shuffle (wild card forced to hand)
     const [activeFilter, setActiveFilter] = useState<string | null>(null); // Filter: null = all, or category name
     const [isPlayAnimating, setIsPlayAnimating] = useState(false); // Track when a card is being played (prevent Cash Out from appearing)
@@ -1286,8 +1287,8 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
         });
     };
 
-    // CLOSE ACTIVE PROJECT - Animate card to Discard Pile, then update state
-    const handleCloseActive = () => {
+    // KEEP ACTIVE PROJECT - Animate card to Interested Pile, then update state
+    const handleKeepAndClose = () => {
         // CRITICAL: Guard against multiple clicks during animation
         if (!activeProject || activeCardIndex === null || isTransitioning) return;
 
@@ -1661,6 +1662,116 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
         }, [], reformStart + 0.55);
     };
 
+    // RECYCLE ACTIVE PROJECT - Flash Step to Deck
+    const handleRecycleAndClose = () => {
+        if (!activeProject || activeCardIndex === null || isTransitioning) return;
+        const card = handRefs.current[activeCardIndex];
+        const recycledProject = activeProject;
+        const index = activeCardIndex;
+        const id = recycledProject.common;
+
+        // Fatigue Logic: Max 1 recycle (total 2 sightings)
+        const currentRecycleCount = recycleCounts[id] || 0;
+        const isFatigued = currentRecycleCount >= 1;
+
+        if (!card || !containerRef.current || (!deckRef.current && !isFatigued) || (isFatigued && !rejectedPileRef.current)) {
+            setActiveProject(null);
+            setActiveCardIndex(null);
+            onActiveProjectChange?.(null);
+            return;
+        }
+
+        setIsTransitioning(true);
+
+        // Hide details panel
+        gsap.to(".details-panel", { right: "-50%", bottom: "-50%", duration: 0.3, ease: "power2.in" });
+        if (activeSlotRef.current) activeSlotRef.current.classList.remove('visible');
+
+        const containerRect = containerRef.current.getBoundingClientRect();
+        const cardRect = card.getBoundingClientRect();
+
+        // Determine destination based on fatigue
+        let targetX, targetY;
+        if (isFatigued) {
+            // Move to Rejected Pile if viewed twice
+            const rejectedRect = rejectedPileRef.current!.getBoundingClientRect();
+            targetX = rejectedRect.left - containerRect.left;
+            targetY = rejectedRect.top - containerRect.top;
+        } else {
+            // Move to Deck
+            const deckRect = deckRef.current!.getBoundingClientRect();
+            targetX = deckRect.left - containerRect.left + (deckRect.width / 2) - (cardRect.width / 4);
+            targetY = deckRect.top - containerRect.top + (deckRect.height / 2) - (cardRect.height / 4);
+        }
+
+        // Restore other cards
+        handRefs.current.forEach((c, i) => {
+            if (c && i !== index) gsap.set(c, { opacity: 1, scale: 1, filter: "none" });
+        });
+
+        // Increment recycle count
+        setRecycleCounts(prev => ({ ...prev, [id]: currentRecycleCount + 1 }));
+
+        const tl = gsap.timeline({
+            onComplete: () => {
+                handRefs.current[index] = null;
+                const newTotal = hand.length - 1;
+
+                // Remove from hand
+                setHand(prev => prev.filter((_, i) => i !== index));
+
+                if (isFatigued) {
+                    // Finally discard
+                    setRejectedPile(prev => [...prev, recycledProject]);
+                    // Impact on rejected pile
+                    gsap.to(rejectedPileRef.current, { scale: 1.15, duration: 0.1, yoyo: true, repeat: 1 });
+                } else {
+                    // Add to bottom of deck
+                    setDeck(prev => [...prev, recycledProject]);
+                    // Weight Bounce on Deck
+                    gsap.to(deckRef.current, { scale: 0.95, duration: 0.1, yoyo: true, repeat: 1 });
+                }
+
+                setActiveProject(null);
+                setActiveCardIndex(null);
+                setFocusedIndex(null);
+                setIsPlayAnimating(false);
+                onActiveProjectChange?.(null);
+
+                setTimeout(() => {
+                    if (!containerRef.current) { setIsTransitioning(false); return; }
+                    const validRefs = handRefs.current.filter((c): c is HTMLDivElement => c !== null && c.isConnected);
+                    const newContainerRect = containerRef.current.getBoundingClientRect();
+                    validRefs.forEach((c, newIdx) => {
+                        const pos = getHandPosition(newIdx, newTotal, newContainerRect.width, newContainerRect.height);
+                        gsap.to(c, { x: pos.x, y: pos.y, rotation: pos.rotation, duration: 0.4, ease: "power2.out" });
+                    });
+                    handRefs.current = validRefs;
+                    setIsTransitioning(false);
+                }, 100);
+            }
+        });
+
+        // FLASH STEP ANIMATION
+        // 1. Brief Teal Pulse
+        tl.to(card, {
+            boxShadow: "0 0 40px rgba(0, 255, 255, 0.6)",
+            filter: "brightness(1.5)",
+            duration: 0.1
+        });
+
+        // 2. The Zip (Near-instant)
+        tl.to(card, {
+            x: targetX,
+            y: targetY,
+            scale: 0.2,
+            opacity: 0,
+            rotation: -180,
+            duration: 0.15,
+            ease: "power4.in"
+        });
+    };
+
 
     // CUSTOM PROJECT WIZARD TRIGGER
     const handleCustomProject = () => {
@@ -1826,8 +1937,7 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
                 setIsTransitioning(false);
                 onActiveProjectChange?.(project);
 
-                // Add to ShowcaseContext for Start Project integration
-                addToShowcase(project);
+                // Removed auto-save: addToShowcase(project) logic moved to handleKeepAndClose
 
                 // Slide in details panel
                 gsap.to(".details-panel", {
@@ -2484,7 +2594,7 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
                     <div className="text-white h-full flex flex-col relative">
                         {/* Top close button for quick access on mobile */}
                         <button
-                            onClick={handleCloseActive}
+                            onClick={handleRecycleAndClose}
                             className="absolute top-0 right-0 md:hidden w-8 h-8 bg-white/10 hover:bg-red-600/40 rounded-full flex items-center justify-center transition-all z-10"
                             aria-label="Close"
                         >
@@ -2494,12 +2604,19 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
                         {/* Scrollable Content Area */}
                         <div className="flex-1 overflow-y-auto pr-1 space-y-3 md:space-y-6 pb-2">
                             <div className="pr-8 md:pr-0">
-                                <span className={cn(
-                                    "inline-block px-2 md:px-3 py-0.5 md:py-1 rounded-full text-[10px] md:text-xs font-semibold mb-2 md:mb-3 border border-emerald-500/30 text-emerald-400",
-                                    getBadgeClass(activeProject.binomial)
-                                )}>
-                                    {activeProject.binomial}
-                                </span>
+                                <div className="flex items-center gap-2 mb-2 md:mb-3">
+                                    <span className={cn(
+                                        "inline-block px-2 md:px-3 py-0.5 md:py-1 rounded-full text-[10px] md:text-xs font-semibold border border-emerald-500/30 text-emerald-400",
+                                        getBadgeClass(activeProject.binomial)
+                                    )}>
+                                        {activeProject.binomial}
+                                    </span>
+                                    {(recycleCounts[activeProject.common] || 0) > 0 && (
+                                        <span className="text-[10px] md:text-xs text-amber-500/80 font-medium">
+                                            Recycled {(recycleCounts[activeProject.common] || 0)}/1
+                                        </span>
+                                    )}
+                                </div>
                                 <h1 className="text-lg md:text-4xl font-bold mb-1 md:mb-2 tracking-tight leading-tight">{activeProject.common}</h1>
                                 <p className="text-xs md:text-xl text-gray-400 font-light leading-relaxed">{activeProject.description}</p>
                             </div>
@@ -2516,20 +2633,35 @@ export function CasinoPortfolio({ items, onActiveProjectChange }: CasinoPortfoli
 
                         {/* Sticky Footer Buttons */}
                         <div className="flex-shrink-0 pt-2 md:pt-4 pb-8 md:pb-0 border-t border-white/10 space-y-1.5 md:space-y-3 bg-inherit">
+                            {activeProject.links && (
+                                <div className="flex gap-2 md:gap-4 mb-1 md:mb-2 text-white">
+                                    {activeProject.links.live && (
+                                        <a href={activeProject.links.live} target="_blank" rel="noopener noreferrer" className="flex-1 bg-white/5 hover:bg-white/10 py-1.5 md:py-2 rounded-lg text-[10px] md:text-xs font-medium flex items-center justify-center transition-all border border-white/5">
+                                            Demo <ExternalLink size={12} className="ml-1 md:ml-2" />
+                                        </a>
+                                    )}
+                                    {activeProject.links.github && (
+                                        <a href={activeProject.links.github} target="_blank" rel="noopener noreferrer" className="flex-1 bg-white/5 hover:bg-white/10 py-1.5 md:py-2 rounded-lg text-[10px] md:text-xs font-medium flex items-center justify-center transition-all border border-white/5">
+                                            Repo <Github size={12} className="ml-1 md:ml-2" />
+                                        </a>
+                                    )}
+                                </div>
+                            )}
+
                             <div className="flex gap-2 md:gap-4">
-                                <button className="flex-1 bg-emerald-600 hover:bg-emerald-500 py-2 md:py-3 rounded-xl text-xs md:text-base font-bold flex items-center justify-center transition-all shadow-lg hover:shadow-emerald-500/20 active:scale-95">
-                                    Launch <ExternalLink size={14} className="ml-1 md:ml-2" />
+                                <button
+                                    onClick={handleKeepAndClose}
+                                    className="flex-1 bg-emerald-600 hover:bg-emerald-500 py-2 md:py-3 rounded-xl text-xs md:text-base font-bold flex items-center justify-center transition-all shadow-lg hover:shadow-emerald-500/20 active:scale-95 text-white"
+                                >
+                                    Keep & Save <Check size={14} className="ml-1 md:ml-2" />
                                 </button>
-                                <button className="flex-1 bg-gray-800 hover:bg-gray-700 py-2 md:py-3 rounded-xl text-xs md:text-base font-bold flex items-center justify-center transition-all hover:bg-white/10 active:scale-95">
-                                    Code <Github size={14} className="ml-1 md:ml-2" />
+                                <button
+                                    onClick={handleRecycleAndClose}
+                                    className="flex-1 bg-cyan-950/20 hover:bg-cyan-900/30 text-cyan-400 py-2 md:py-3 rounded-xl text-xs md:text-base font-medium flex items-center justify-center transition-all border border-cyan-500/20 active:scale-95"
+                                >
+                                    Close <HelpCircle size={14} className="ml-1 md:ml-2" />
                                 </button>
                             </div>
-                            <button
-                                onClick={handleCloseActive}
-                                className="hidden md:flex w-full bg-red-600/20 hover:bg-red-600/40 text-red-400 py-2 md:py-2.5 rounded-xl text-xs md:text-sm font-medium items-center justify-center transition-all border border-red-500/30 active:scale-95"
-                            >
-                                <X size={14} className="mr-1 md:mr-2" /> Close
-                            </button>
                         </div>
                     </div>
                 )}

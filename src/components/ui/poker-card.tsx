@@ -13,6 +13,7 @@ export interface Project {
     features: string[];
     photo: { url: string };
     techStack?: string[];
+    links?: { live: string; github: string };
 }
 
 export const WILD_CARD_PROJECT: Project = {

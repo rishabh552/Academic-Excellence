@@ -20,7 +20,8 @@ export function ProjectShowcase() {
             photo: {
                 url: "https://images.unsplash.com/photo-1557821552-17105176677c?w=800&q=80",
             },
-            techStack: ["React", "Node.js", "MongoDB", "Stripe"]
+            techStack: ["React", "Node.js", "MongoDB", "Stripe"],
+            links: { live: "https://example.com/demo", github: "https://github.com/example/repo" }
         },
         {
             common: "Disease Prediction",
@@ -36,7 +37,8 @@ export function ProjectShowcase() {
             photo: {
                 url: "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=800&q=80",
             },
-            techStack: ["Python", "TensorFlow", "Pandas", "Scikit-Learn"]
+            techStack: ["Python", "TensorFlow", "Pandas", "Scikit-Learn"],
+            links: { live: "https://example.com/demo", github: "https://github.com/example/repo" }
         },
         {
             common: "Fitness Tracker Pro",
@@ -52,7 +54,8 @@ export function ProjectShowcase() {
             photo: {
                 url: "https://images.unsplash.com/photo-1551650975-87deedd944c3?w=800&q=80",
             },
-            techStack: ["React Native", "Firebase", "Redux", "TypeScript"]
+            techStack: ["React Native", "Firebase", "Redux", "TypeScript"],
+            links: { live: "https://example.com/demo", github: "https://github.com/example/repo" }
         },
         {
             common: "Sentiment Analyzer",
@@ -68,7 +71,8 @@ export function ProjectShowcase() {
             photo: {
                 url: "https://images.unsplash.com/photo-1555421689-491a97ff2040?w=800&q=80",
             },
-            techStack: ["Python", "NLTK", "FastAPI", "React"]
+            techStack: ["Python", "NLTK", "FastAPI", "React"],
+            links: { live: "https://example.com/demo", github: "https://github.com/example/repo" }
         },
         {
             common: "Portfolio Builder",
@@ -84,7 +88,8 @@ export function ProjectShowcase() {
             photo: {
                 url: "https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?w=800&q=80",
             },
-            techStack: ["Next.js", "Framer Motion", "Tailwind CSS", "Vercel"]
+            techStack: ["Next.js", "Framer Motion", "Tailwind CSS", "Vercel"],
+            links: { live: "https://example.com/demo", github: "https://github.com/example/repo" }
         },
         {
             common: "Team Taskboard",
@@ -100,7 +105,8 @@ export function ProjectShowcase() {
             photo: {
                 url: "https://images.unsplash.com/photo-1484480974693-6ca0a78fb36b?w=800&q=80",
             },
-            techStack: ["Vue.js", "Firebase", "Pinia", "Chart.js"]
+            techStack: ["Vue.js", "Firebase", "Pinia", "Chart.js"],
+            links: { live: "https://example.com/demo", github: "https://github.com/example/repo" }
         },
         {
             common: "Image Classifier",
@@ -116,7 +122,8 @@ export function ProjectShowcase() {
             photo: {
                 url: "https://images.unsplash.com/photo-1555949963-aa79dcee981c?w=800&q=80",
             },
-            techStack: ["PyTorch", "OpenCV", "Docker", "Flask"]
+            techStack: ["PyTorch", "OpenCV", "Docker", "Flask"],
+            links: { live: "https://example.com/demo", github: "https://github.com/example/repo" }
         },
         {
             common: "Crypto Dashboard",
@@ -132,7 +139,8 @@ export function ProjectShowcase() {
             photo: {
                 url: "https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=800&q=80",
             },
-            techStack: ["React", "D3.js", "WebSockets", "Node.js"]
+            techStack: ["React", "D3.js", "WebSockets", "Node.js"],
+            links: { live: "https://example.com/demo", github: "https://github.com/example/repo" }
         },
         {
             common: "AI Assistant",
@@ -148,7 +156,8 @@ export function ProjectShowcase() {
             photo: {
                 url: "https://images.unsplash.com/photo-1587560699334-cc4ff634909a?w=800&q=80",
             },
-            techStack: ["n8n", "Google Gemini", "Pinecone", "Telegram API"]
+            techStack: ["n8n", "Google Gemini", "Pinecone", "Telegram API"],
+            links: { live: "https://example.com/demo", github: "https://github.com/example/repo" }
         }
     ];
 
