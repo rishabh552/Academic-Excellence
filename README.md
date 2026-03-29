@@ -1,145 +1,115 @@
-# Modern UI Experience
+# aqro for Students
 
-A fully responsive React UI page combining multiple advanced components and effects into a clean, modern, and smooth user interface.
+A premium academic project development service helping students excel in their technical submissions. From semester projects to final year dissertations, we deliver production-ready solutions with complete documentation.
 
-## Features
+**Live Site**: [student.aqro.in](https://student.aqro.in/)
 
-- **Animated Floating Background Paths**: Smooth animated floating SVG paths with Framer Motion
-- **Scroll-based Zoom Parallax**: Interactive image gallery with scroll-triggered scaling effects
-- **3D Shader Background**: Advanced Three.js shader animation with aurora effects
-- **Gradient Buttons**: Reusable button components with beautiful gradient styling
-- **Fully Responsive**: Built with Tailwind CSS for perfect display on all devices
-- **Smooth Animations**: Powered by Framer Motion for fluid, performant transitions
+## Who We Serve
 
-## Technologies
+- **Undergraduate Students** needing semester project submissions
+- **Final Year Students** requiring comprehensive capstone projects
+- **Master's/PhD Researchers** working on novel implementations
+- **Students** across Computer Science, IT, Data Science, and related fields
 
-- **React 18** - UI library
-- **TypeScript** - Type safety
-- **Framer Motion** - Animation library
-- **Three.js** - 3D graphics and shaders
-- **Tailwind CSS** - Utility-first CSS framework
-- **Vite** - Fast build tool
+## Services
+
+| Category | Technologies | Deliverables |
+|----------|-------------|--------------|
+| **Full-Stack Web Apps** | React, Next.js, MERN, Django | Responsive web applications with database integration |
+| **Machine Learning** | Scikit-learn, Pandas, NumPy | Predictive models, data analysis, model deployment |
+| **Deep Learning** | TensorFlow, PyTorch, CNNs, RNNs | Image recognition, pattern detection, neural networks |
+| **NLP Projects** | LLMs, Transformers, NLTK | Chatbots, sentiment analysis, text classification |
+| **Mobile Applications** | React Native, Flutter | Cross-platform iOS/Android apps |
+| **n8n Automation** | Workflow automation, API integrations | Custom business process automation |
+| **Custom Projects** | Based on your requirements | Tailored solutions for unique academic needs |
+
+## Pricing
+
+| Tier | Starting Price | Best For | Includes |
+|------|----------------|----------|----------|
+| **Basic** | ₹2,000 | Semester projects | Source code, documentation, setup guide, 3-day delivery |
+| **Professional** | ₹3,000 | Final year projects | Everything in Basic + project report, PPT, video walkthrough, priority support |
+| **Research** | ₹5,000+ | PhD/Custom work | Full package + novel algorithms, 1-on-1 explanations, conference-quality output |
+
+## Our Process
+
+1. **Submit Requirements** - Share your project vision, get a quote within 24 hours
+2. **Planning & Design** - Receive technical specs, wireframes, and milestone timeline
+3. **Development** - Watch weekly progress demos, comment in real-time
+4. **Quality Assurance** - Comprehensive testing with detailed QA reports
+5. **Review & Refinement** - Unlimited revisions until you're satisfied
+6. **Delivery & Support** - Complete handoff with 30 days of free support
+
+## What's Included
+
+- Complete, well-documented source code
+- Git version control
+- Setup and deployment instructions
+- Video walkthrough explaining the project
+- PPT presentation (Professional tier and above)
+- Project report (Professional tier and above)
+- 30-day post-delivery support
+
+## Tech Stack (Website)
+
+This website is built with modern web technologies:
+
+- **React 18** + **TypeScript** - Type-safe UI development
+- **Vite** - Lightning-fast build tool
+- **Tailwind CSS** - Utility-first styling
+- **Framer Motion** + **GSAP** - Fluid animations
 - **Radix UI** - Accessible component primitives
-- **Class Variance Authority** - Component variants
+- **React Router** - Client-side routing
+- **EmailJS** - Contact form integration
 
-## Getting Started
+## Getting Started (Development)
 
 ### Prerequisites
 
-- Node.js 18+ installed
-- npm or pnpm package manager
+- Node.js 18+
+- npm or pnpm
 
 ### Installation
 
-1. Install dependencies:
 ```bash
+# Install dependencies
 npm install
-```
 
-2. Start the development server:
-```bash
+# Start development server
 npm run dev
-```
 
-3. Open your browser and navigate to `http://localhost:5173`
-
-### Build for Production
-
-```bash
+# Build for production
 npm run build
-```
 
-The optimized production build will be in the `dist` folder.
-
-### Preview Production Build
-
-```bash
+# Preview production build
 npm run preview
 ```
+
+Open `http://localhost:5173` in your browser.
 
 ## Project Structure
 
 ```
-test/
-├── src/
-│   ├── components/
-│   │   ├── ui/
-│   │   │   ├── button.tsx           # Radix UI button component
-│   │   │   └── gradient-button.tsx   # Gradient styled button
-│   │   ├── background-paths.tsx      # Floating SVG paths animation
-│   │   ├── zoom-parallax.tsx         # Scroll-based parallax effect
-│   │   └── ano-ai.tsx               # Three.js shader background
-│   ├── lib/
-│   │   └── utils.ts                 # Utility functions
-│   ├── App.tsx                      # Main application component
-│   ├── main.tsx                     # Application entry point
-│   └── index.css                    # Global styles and Tailwind
-├── index.html                       # HTML template
-├── package.json                     # Dependencies and scripts
-├── tailwind.config.js              # Tailwind configuration
-├── tsconfig.json                   # TypeScript configuration
-└── vite.config.ts                  # Vite configuration
+src/
+├── components/          # Reusable UI components
+│   └── ui/              # Base UI primitives
+├── pages/               # Route pages
+│   ├── Home.tsx         # Landing page
+│   ├── Services.tsx     # Project categories
+│   ├── Process.tsx      # How we work
+│   ├── Pricing.tsx      # Pricing tiers
+│   ├── ProjectShowcase.tsx  # Portfolio
+│   ├── Contact.tsx      # Get in touch
+│   └── StartProject.tsx # Project submission
+├── context/             # React context providers
+├── lib/                 # Utility functions
+└── main.tsx             # App entry point
 ```
 
-## Component Overview
+## Contact
 
-### BackgroundPaths
-Full-screen animated floating SVG paths that create a dynamic, living background. Features letter-by-letter text animation and a glassmorphic CTA button.
-
-### ZoomParallax
-Interactive image gallery with scroll-based zoom and parallax effects. Supports up to 7 images with layered positioning.
-
-### AnoAI
-Full-screen Three.js shader background with animated aurora-like effects using fractional Brownian motion and color blending.
-
-### GradientButton
-Reusable button component with gradient styling, hover effects, and variant support using Class Variance Authority.
-
-## Customization
-
-### Colors
-Modify the color scheme in `tailwind.config.js` and `src/index.css` (CSS variables).
-
-### Images
-Update the `parallaxImages` array in `src/App.tsx` with your own image URLs.
-
-### Animations
-Adjust animation durations and easing in the component files:
-- `background-paths.tsx` - Path animations
-- `zoom-parallax.tsx` - Parallax scaling
-- `ano-ai.tsx` - Shader animation speed
-
-### Text Content
-Edit the text content in `src/App.tsx` to match your needs.
-
-## Performance Notes
-
-- The shader animation runs at 60fps but can be adjusted via the `iTime` increment in `ano-ai.tsx`
-- Images are lazy-loaded for optimal performance
-- Framer Motion animations are GPU-accelerated
-- Use production build for best performance
-
-## Browser Support
-
-- Chrome/Edge 90+
-- Firefox 88+
-- Safari 14+
-- Opera 76+
-
-## License
-
-MIT License - feel free to use this project for personal or commercial purposes.
-
-## Credits
-
-Built with modern web technologies:
-- [React](https://react.dev/)
-- [Framer Motion](https://www.framer.com/motion/)
-- [Three.js](https://threejs.org/)
-- [Tailwind CSS](https://tailwindcss.com/)
-- [Radix UI](https://www.radix-ui.com/)
+Ready to start your project? Visit our [Contact Page](/contact) or reach out directly.
 
 ---
 
-Enjoy building amazing user interfaces! 🚀
-
+© 2025 aqro
